@@ -21,7 +21,8 @@ import Button from '@mui/material/Button';
 import { useAPI } from '../context/mainContext';
 
 export default function AddExpense() {
-  const { addNewExpense, updateExpense, expensesType, selectedMonth } = useAPI();
+  const { addNewExpense, updateExpense, expensesType, selectedMonth } =
+    useAPI();
 
   const param = useParams();
   const navigate = useNavigate();
@@ -38,6 +39,10 @@ export default function AddExpense() {
   const [totalMonths, setTotalMonths] = useState(1);
 
   const arrTotalMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+  const filteredCategory = expensesType.filter(
+    (item) => item.label !== 'Cartão de Crédito' && item.label !== 'Filhos'
+  );
 
   async function getDate() {
     const shortDate = new Date(date).toISOString().substring(0, 10);
@@ -88,7 +93,9 @@ export default function AddExpense() {
         description,
         date: dayjs(date).toISOString(),
         year: splitedDate[4],
-        month: splitedDate[2].charAt(0).toUpperCase() + splitedDate[2].slice(1).toString(),
+        month:
+          splitedDate[2].charAt(0).toUpperCase() +
+          splitedDate[2].slice(1).toString(),
       },
       id
     );
@@ -111,7 +118,9 @@ export default function AddExpense() {
       description,
       date: dayjs(date).toISOString(),
       year: splitedDate[4],
-      month: splitedDate[2].charAt(0).toUpperCase() + splitedDate[2].slice(1).toString(),
+      month:
+        splitedDate[2].charAt(0).toUpperCase() +
+        splitedDate[2].slice(1).toString(),
       installment: totalMonths,
     });
     resetForm();
@@ -140,49 +149,57 @@ export default function AddExpense() {
   }, [type, description, value]);
 
   return (
-    <div className="form-container">
-      <FormControl sx={{ m: 2, width: 300 }} error={type.length === 0 && validate} size="small">
-        <InputLabel htmlFor="price-method-input">Tipo de gasto</InputLabel>
+    <div className='form-container'>
+      <FormControl
+        sx={{ m: 2, width: 300 }}
+        error={type.length === 0 && validate}
+        size='small'
+      >
+        <InputLabel htmlFor='price-method-input'>Tipo de gasto</InputLabel>
         <Select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          label="Tipo de gasto"
-          labelId="expense_type_id"
-          size="sm"
+          label='Tipo de gasto'
+          labelId='expense_type_id'
+          size='sm'
         >
-          {expensesType.map((item) => (
-            <MenuItem id="expense_type_item" key={item.id} value={item.label}>
+          {filteredCategory.map((item) => (
+            <MenuItem id='expense_type_item' key={item.id} value={item.label}>
               {item.label}
             </MenuItem>
           ))}
         </Select>
-        <FormHelperText>{type.length === 0 && validate ? 'Campo obrigatório' : ''}</FormHelperText>
+        <FormHelperText>
+          {type.length === 0 && validate ? 'Campo obrigatório' : ''}
+        </FormHelperText>
       </FormControl>
-      <FormControl sx={{ m: 2, width: 300 }} size="small">
+      <FormControl sx={{ m: 2, width: 300 }} size='small'>
         <TextField
-          id="description"
-          label="Descrição"
-          variant="outlined"
+          id='description'
+          label='Descrição'
+          variant='outlined'
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          helperText={description.length === 0 && validate ? 'Campo obrigatório' : ''}
+          helperText={
+            description.length === 0 && validate ? 'Campo obrigatório' : ''
+          }
           error={description.length === 0 && validate}
         />
       </FormControl>
-      <FormControl sx={{ m: 2, width: 300 }} size="small">
+      <FormControl sx={{ m: 2, width: 300 }} size='small'>
         <NumericFormat
-          key="number_format_value"
+          key='number_format_value'
           value={value}
-          id="monthlyContract"
-          name="monthlyBaseline"
-          label="Valor"
-          variant="outlined"
+          id='monthlyContract'
+          name='monthlyBaseline'
+          label='Valor'
+          variant='outlined'
           customInput={TextField}
           thousandSeparator
           decimalScale={2}
           fixedDecimalScale
-          prefix="R$ "
-          type="text"
+          prefix='R$ '
+          type='text'
           onValueChange={(values) => {
             const { floatValue } = values;
             setValue(floatValue);
@@ -195,12 +212,12 @@ export default function AddExpense() {
           error={value.length === 0 && validate}
         />
       </FormControl>
-      <FormControl sx={{ m: 2, width: 300 }} size="small">
+      <FormControl sx={{ m: 2, width: 300 }} size='small'>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DemoContainer components={['DateField', 'DatePicker']}>
             <DatePicker
               label={!extraFields ? 'Data da despesa' : 'Primeiro mês debitado'}
-              format="DD/MM/YYYY"
+              format='DD/MM/YYYY'
               defaultValue={dayjs(date)}
               onChange={(newValue) => setDate(new Date(newValue).toISOString())}
             />
@@ -209,14 +226,14 @@ export default function AddExpense() {
       </FormControl>
 
       <Box display={!extraFields ? 'none' : ''}>
-        <FormControl sx={{ m: 2, width: 300 }} size="small">
-          <InputLabel htmlFor="total-months-html">Total de meses</InputLabel>
+        <FormControl sx={{ m: 2, width: 300 }} size='small'>
+          <InputLabel htmlFor='total-months-html'>Total de meses</InputLabel>
           <Select
             value={totalMonths}
             onChange={(e) => setTotalMonths(e.target.value)}
-            label="Total de meses"
-            labelId="total-months-id"
-            size="sm"
+            label='Total de meses'
+            labelId='total-months-id'
+            size='sm'
           >
             {arrTotalMonths.map((item) => (
               <MenuItem key={`item-options-months=${v4()}`} value={item}>
@@ -232,27 +249,36 @@ export default function AddExpense() {
 
       <FormControl sx={{ m: 2, width: 300 }}>
         <FormControlLabel
-          control={<Checkbox checked={ignore} onChange={() => setIgnore(!ignore)} />}
-          label="Ignorar transação"
+          control={
+            <Checkbox checked={ignore} onChange={() => setIgnore(!ignore)} />
+          }
+          label='Ignorar transação'
         />
       </FormControl>
 
       <Box display={param.id.length === 24 ? 'none' : ''}>
-        <FormControl sx={{ m: 2, width: 300 }} size="small">
+        <FormControl sx={{ m: 2, width: 300 }} size='small'>
           <FormControlLabel
             control={
-              <Checkbox checked={extraFields} onChange={() => setExtraFields(!extraFields)} />
+              <Checkbox
+                checked={extraFields}
+                onChange={() => setExtraFields(!extraFields)}
+              />
             }
-            label="Compra parcelada"
+            label='Compra parcelada'
           />
         </FormControl>
       </Box>
-      <FormControl sx={{ m: 2, width: 300 }} size="small">
+      <FormControl sx={{ m: 2, width: 300 }} size='small'>
         <Button
           disabled={disableAddBtn}
-          variant="contained"
-          color="success"
-          onClick={() => (param.id.length === 24 ? handleUpdateExpense() : handleAddNewExpense())}
+          variant='contained'
+          color='success'
+          onClick={() =>
+            param.id.length === 24
+              ? handleUpdateExpense()
+              : handleAddNewExpense()
+          }
         >
           {param.id.length === 24 ? 'Atualizar despesa' : 'Salvar despesa'}
         </Button>

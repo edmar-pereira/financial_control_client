@@ -17,6 +17,8 @@ export default function Main() {
     currentCategory,
   } = useAPI();
 
+  const filteredCategory = arrCategory.filter(item => item !== 'Cartão de Crédito' && item !== 'Filhos')
+
   const { month, year, expenses } = selectedMonth;
 
   const handleChange = (e) => {
@@ -43,7 +45,7 @@ export default function Main() {
               label="Selecionar mês"
             />
             <SelectCategory
-              arrCategory={arrCategory}
+              arrCategory={filteredCategory}
               changeCategory={changeCategory}
               currentCategory={currentCategory}
             />

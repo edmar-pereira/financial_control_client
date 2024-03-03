@@ -19,10 +19,10 @@ export function APIContextProvider({ children }) {
   const expensesType = [
     { id: 'all_categories', label: 'Todas', color: 'rgba(15, 99, 71, 0.6)' },
     { id: 'bars_and_restaurants', label: 'Bares e Restaurantes', color: 'rgba(115, 99, 71, 0.6)' },
-    // { id: 'credit_card', label: 'Cartão de Crédito', color: 'rgba(255, 69, 0, 0.6)' },
+    { id: 'credit_card', label: 'Cartão de Crédito', color: 'rgba(255, 69, 0, 0.6)' },
     { id: 'personal_cares', label: 'Cuidados Pessoais', color: 'rgba(175, 238, 238, 0.6)' },
     { id: 'education', label: 'Educação', color: 'rgba(123, 132, 218, 0.6)' },
-    // { id: 'children', label: 'Filhos', color: 'rgba(32, 178, 170, 0.6)' },
+    { id: 'children', label: 'Filhos', color: 'rgba(32, 178, 170, 0.6)' },
     { id: 'financing', label: 'Financiamento', color: 'rgba(173, 255, 47, 0.6)' },
     { id: 'miscellaneous_purchases', label: 'Gastos Diversos', color: 'rgba(255, 69, 0, 0.6)'},
     { id: 'essential_expenses', label: 'Gastos Essenciais', color: 'rgba(255, 215, 0, 0.6)' },

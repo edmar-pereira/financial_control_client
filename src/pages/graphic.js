@@ -20,6 +20,8 @@ function Graphic() {
 
   const { month, year, expenses, totalExp, totalRev } = selectedMonth;
 
+  const filteredCategory = arrCategory.filter(item => item !== 'Cartão de Crédito' && item !== 'Filhos')
+
   const handleChange = (e) => {
     handleChangeMonth(e.target.value);
   };
@@ -135,7 +137,7 @@ function Graphic() {
         />
 
         <SelectCategory
-          arrCategory={arrCategory}
+          arrCategory={filteredCategory}
           changeCategory={changeCategory}
           currentCategory={currentCategory}
           label="Selecionar Categoria"
