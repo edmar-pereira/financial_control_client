@@ -17,9 +17,11 @@ export default function Main() {
     currentCategory,
   } = useAPI();
 
-  const filteredCategory = arrCategory.filter(item => item !== 'Cartão de Crédito' && item !== 'Filhos')
+  const filteredCategory = arrCategory.filter(
+    (item) => item !== 'Cartão de Crédito' && item !== 'Filhos'
+  );
 
-  const { month, year, expenses } = selectedMonth;
+  const { month, year, expenses, pageInfo } = selectedMonth;
 
   const handleChange = (e) => {
     handleChangeMonth(e.target.value);
@@ -31,27 +33,44 @@ export default function Main() {
 
   return (
     <div>
-      {selectedMonth.length === 0 ? (
-        <div style={{ height: '200px', textAlign: 'center', width: '100%', marginTop: '50px' }}>
-          <Typography variant="body2">Não foi possível carregar suas finanças</Typography>
+      <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+        <SelectMonth
+          arrMonths={arrMonths}
+          handleChange={handleChange}
+          currentMonth={`${month} - ${year}`}
+          label='Selecionar mês'
+        />
+        <SelectCategory
+          arrCategory={filteredCategory}
+          changeCategory={changeCategory}
+          currentCategory={currentCategory}
+        />
+      </div>
+      {expenses?.length === 0 ? (
+        <div
+          style={{
+            height: '200px',
+            textAlign: 'center',
+            width: '100%',
+            marginTop: '50px',
+          }}
+        >
+          <Typography variant='body2'>
+            Não foi possível carregar suas finanças
+          </Typography>
         </div>
       ) : (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-            <SelectMonth
-              arrMonths={arrMonths}
-              handleChange={handleChange}
-              currentMonth={`${month} - ${year}`}
-              label="Selecionar mês"
-            />
-            <SelectCategory
-              arrCategory={filteredCategory}
-              changeCategory={changeCategory}
-              currentCategory={currentCategory}
-            />
-          </div>
-          <DateBox selectedDate={`${month} - ${year}`} />
-          <List sx={{ bgcolor: 'background.paper', maxWidth: '650px', margin: 'auto' }}>
+          <DateBox
+            info={pageInfo !== undefined ? `${pageInfo}` : `${month} - ${year}`}
+          />
+          <List
+            sx={{
+              bgcolor: 'background.paper',
+              maxWidth: '650px',
+              margin: 'auto',
+            }}
+          >
             {expenses?.map((value) => {
               return <CardComponent data={value} key={value._id} />;
             })}

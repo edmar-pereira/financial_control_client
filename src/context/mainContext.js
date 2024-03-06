@@ -78,9 +78,9 @@ export function APIContextProvider({ children }) {
   ];
 
   async function fetchData(params) {
-    console.log(params);
+    // console.log(params);
     const { year, month, category } = params;
-    setLoading(true);
+    // setLoading(true);
     const { data } = await axios({
       method: 'get',
       url: `${process.env.REACT_APP_BACKEND_URL}/api/data/getData`,
@@ -97,8 +97,8 @@ export function APIContextProvider({ children }) {
         }
       });
     return data;
-    setSelectedMonth(data);
-    setLoading(false);
+    // setSelectedMonth(data);
+    // setLoading(false);
   }
 
   async function addNewExpense(obj) {
@@ -122,19 +122,22 @@ export function APIContextProvider({ children }) {
   }
 
   async function updateExpense(obj, id) {
+    setLoading(true);
     await axios
       .put(`${process.env.REACT_APP_BACKEND_URL}/api/data/update/${id}`, obj)
       .then((response) => {
-        // console.log(response)
         if (response.status === 200) {
           fetchData({
             year: obj.year,
             month: obj.month,
-          });
-          setMessage({
-            severity: 'info',
-            content: 'Atualizado com sucesso!',
-            show: true,
+          }).then((updatedData) => {
+            setSelectedMonth(updatedData);
+            setLoading(false);
+            setMessage({
+              severity: 'info',
+              content: 'Atualizado com sucesso!',
+              show: true,
+            });
           });
         } else {
           setMessage({
@@ -142,41 +145,44 @@ export function APIContextProvider({ children }) {
             content: 'Erro ao atualizar despesa',
             show: true,
           });
+          setLoading(false);
         }
       });
   }
 
-  const handleLoadData = () => {
+  const handleLoadData = async () => {
     setLoading(true);
-    axios({
+
+    // set month object
+    await axios({
       method: 'get',
       url: `${process.env.REACT_APP_BACKEND_URL}/api/data/getMonths`,
-    })
-      .then((response) => {
-        if (response.data.status === 200) {
-          setArrMonths(response.data.arrMonths);
-        }
-        return response.data;
-      })
-      .then((response) => {
-        if (response.status === 200) {
-          const arrDate = new Date()
-            .toLocaleString('pt-BR', {
-              month: 'long',
-              year: 'numeric',
-            })
-            .split(' ');
+    }).then((response) => {
+      if (response.data.status === 200) {
+        setArrMonths(response.data.arrMonths);
+      }
+    });
 
-          fetchData({
-            year: arrDate[2],
-            month: arrDate[0][0].toLocaleUpperCase() + arrDate[0].substring(1),
-          });
-        }
+    // set category object
+    const result = expensesType.map((a) => a.label);
+    setArrCategory(result);
+
+    //set expenses category
+    const currentArrDate = new Date()
+      .toLocaleString('pt-BR', {
+        month: 'long',
+        year: 'numeric',
       })
-      .then(() => {
-        const result = expensesType.map((a) => a.label);
-        setArrCategory(result);
-        setLoading(false);
+      .split(' ');
+
+    await fetchData({
+      year: currentArrDate[2],
+      month:
+        currentArrDate[0][0].toLocaleUpperCase() +
+        currentArrDate[0].substring(1),
+    })
+      .then((expenseObj) => {
+        setSelectedMonth(expenseObj);
       })
       .catch(function err(error) {
         setLoading(false);
@@ -191,27 +197,38 @@ export function APIContextProvider({ children }) {
           throw error.response;
         }
       });
+
+    setLoading(false);
   };
 
-  const handleChangeCategory = (category) => {
+  const handleChangeCategory = async (category) => {
     const filteredCategory = expensesType.filter(
       (item) => item.label === category
     );
-    fetchData({
+    await fetchData({
       year: selectedMonth.year,
       month: selectedMonth.month,
       category:
         filteredCategory[0].id !== 'all_categories'
           ? filteredCategory[0].id
           : null,
+    }).then((changedCategory) => {
+      setSelectedMonth(changedCategory);
+      setCurrentCategory(category);
+      setLoading(false);
     });
-    setCurrentCategory(category);
   };
 
   const handleChangeMonth = async (month) => {
+    setLoading(true);
     const dateObj = month.split('-').map((item) => item.trim());
-    fetchData({ year: dateObj[1], month: dateObj[0] });
-    setCurrentCategory('');
+    await fetchData({ year: dateObj[1], month: dateObj[0] }).then(
+      (expenseForMonth) => {
+        setSelectedMonth(expenseForMonth);
+        setLoading(false);
+        setCurrentCategory('');
+      }
+    );
   };
 
   const handleChangeYear = async (year) => {
@@ -227,6 +244,9 @@ export function APIContextProvider({ children }) {
           fetchData({
             year,
             month,
+          }).then((updatedData) => {
+            setSelectedMonth(updatedData);
+            setLoading(false);
           });
 
           setMessage({
@@ -245,8 +265,33 @@ export function APIContextProvider({ children }) {
   }
 
   const handleFilter = async (searchItem) => {
-    const val = await fetchData({});
-    console.log(val);
+    if (searchItem === '') {
+      handleLoadData();
+    } else {
+      setLoading(true);
+      const searchResult = await fetchData({}).then((e) => {
+        return e.expenses.filter(
+          (item) =>
+            item.date.toString().includes(searchItem) ||
+            item.description?.toString().toLowerCase().includes(searchItem) ||
+            item.month?.toString().toLowerCase().includes(searchItem) ||
+            item.type?.toString().toLowerCase().includes(searchItem)
+        );
+      });
+
+      const categorySum = searchResult.reduce((accumulator, object) => {
+        return accumulator + object.value;
+      }, 0);
+
+      setSelectedMonth({
+        difference: 0,
+        expenses: searchResult,
+        totalExp: categorySum,
+        totalRev: 0,
+        pageInfo: 'Resultado da pesquisa',
+      });
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

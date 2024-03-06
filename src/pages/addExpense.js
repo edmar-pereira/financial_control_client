@@ -28,7 +28,7 @@ export default function AddExpense() {
   const navigate = useNavigate();
 
   const [type, setType] = useState('');
-  const [value, setValue] = useState('');
+  const [expenseValue, setExpenseValue] = useState(0);
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date().toISOString());
   const [ignore, setIgnore] = useState(false);
@@ -68,7 +68,7 @@ export default function AddExpense() {
 
   const resetForm = () => {
     setType('');
-    setValue('');
+    setExpenseValue(0);
     setDescription('');
     // setDate(new Date().toISOString());
     setIgnore(false);
@@ -88,7 +88,7 @@ export default function AddExpense() {
       {
         type,
         avatarType: filteredType[0].id,
-        value,
+        value: expenseValue,
         ignore,
         description,
         date: dayjs(date).toISOString(),
@@ -99,8 +99,8 @@ export default function AddExpense() {
       },
       id
     );
+    // resetForm();
     navigate('/');
-    resetForm();
   };
 
   const handleAddNewExpense = async () => {
@@ -113,7 +113,7 @@ export default function AddExpense() {
     addNewExpense({
       type,
       avatarType: filteredType[0].id,
-      value,
+      value: expenseValue,
       ignore,
       description,
       date: dayjs(date).toISOString(),
@@ -132,7 +132,7 @@ export default function AddExpense() {
     resetForm();
     if (data !== undefined && data.length > 0) {
       setType(data[0].type);
-      setValue(data[0].value);
+      setExpenseValue(data[0].value);
       setDescription(data[0].description);
       setDate(data[0].date);
       setIgnore(data[0].ignore);
@@ -141,12 +141,12 @@ export default function AddExpense() {
   }, [param.id]);
 
   useEffect(() => {
-    if (type.length > 0 && description.length > 0 && value > 0) {
+    if (type.length > 0 && description.length > 0 && expenseValue > 0) {
       setDisableAddBtn(false);
     } else {
       setDisableAddBtn(true);
     }
-  }, [type, description, value]);
+  }, [type, description, expenseValue]);
 
   return (
     <div className='form-container'>
@@ -189,9 +189,9 @@ export default function AddExpense() {
       <FormControl sx={{ m: 2, width: 300 }} size='small'>
         <NumericFormat
           key='number_format_value'
-          value={value}
-          id='monthlyContract'
-          name='monthlyBaseline'
+          value={expenseValue}
+          id='value'
+          name='value'
           label='Valor'
           variant='outlined'
           customInput={TextField}
@@ -202,14 +202,14 @@ export default function AddExpense() {
           type='text'
           onValueChange={(values) => {
             const { floatValue } = values;
-            setValue(floatValue);
+            setExpenseValue(floatValue);
           }}
           isAllowed={(values) => {
             const { floatValue } = values;
             return floatValue >= 0 && floatValue <= 100000000000;
           }}
-          helperText={value.length === 0 && validate ? 'Campo obrigatório' : ''}
-          error={value.length === 0 && validate}
+          helperText={expenseValue === 0 && validate ? 'Campo obrigatório' : ''}
+          error={expenseValue === 0 && validate}
         />
       </FormControl>
       <FormControl sx={{ m: 2, width: 300 }} size='small'>

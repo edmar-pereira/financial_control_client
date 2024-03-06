@@ -5,12 +5,12 @@ import Divider from '@mui/material/Divider';
 
 import PropTypes from 'prop-types';
 
-export default function DateInfo({ selectedDate }) {
+export default function DateInfo({ info }) {
   return (
     <Box sx={{ width: '100%', maxWidth: '100%' }}>
       <Divider>
         <Typography variant="h5" gutterBottom>
-          {selectedDate}
+          {info}
         </Typography>
       </Divider>
     </Box>
@@ -18,5 +18,5 @@ export default function DateInfo({ selectedDate }) {
 }
 
 DateInfo.propTypes = {
-  selectedDate: PropTypes.string.isRequired,
+  info: PropTypes.string.isRequired,
 };
