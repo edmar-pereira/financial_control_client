@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import { styled, alpha } from '@mui/material/styles';
@@ -9,12 +9,11 @@ import Typography from '@mui/material/Typography';
 import Menu from '@mui/material/Menu';
 import MenuIcon from '@mui/icons-material/Menu';
 import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
+import { useAPI } from '../../context/mainContext';
 import Button from '@mui/material/Button';
 import SearchIcon from '@mui/icons-material/Search';
 import InputBase from '@mui/material/InputBase';
 import MenuItem from '@mui/material/MenuItem';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 
 const pages = ['Home', 'Adicionar', 'Grafico'];
 
@@ -26,11 +25,6 @@ const Search = styled('div')(({ theme }) => ({
     backgroundColor: alpha(theme.palette.common.white, 0.25),
   },
   marginLeft: 0,
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    marginLeft: theme.spacing(1),
-    width: 'auto',
-  },
 }));
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
@@ -45,35 +39,64 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
-  width: '100%',
   '& .MuiInputBase-input': {
     padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
-    [theme.breakpoints.up('sm')]: {
-      width: '12ch',
-      '&:focus': {
-        width: '20ch',
-      },
-    },
   },
 }));
 
 function Header() {
+  const { handleFilter } = useAPI();
   const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [pageWidth, setPageWidth] = useState(0);
+  const headerRef = useRef(null);
+  const myRef = useRef(null);
+
+  const [clickedOutside, setClickedOutside] = useState(true);
+
+  const handleClickOutside = (e) => {
+    if (myRef.current && !myRef.current.contains(e.target)) {
+      setClickedOutside(true);
+    } else {
+      setClickedOutside(false);
+    }
+  };
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      console.log(searchTerm);
-      // Send Axios request here
-    }, 1500);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  });
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm]);
+  useEffect(() => {
+    const handleResize = () => {
+      setPageWidth(headerRef.current.offsetWidth);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log(clickedOutside);
+    clickedOutside === false
+      ? setPageWidth(400)
+      : setPageWidth(headerRef.current.offsetWidth);
+
+    if (searchTerm !== '') {
+      const delayDebounceFn = setTimeout(() => {
+        handleFilter(searchTerm);
+      }, 1500);
+
+      return () => clearTimeout(delayDebounceFn);
+    }
+  }, [searchTerm, clickedOutside]);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -100,11 +123,8 @@ function Header() {
 
   return (
     <AppBar position='static'>
-      <Container maxWidth='xl'>
+      <Container maxWidth='xl' ref={headerRef}>
         <Toolbar disableGutters>
-          <AttachMoneyIcon
-            sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }}
-          />
           <Typography
             variant='h6'
             noWrap
@@ -117,7 +137,7 @@ function Header() {
               textDecoration: 'none',
             }}
           >
-            Controle Financeiro
+            FInanceiro
           </Typography>
 
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -156,9 +176,6 @@ function Header() {
               ))}
             </Menu>
           </Box>
-          <AttachMoneyIcon
-            sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }}
-          />
           <Typography
             variant='h5'
             noWrap
@@ -172,7 +189,7 @@ function Header() {
               textDecoration: 'none',
             }}
           >
-            Controle Financeiro
+            FInanceiro
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page) => (
@@ -190,9 +207,12 @@ function Header() {
               <SearchIcon />
             </SearchIconWrapper>
             <StyledInputBase
-              placeholder='Search…'
+              placeholder={pageWidth >= 400 ? 'Search…' : ''}
               inputProps={{ 'aria-label': 'search' }}
               onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ width: pageWidth >= 400 ? '200px' : '50px' }}
+              ref={myRef}
+              onClick={handleClickOutside}
             />
           </Search>
         </Toolbar>
