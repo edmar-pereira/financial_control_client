@@ -84,7 +84,6 @@ function Header() {
   }, []);
 
   useEffect(() => {
-    console.log(clickedOutside);
     clickedOutside === false
       ? setPageWidth(400)
       : setPageWidth(headerRef.current.offsetWidth);
