@@ -20,6 +20,33 @@ import Button from '@mui/material/Button';
 
 import { useAPI } from '../context/mainContext';
 
+const NumericFormatCustom = React.forwardRef(function NumericFormatCustom(
+  props,
+  ref
+) {
+  const { onChange, ...other } = props;
+
+  return (
+    <NumericFormat
+      {...other}
+      getInputRef={ref}
+      onValueChange={(values) => {
+        onChange({
+          target: {
+            name: props.name,
+            value: values.value,
+          },
+        });
+      }}
+      thousandSeparator='.'
+      decimalSeparator=','
+      decimalScale={2}
+      fixedDecimalScale
+      prefix='R$ '
+    />
+  );
+});
+
 export default function AddExpense() {
   const { addNewExpense, updateExpense, expensesType, selectedMonth } =
     useAPI();
@@ -187,30 +214,42 @@ export default function AddExpense() {
         />
       </FormControl>
       <FormControl sx={{ m: 2, width: 300 }} size='small'>
-        <NumericFormat
-          key='number_format_value'
-          value={expenseValue}
-          id='value'
-          name='value'
+        <TextField
           label='Valor'
+          value={expenseValue}
+          onChange={(e) => setExpenseValue(e.target.value)}
+          onFocus={(e) => e.target.select()}
+          name='set-expense-value'
+          id='expense-value'
+          InputProps={{
+            inputComponent: NumericFormatCustom,
+          }}
           variant='outlined'
-          customInput={TextField}
-          thousandSeparator
-          decimalScale={2}
-          fixedDecimalScale
-          prefix='R$ '
-          type='text'
-          onValueChange={(values) => {
-            const { floatValue } = values;
-            setExpenseValue(floatValue);
-          }}
-          isAllowed={(values) => {
-            const { floatValue } = values;
-            return floatValue >= 0 && floatValue <= 100000000000;
-          }}
-          helperText={expenseValue === 0 && validate ? 'Campo obrigatório' : ''}
-          error={expenseValue === 0 && validate}
         />
+        {/* <NumericFormat
+        //   key='number_format_value'
+        //   value={expenseValue}
+        //   id='value'
+        //   name='value'
+        //   label='Valor'
+        //   variant='outlined'
+        //   customInput={TextField}
+        //   thousandSeparator
+        //   decimalScale={2}
+        //   fixedDecimalScale
+        //   prefix='R$ '
+        //   type='text'
+        //   onValueChange={(values) => {
+        //     const { floatValue } = values;
+        //     setExpenseValue(floatValue);
+        //   }}
+        //   isAllowed={(values) => {
+        //     const { floatValue } = values;
+        //     return floatValue >= 0 && floatValue <= 100000000000;
+        //   }}
+        //   helperText={expenseValue === 0 && validate ? 'Campo obrigatório' : ''}
+        //   error={expenseValue === 0 && validate}
+    // />*/}
       </FormControl>
       <FormControl sx={{ m: 2, width: 300 }} size='small'>
         <LocalizationProvider dateAdapter={AdapterDayjs}>

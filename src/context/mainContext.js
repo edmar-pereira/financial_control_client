@@ -269,28 +269,30 @@ export function APIContextProvider({ children }) {
       handleLoadData();
     } else {
       setLoading(true);
-      const searchResult = await fetchData({}).then((e) => {
-        return e.expenses.filter(
-          (item) =>
-            item.date.toString().includes(searchItem) ||
-            item.description?.toString().toLowerCase().includes(searchItem) ||
-            item.month?.toString().toLowerCase().includes(searchItem) ||
-            item.type?.toString().toLowerCase().includes(searchItem)
-        );
-      });
+      await fetchData({})
+        .then((e) => {
+          return e.expenses.filter(
+            (item) =>
+              item.date.toString().includes(searchItem) ||
+              item.description?.toString().toLowerCase().includes(searchItem) ||
+              item.month?.toString().toLowerCase().includes(searchItem) ||
+              item.type?.toString().toLowerCase().includes(searchItem)
+          );
+        })
+        .then((filteredValue) => {
+          const categorySum = filteredValue.reduce((accumulator, object) => {
+            return accumulator + object.value;
+          }, 0);
 
-      const categorySum = searchResult.reduce((accumulator, object) => {
-        return accumulator + object.value;
-      }, 0);
-
-      setSelectedMonth({
-        difference: 0,
-        expenses: searchResult,
-        totalExp: categorySum,
-        totalRev: 0,
-        pageInfo: 'Resultado da pesquisa',
-      });
-      setLoading(false);
+          setSelectedMonth({
+            difference: 0,
+            expenses: filteredValue,
+            totalExp: categorySum,
+            totalRev: 0,
+            pageInfo: 'Resultado da pesquisa',
+          });
+          setLoading(false);
+        });
     }
   };
 
