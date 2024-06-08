@@ -41,7 +41,7 @@ export default function Footer() {
     >
       <Container>
         <Grid container direction="row" alignItems="center">
-          <Grid item xs={4} style={{ padding: 10, textAlign: 'center' }}>
+          <Grid item xs={4} style={{ padding: 5, textAlign: 'center' }}>
             <Typography
               color="#fff"
               variant="subtitle1"
@@ -50,7 +50,7 @@ export default function Footer() {
               {unique.length > 1 ? `Receita: ${MoneyFormat(totalRev)}` : null}
             </Typography>
           </Grid>
-          <Grid item xs={4} style={{ padding: 10, textAlign: 'center' }}>
+          <Grid item xs={4} style={{ padding: 5, textAlign: 'center' }}>
             <Typography
               color="#fff"
               variant="subtitle1"
@@ -59,7 +59,7 @@ export default function Footer() {
               {unique.length > 0 ? `Gasto: ${MoneyFormat(totalExp)}` : null}
             </Typography>
           </Grid>
-          <Grid item xs={4} style={{ padding: 10, textAlign: 'center' }}>
+          <Grid item xs={4} style={{ padding: 5, textAlign: 'center' }}>
             <Typography
               color="#fff"
               variant="subtitle1"

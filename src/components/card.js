@@ -24,7 +24,7 @@ export default function CardComponent({ data }) {
   }
 
   function GetColor(category) {
-    const colorObj = expensesType.filter((item) => item.id === category );
+    const colorObj = expensesType.filter((item) => item.id === category);
     return colorObj[0].color;
   }
 
@@ -40,16 +40,19 @@ export default function CardComponent({ data }) {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, maxWidth: 600 }} alignItems="center">
+    <Box sx={{ flexGrow: 1 }} alignItems='center'>
       <List>
         <ListItem
-          style={{ backgroundColor: GetColor(data.avatarType) }}
+          style={{
+            backgroundColor: GetColor(data.avatarType),
+            paddingLeft: '5px',
+          }}
           disabled={data?.ignore}
           secondaryAction={
             <div>
               <IconButton
-                edge="end"
-                aria-label="Edit"
+                edge='end'
+                aria-label='Edit'
                 id={data._id}
                 onClick={() => {
                   navigate(`add_expense/${data._id}`);
@@ -58,8 +61,8 @@ export default function CardComponent({ data }) {
                 <EditIcon />
               </IconButton>
               <IconButton
-                edge="end"
-                aria-label="Delete"
+                edge='end'
+                aria-label='Delete'
                 id={data._id}
                 onClick={(e) => handleDelete(e.currentTarget.id)}
               >
@@ -74,6 +77,8 @@ export default function CardComponent({ data }) {
             primary={`${data.description} - ${MoneyFormat(data.value)}`}
             secondary={`${data.type} - ${DateFormat(data.date)}${
               data?.ignore ? ' - Ignorado' : ' '
+            }  ${
+              data?.installments !== undefined ? ' - ' + data?.installments : ''
             }`}
           />
         </ListItem>
