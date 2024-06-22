@@ -14,6 +14,7 @@ import Button from '@mui/material/Button';
 import SearchIcon from '@mui/icons-material/Search';
 import InputBase from '@mui/material/InputBase';
 import MenuItem from '@mui/material/MenuItem';
+import Paper from '@mui/material/Paper';
 
 const pages = ['Home', 'Adicionar', 'Grafico'];
 
@@ -50,52 +51,8 @@ function Header() {
   const { handleFilter } = useAPI();
   const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [pageWidth, setPageWidth] = useState(0);
   const headerRef = useRef(null);
-  const myRef = useRef(null);
-
-  const [clickedOutside, setClickedOutside] = useState(true);
-
-  const handleClickOutside = (e) => {
-    if (myRef.current && !myRef.current.contains(e.target)) {
-      setClickedOutside(true);
-    } else {
-      setClickedOutside(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      setPageWidth(headerRef.current.offsetWidth);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  useEffect(() => {
-    clickedOutside === false
-      ? setPageWidth(400)
-      : setPageWidth(headerRef.current.offsetWidth);
-
-    if (searchTerm !== '') {
-      const delayDebounceFn = setTimeout(() => {
-        handleFilter(searchTerm);
-      }, 1500);
-
-      return () => clearTimeout(delayDebounceFn);
-    }
-  }, [searchTerm, clickedOutside]);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -119,6 +76,11 @@ function Header() {
     }
     setAnchorElNav(null);
   };
+
+  const handleFilterCurrent = () => {
+    handleFilter(searchTerm)
+    setSearchTerm('')
+  }
 
   return (
     <AppBar position='static'>
@@ -201,19 +163,25 @@ function Header() {
               </Button>
             ))}
           </Box>
-          <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder={pageWidth >= 400 ? 'Search…' : ''}
-              inputProps={{ 'aria-label': 'search' }}
+          <Paper
+            component='form'
+            sx={{
+              p: '2px 4px',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <InputBase
+              sx={{ ml: 1, flex: 1 }}
+              placeholder='Pesquisa'
+              inputProps={{ 'aria-label': 'pesquisa' }}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: pageWidth >= 400 ? '200px' : '50px' }}
-              ref={myRef}
-              onClick={handleClickOutside}
+              value={searchTerm}
             />
-          </Search>
+            <IconButton type='button' sx={{ p: '10px' }} aria-label='pesquisa' onClick={() => handleFilterCurrent()}>
+              <SearchIcon />
+            </IconButton>
+          </Paper>
         </Toolbar>
       </Container>
     </AppBar>
