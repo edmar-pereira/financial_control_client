@@ -168,7 +168,8 @@ function Header() {
             sx={{
               p: '2px 4px',
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
+              width: 150
             }}
           >
             <InputBase
