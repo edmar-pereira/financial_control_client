@@ -9,13 +9,17 @@ export default function DateInfo({ info }) {
   return (
     <Box sx={{ width: '100%', maxWidth: '100%' }}>
       <Divider>
-        <Typography variant="h5" gutterBottom>
+        <Typography variant='h5' gutterBottom>
           {info}
         </Typography>
       </Divider>
     </Box>
   );
 }
+
+DateInfo.defaultProps = {
+  info: '',
+};
 
 DateInfo.propTypes = {
   info: PropTypes.string.isRequired,

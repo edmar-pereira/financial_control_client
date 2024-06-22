@@ -5,7 +5,10 @@ import { Chart as ChartJS } from 'chart.js/auto';
 import PropTypes from 'prop-types';
 
 export default function BarChart({ chartData }) {
-  return <Bar data={chartData} />;
+  const options = {
+    indexAxis: 'y',
+  };
+  return <Bar data={chartData} options={options} />;
 }
 
 BarChart.propTypes = {
