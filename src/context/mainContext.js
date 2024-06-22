@@ -265,35 +265,27 @@ export function APIContextProvider({ children }) {
   }
 
   const handleFilter = async (searchItem) => {
-    if (searchItem === '') {
-      handleLoadData();
-    } else {
-      setLoading(true);
-      await fetchData({})
-        .then((e) => {
-          return e.expenses.filter(
-            (item) =>
-              item.date.toString().includes(searchItem) ||
-              item.description?.toString().toLowerCase().includes(searchItem) ||
-              item.month?.toString().toLowerCase().includes(searchItem) ||
-              item.type?.toString().toLowerCase().includes(searchItem)
-          );
-        })
-        .then((filteredValue) => {
-          const categorySum = filteredValue.reduce((accumulator, object) => {
-            return accumulator + object.value;
-          }, 0);
+    setLoading(true);
+    await fetchData({})
+      .then((e) => {
+        return e.expenses.filter((item) =>
+          item.description?.toString().toLowerCase().includes(searchItem)
+        );
+      })
+      .then((filteredValue) => {
+        const categorySum = filteredValue.reduce((accumulator, object) => {
+          return accumulator + object.value;
+        }, 0);
 
-          setSelectedMonth({
-            difference: 0,
-            expenses: filteredValue,
-            totalExp: categorySum,
-            totalRev: 0,
-            pageInfo: 'Resultado da pesquisa',
-          });
-          setLoading(false);
+        setSelectedMonth({
+          difference: 0,
+          expenses: filteredValue,
+          totalExp: categorySum,
+          totalRev: 0,
+          pageInfo: 'Resultado da pesquisa',
         });
-    }
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
