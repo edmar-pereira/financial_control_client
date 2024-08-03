@@ -236,7 +236,9 @@ export function APIContextProvider({ children }) {
     setCurrentCategory('');
   };
 
-  async function deleteExpense(id, month, year) {
+  async function deleteExpense(id) {
+    const { month, year } = selectedMonth;
+
     await axios
       .delete(`${process.env.REACT_APP_BACKEND_URL}/api/data/delete/${id}`)
       .then((response) => {

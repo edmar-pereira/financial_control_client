@@ -6,17 +6,23 @@ import Select from '@mui/material/Select';
 import { v4 } from 'uuid';
 import PropTypes from 'prop-types';
 
-export default function SelectMonth({ arrMonths, handleChange, currentMonth, label }) {
+export default function SelectMonth({
+  arrMonths,
+  handleChange,
+  currentMonth,
+  label,
+}) {
   return (
-    <FormControl sx={{ my: 2, width: 180 }} size="small">
-      <InputLabel id="select-month-category">{label}</InputLabel>
+    <FormControl sx={{ my: 2, width: 180 }} size='small'>
+      <InputLabel id='select-month-category'>{label}</InputLabel>
 
       <Select
-        labelId="select-label"
-        id="select-category"
+        labelId='select-label'
+        id='select-category'
         value={currentMonth}
         label={label}
         onChange={handleChange}
+        size='small'
       >
         {arrMonths.map((item) => (
           <MenuItem key={`item-options-${v4()}`} value={item}>

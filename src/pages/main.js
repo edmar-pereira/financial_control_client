@@ -1,11 +1,14 @@
-import React from 'react';
-import List from '@mui/material/List';
+import React, { useEffect, useState } from 'react';
 import Typography from '@mui/material/Typography';
-import CardComponent from '../components/card';
+import MainTableComponent from '../components/mainTableComponent';
+import MainCardComponent from '../components/mainCardComponent';
 import DateBox from '../components/dateBox';
 import { useAPI } from '../context/mainContext';
 import SelectMonth from '../components/selectMonth';
 import SelectCategory from '../components/selectCategory';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import { IconButton } from '@mui/material';
 
 export default function Main() {
   const {
@@ -22,6 +25,7 @@ export default function Main() {
   );
 
   const { month, year, expenses, pageInfo } = selectedMonth;
+  const [showTableView, setShowTableView] = useState(true);
 
   const handleChange = (e) => {
     handleChangeMonth(e.target.value);
@@ -29,6 +33,10 @@ export default function Main() {
 
   const changeCategory = (e) => {
     handleChangeCategory(e.target.value);
+  };
+
+  const handleChangeViewType = () => {
+    setShowTableView(!showTableView);
   };
 
   return (
@@ -64,17 +72,16 @@ export default function Main() {
           <DateBox
             info={pageInfo !== undefined ? `${pageInfo}` : `${month} - ${year}`}
           />
-          <List
-            sx={{
-              bgcolor: 'background.paper',
-              maxWidth: '650px',
-              margin: 'auto',
-            }}
-          >
-            {expenses?.map((value) => {
-              return <CardComponent data={value} key={value._id} />;
-            })}
-          </List>
+          {showTableView ? (
+            <IconButton onClick={() => handleChangeViewType()}>
+              <TableChartIcon />
+            </IconButton>
+          ) : (
+            <IconButton onClick={() => handleChangeViewType()}>
+              <ViewListIcon />
+            </IconButton>
+          )}
+          {showTableView ? <MainTableComponent /> : <MainCardComponent />}
         </div>
       )}
     </div>

@@ -78,9 +78,9 @@ function Header() {
   };
 
   const handleFilterCurrent = () => {
-    handleFilter(searchTerm)
-    setSearchTerm('')
-  }
+    handleFilter(searchTerm);
+    setSearchTerm('');
+  };
 
   return (
     <AppBar position='static'>
@@ -163,7 +163,7 @@ function Header() {
               </Button>
             ))}
           </Box>
-          <Paper
+          {/*} <Paper
             component='form'
             sx={{
               p: '2px 4px',
@@ -182,7 +182,7 @@ function Header() {
             <IconButton type='button' sx={{ p: '10px' }} aria-label='pesquisa' onClick={() => handleFilterCurrent()}>
               <SearchIcon />
             </IconButton>
-          </Paper>
+          </Paper> */}
         </Toolbar>
       </Container>
     </AppBar>
