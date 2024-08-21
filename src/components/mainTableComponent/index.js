@@ -22,10 +22,14 @@ import EditIcon from '@mui/icons-material/Edit';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
 import Stack from '@mui/material/Stack';
+import SearchIcon from '@mui/icons-material/Search';
 
 import { format } from 'date-fns-tz';
 import { useAPI } from '../../context/mainContext';
 import { useNavigate } from 'react-router-dom';
+
+import BarChart from '../charts/barChart';
+import { TrendingUp } from '@material-ui/icons';
 
 const headCells = [
   {
@@ -52,12 +56,12 @@ const headCells = [
     disablePadding: false,
     label: 'Tipo de despesa',
   },
-  {
-    id: 'ignore',
-    numeric: false,
-    disablePadding: false,
-    label: 'Ignorar',
-  },
+  // {
+  //   id: 'ignore',
+  //   numeric: false,
+  //   disablePadding: false,
+  //   label: 'Ignorar',
+  // },
 ];
 
 function DateFormat(dateToFormat) {
@@ -222,13 +226,7 @@ function EnhancedTableToolbar(props) {
             </IconButton>
           </Tooltip>
         </Stack>
-      ) : (
-        <Tooltip title='Filter list'>
-          <IconButton>
-            <FilterListIcon />
-          </IconButton>
-        </Tooltip>
-      )}
+      ) : null}
     </Toolbar>
   );
 }
@@ -243,15 +241,116 @@ export default function EnhancedTable() {
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('calories');
   const [selected, setSelected] = React.useState([]);
-  const [dense, setDense] = React.useState(false);
+  const [dense, setDense] = React.useState(TrendingUp);
   const [rows, setRows] = React.useState([]);
   const navigate = useNavigate();
 
   const { deleteExpense, expensesType, selectedMonth } = useAPI();
 
+  const [searched, setSearched] = React.useState('');
+
+  const [userData, setUserData] = React.useState({
+    labels: [],
+    datasets: [
+      {
+        label: 'Despesas',
+        data: [],
+        backgroundColor: [],
+      },
+    ],
+  });
+
+  const GetExpVal = async () => {
+    let arrTotals = [];
+    let arrColors = [];
+    let arrLabels = [];
+
+    const categories = await expensesType.filter(
+      (category) =>
+        category.id !== 'credit_card' &&
+        category.id !== 'revenue' &&
+        category.id !== 'all_categories' &&
+        category.id !== 'uncategorized' &&
+        category.id !== 'stocks' &&
+        category.id !== 'children'
+    );
+
+    function getColor(percentageToSearch) {
+      let colorSearched = '';
+
+      console.log(percentageToSearch);
+      if (percentageToSearch <= 0) {
+        colorSearched = '#f44336';
+      } else if (percentageToSearch <= 50) {
+        colorSearched = '#4caf50';
+      } else if (percentageToSearch <= 100) {
+        colorSearched = '#ffc107';
+      } else if (percentageToSearch > 100) {
+        colorSearched = '#f44336';
+      }
+      return colorSearched;
+    }
+
+    async function getSum(item) {
+      const objTotal = {};
+      const dataFiltered = await selectedMonth.expenses.filter(
+        (e) => e.type === item.label
+      );
+
+      const categorySum = await dataFiltered.reduce((accumulator, object) => {
+        return accumulator + object.value;
+      }, 0);
+
+      const percentage = isFinite(
+        ((categorySum / item.maxValue) * 100).toFixed(1)
+      )
+        ? ((categorySum / item.maxValue) * 100).toFixed(1)
+        : '0';
+
+      const color = getColor(percentage);
+
+      return {
+        categorySum,
+        percentage:
+          percentage !== 'NaN' || percentage !== 'Infinity' ? percentage : 0,
+        color,
+        category: item.label,
+      };
+    }
+
+    const getWithPromiseAll = async () => {
+      // console.time('promise all');
+
+      let data = await Promise.all(
+        categories.map(async (uniqueLabel) => {
+          const result = await getSum(uniqueLabel);
+
+          console.log(result);
+          arrTotals.push(result.categorySum);
+          arrColors.push(result.color);
+          arrLabels.push(result.category + ' ' + result.percentage + '%');
+        })
+      );
+      // console.timeEnd('promise all');
+      setUserData({
+        labels: arrLabels,
+        datasets: [
+          {
+            label: 'Gastos ',
+            data: arrTotals,
+            backgroundColor: arrColors,
+          },
+        ],
+      });
+    };
+
+    getWithPromiseAll();
+  };
+
   React.useEffect(() => {
     if (selectedMonth.expenses) {
       setRows(selectedMonth.expenses);
+      GetExpVal();
     }
   }, [selectedMonth]);
 
@@ -297,7 +396,7 @@ export default function EnhancedTable() {
     id.map((item) => {
       deleteExpense(item);
     });
-    setSelected([])
+    setSelected([]);
   };
 
   const handleEdit = (event, id) => {
@@ -309,6 +408,7 @@ export default function EnhancedTable() {
   return (
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>
+
         <EnhancedTableToolbar
           numSelected={selected}
           handleDelete={handleDelete}
@@ -367,9 +467,9 @@ export default function EnhancedTable() {
                       </TableCell>
                       <TableCell align='left'>{DateFormat(row.date)}</TableCell>
                       <TableCell align='left'>{row.type}</TableCell>
-                      <TableCell align='left'>
+                      {/* <TableCell align='left'>
                         {row.ignore === true ? 'Sim' : 'Não'}
-                      </TableCell>
+                      </TableCell>*/}
                     </TableRow>
                   );
                 }
@@ -389,8 +489,12 @@ export default function EnhancedTable() {
       </Paper>
       <FormControlLabel
         control={<Switch checked={dense} onChange={handleChangeDense} />}
-        label='Dense padding'
+        label='Espaçamento'
       />
+
+      <Paper sx={{ width: '100%', mb: 2 }}>
+        <BarChart chartData={userData} />
+      </Paper>
     </Box>
   );
 }

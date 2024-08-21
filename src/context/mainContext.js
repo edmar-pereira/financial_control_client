@@ -17,64 +17,70 @@ export function APIContextProvider({ children }) {
   });
 
   const expensesType = [
-    { id: 'all_categories', label: 'Todas', color: 'rgba(15, 99, 71, 0.6)' },
+    { id: 'all_categories', label: 'Todas', color: 'rgba(15, 99, 71, 0.6)', maxValue: 0 },
     {
       id: 'bars_and_restaurants',
       label: 'Bares e Restaurantes',
       color: 'rgba(115, 99, 71, 0.6)',
+      maxValue: 800.00
     },
     {
       id: 'credit_card',
       label: 'Cartão de Crédito',
       color: 'rgba(255, 69, 0, 0.6)',
+      maxValue: 0
     },
     {
       id: 'personal_cares',
       label: 'Cuidados Pessoais',
       color: 'rgba(175, 238, 238, 0.6)',
+      maxValue: 150.0
     },
-    { id: 'education', label: 'Educação', color: 'rgba(123, 132, 218, 0.6)' },
-    { id: 'children', label: 'Filhos', color: 'rgba(32, 178, 170, 0.6)' },
+    { id: 'education', label: 'Educação', color: 'rgba(123, 132, 218, 0.6)', maxValue: 1250.00 },
+    { id: 'children', label: 'Filhos', color: 'rgba(32, 178, 170, 0.6)', maxValue: 120.00 },
     {
       id: 'financing',
       label: 'Financiamento',
-      color: 'rgba(173, 255, 47, 0.6)',
+      color: 'rgba(173, 255, 47, 0.6)', maxValue: 3560.00,
     },
     {
       id: 'miscellaneous_purchases',
       label: 'Gastos Diversos',
       color: 'rgba(255, 69, 0, 0.6)',
+      maxValue: 400.00
     },
     {
       id: 'essential_expenses',
       label: 'Gastos Essenciais',
       color: 'rgba(255, 215, 0, 0.6)',
+      maxValue: 1200.00
     },
     {
       id: 'work_expenses',
       label: 'Gastos com Trabalho',
       color: 'rgba(128, 28, 18, 0.6) ',
+      maxValue: 0
     },
-    { id: 'taxes_fees', label: 'Impostos', color: 'rgba(0, 191, 255, 0.6)' },
-    { id: 'stocks', label: 'Investimentos', color: 'rgba(211, 3, 252)' },
-    { id: 'leisure', label: 'Lazer', color: 'rgba(255, 140, 0, 0.6)' },
-    { id: 'maintence', label: 'Manutenção', color: 'rgba(127, 125, 22, 0.6)' },
+    { id: 'taxes_fees', label: 'Impostos', color: 'rgba(0, 191, 255, 0.6)', maxValue: 0 },
+    { id: 'stocks', label: 'Investimentos', color: 'rgba(211, 3, 252)',maxValue: 0 },
+    { id: 'leisure', label: 'Lazer', color: 'rgba(255, 140, 0, 0.6)', maxValue: 400.00 },
+    { id: 'maintence', label: 'Manutenção', color: 'rgba(127, 125, 22, 0.6)', maxValue: 1500.00 },
     {
       id: 'uncategorized',
       label: 'Não Categorizado',
-      color: 'rgba(255, 159, 64, 0.6)',
+      color: 'rgba(255, 159, 64, 0.6)', maxValue: 0,
     },
-    { id: 'gifts', label: 'Presentes', color: 'rgba(153, 102, 255, 0.6)' },
-    { id: 'revenue', label: 'Receita', color: 'rgba(75, 192, 12, 0.6)' },
-    { id: 'cash', label: 'Saque', color: 'rgba(255, 206, 86, 0.6)' },
-    { id: 'health', label: 'Saúde', color: 'rgba(54, 162, 235, 0.6)' },
+    { id: 'gifts', label: 'Presentes', color: 'rgba(153, 102, 255, 0.6)', maxValue: 300.00 },
+    { id: 'revenue', label: 'Receita', color: 'rgba(75, 192, 12, 0.6)', maxValue: 0 },
+    { id: 'cash', label: 'Saque', color: 'rgba(255, 206, 86, 0.6)', maxValue: 100 },
+    { id: 'health', label: 'Saúde', color: 'rgba(54, 162, 235, 0.6)', maxValue: 200.00 },
     {
       id: 'supermarket',
       label: 'Supermercado',
-      color: 'rgba(255, 99, 132, 0.6)',
+      color: 'rgba(255, 99, 132, 0.6)', maxValue: 1200.00,
     },
-    { id: 'fuel', label: 'Transporte', color: 'rgba(65, 105, 225, 0.6)' },
-    { id: 'tv', label: 'TV Internet', color: 'rgba(55, 99, 32, 0.6)' },
+    { id: 'fuel', label: 'Transporte', color: 'rgba(65, 105, 225, 0.6)', maxValue: 600 },
+    { id: 'tv', label: 'TV Internet', color: 'rgba(55, 99, 32, 0.6)', maxValue: 400.00 },
   ];
 
   async function fetchData(params) {
