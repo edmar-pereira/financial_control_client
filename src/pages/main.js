@@ -69,9 +69,14 @@ export default function Main() {
         </div>
       ) : (
         <div>
-          <DateBox
-            info={pageInfo !== undefined ? `${pageInfo}` : `${month} - ${year}`}
-          />
+          {!showTableView ? (
+            <DateBox
+              info={
+                pageInfo !== undefined ? `${pageInfo}` : `${month} - ${year}`
+              }
+            />
+          ) : null}
+
           {showTableView ? (
             <IconButton onClick={() => handleChangeViewType()}>
               <TableChartIcon />

@@ -19,10 +19,13 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
 import Stack from '@mui/material/Stack';
 import SearchIcon from '@mui/icons-material/Search';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import FormControl from '@mui/material/FormControl';
+import InputAdornment from '@mui/material/InputAdornment';
+import TablePagination from '@mui/material/TablePagination';
 
 import { format } from 'date-fns-tz';
 import { useAPI } from '../../context/mainContext';
@@ -91,10 +94,6 @@ function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-// Since 2020 all major browsers ensure sort stability with Array.prototype.sort().
-// stableSort() brings sort stability to non-modern browsers (notably IE11). If you
-// only support modern browsers you can replace stableSort(exampleArray, exampleComparator)
-// with exampleArray.slice().sort(exampleComparator)
 function stableSort(array, comparator) {
   const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
@@ -198,7 +197,7 @@ function EnhancedTableToolbar(props) {
         }),
       }}
     >
-      {
+      {numSelected.length > 0 ? (
         <Typography
           sx={{ flex: '1 1 100%' }}
           color='inherit'
@@ -207,7 +206,7 @@ function EnhancedTableToolbar(props) {
         >
           {numSelected.length > 0 ? numSelected.length + ' selecionados' : ''}
         </Typography>
-      }
+      ) : null}
 
       {numSelected.length > 0 ? (
         <Stack alignItems='center' direction='row' gap={0}>
@@ -241,8 +240,10 @@ export default function EnhancedTable() {
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('calories');
   const [selected, setSelected] = React.useState([]);
+  const [page, setPage] = React.useState(0);
   const [dense, setDense] = React.useState(TrendingUp);
   const [rows, setRows] = React.useState([]);
+  const [rowsPerPage, setRowsPerPage] = React.useState(15);
   const navigate = useNavigate();
 
   const { deleteExpense, expensesType, selectedMonth } = useAPI();
@@ -277,8 +278,6 @@ export default function EnhancedTable() {
 
     function getColor(percentageToSearch) {
       let colorSearched = '';
-
-      console.log(percentageToSearch);
       if (percentageToSearch <= 0) {
         colorSearched = '#f44336';
       } else if (percentageToSearch <= 50) {
@@ -324,8 +323,6 @@ export default function EnhancedTable() {
       let data = await Promise.all(
         categories.map(async (uniqueLabel) => {
           const result = await getSum(uniqueLabel);
-
-          console.log(result);
           arrTotals.push(result.categorySum);
           arrColors.push(result.color);
           arrLabels.push(result.category + ' ' + result.percentage + '%');
@@ -352,7 +349,7 @@ export default function EnhancedTable() {
       setRows(selectedMonth.expenses);
       GetExpVal();
     }
-  }, [selectedMonth]);
+  }, [selectedMonth.expenses]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -372,7 +369,6 @@ export default function EnhancedTable() {
   const handleClick = (event, id) => {
     const selectedIndex = selected.indexOf(id);
     let newSelected = [];
-
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, id);
     } else if (selectedIndex === 0) {
@@ -386,6 +382,15 @@ export default function EnhancedTable() {
       );
     }
     setSelected(newSelected);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
   const handleChangeDense = (event) => {
@@ -405,10 +410,21 @@ export default function EnhancedTable() {
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
+  const emptyRows =
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+
+  const visibleRows = React.useMemo(
+    () =>
+      stableSort(rows, getComparator(order, orderBy)).slice(
+        page * rowsPerPage,
+        page * rowsPerPage + rowsPerPage
+      ),
+    [order, orderBy, page, rowsPerPage, rows]
+  );
+
   return (
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>
-
         <EnhancedTableToolbar
           numSelected={selected}
           handleDelete={handleDelete}
@@ -429,63 +445,57 @@ export default function EnhancedTable() {
               rowCount={rows.length}
             />
             <TableBody>
-              {stableSort(rows, getComparator(order, orderBy)).map(
-                (row, index) => {
-                  const isItemSelected = isSelected(row._id);
-                  const labelId = `enhanced-table-checkbox-${index}`;
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row._id)}
-                      role='checkbox'
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={row._id}
-                      selected={isItemSelected}
-                      sx={{ cursor: 'pointer' }}
-                    >
-                      <TableCell padding='checkbox'>
-                        <Checkbox
-                          color='primary'
-                          checked={isItemSelected}
-                          inputProps={{
-                            'aria-labelledby': labelId,
-                          }}
-                        />
-                      </TableCell>
-                      {/*  <TableCell
-                      component='th'
-                      id={labelId}
-                      scope='row'
-                      padding='none'
-                    >
-                      {row.description}
-                    </TableCell> */}
-                      <TableCell align='left'>{row.description}</TableCell>
-                      <TableCell align='left'>
-                        {MoneyFormat(row.value)}
-                      </TableCell>
-                      <TableCell align='left'>{DateFormat(row.date)}</TableCell>
-                      <TableCell align='left'>{row.type}</TableCell>
-                      {/* <TableCell align='left'>
-                        {row.ignore === true ? 'Sim' : 'Não'}
-                      </TableCell>*/}
-                    </TableRow>
-                  );
-                }
-              )}
-              {rows.count > 0 && (
+              {visibleRows.map((row, index) => {
+                const isItemSelected = isSelected(row._id);
+                const labelId = `enhanced-table-checkbox-${index}`;
+                return (
+                  <TableRow
+                    hover
+                    onClick={(event) => handleClick(event, row._id)}
+                    role='checkbox'
+                    aria-checked={isItemSelected}
+                    tabIndex={-1}
+                    key={row._id}
+                    selected={isItemSelected}
+                    sx={{ cursor: 'pointer' }}
+                  >
+                    <TableCell padding='checkbox'>
+                      <Checkbox
+                        color='primary'
+                        checked={isItemSelected}
+                        inputProps={{
+                          'aria-labelledby': labelId,
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell align='left'>{row.description}</TableCell>
+                    <TableCell align='left'>{MoneyFormat(row.value)}</TableCell>
+                    <TableCell align='left'>{DateFormat(row.date)}</TableCell>
+                    <TableCell align='left'>{row.type}</TableCell>
+                  </TableRow>
+                );
+              })}
+              {emptyRows > 0 && (
                 <TableRow
                   style={{
-                    height: (dense ? 33 : 53) * rows.count,
+                    height: (dense ? 33 : 53) * emptyRows,
                   }}
                 >
-                  <TableCell colSpan={6} />
+                  <TableCell colSpan={4} />
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[15, 30, 50, 100]}
+          component='div'
+          count={rows.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       </Paper>
       <FormControlLabel
         control={<Switch checked={dense} onChange={handleChangeDense} />}
