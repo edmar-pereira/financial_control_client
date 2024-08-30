@@ -153,7 +153,7 @@ function Graphic() {
           <PieChart chartData={userData} />
         </div>
 
-        <div className="container-bar">
+        <div className="container-bar-exp">
           <BarChart chartData={expRev} />
         </div>
       </div>

@@ -11,6 +11,17 @@
   align-items: center;
   width: 100%;
   margin-top: 40px;
+  height: 50vh;
+}
+
+.container-bar-exp {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 90%;
+  margin-top: 40px;
+  height: 30vh;
 }
 
 .container-pizza {
@@ -20,11 +31,11 @@
   align-items: center;
   width: 60%;
   margin-top: 40px;
+  height: 50vh;
 }
 
 .dropdown-items {
-    justify-content: space-around;
-    align-items: center;
-    padding-left: 1rem;
-
+  justify-content: space-around;
+  align-items: center;
+  padding-left: 1rem;
 }

@@ -21,11 +21,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { visuallyHidden } from '@mui/utils';
 import Stack from '@mui/material/Stack';
-import SearchIcon from '@mui/icons-material/Search';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import FormControl from '@mui/material/FormControl';
 import InputAdornment from '@mui/material/InputAdornment';
 import TablePagination from '@mui/material/TablePagination';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 
 import { format } from 'date-fns-tz';
 import { useAPI } from '../../context/mainContext';
@@ -173,7 +174,8 @@ EnhancedTableHead.propTypes = {
 };
 
 function EnhancedTableToolbar(props) {
-  const { numSelected, handleDelete, handleEdit } = props;
+  const { numSelected, handleDelete, handleEdit, handleFilter } = props;
+  const [searchValue, setSearchedValue] = React.useState('');
 
   const createDeleteHandler = (property) => (event) => {
     handleDelete(event, property);
@@ -181,6 +183,11 @@ function EnhancedTableToolbar(props) {
 
   const createEditHandler = (property) => (event) => {
     handleEdit(event, property);
+  };
+
+  const createFilterHandler = (value) => {
+    setSearchedValue(value);
+    handleFilter(value);
   };
 
   return (
@@ -206,7 +213,32 @@ function EnhancedTableToolbar(props) {
         >
           {numSelected.length > 0 ? numSelected.length + ' selecionados' : ''}
         </Typography>
-      ) : null}
+      ) : (
+        <FormControl
+          sx={{ m: 1, width: '200px' }}
+          variant='outlined'
+          size='small'
+        >
+          <OutlinedInput
+            id='outlined-adornment-filter'
+            type={'text'}
+            onChange={(e) => createFilterHandler(e.target.value)}
+            value={searchValue}
+            endAdornment={
+              <InputAdornment position='end'>
+                <IconButton
+                  aria-label='handle filter event'
+                  onClick={() => createFilterHandler('')}
+                  edge='end'
+                >
+                  {searchValue !== '' ? <CloseIcon /> : <SearchIcon />}
+                </IconButton>
+              </InputAdornment>
+            }
+            label=''
+          />
+        </FormControl>
+      )}
 
       {numSelected.length > 0 ? (
         <Stack alignItems='center' direction='row' gap={0}>
@@ -234,6 +266,7 @@ EnhancedTableToolbar.propTypes = {
   numSelected: PropTypes.string.isRequired,
   handleDelete: PropTypes.func.isRequired,
   handleEdit: PropTypes.func.isRequired,
+  handleFilter: PropTypes.func.isRequired,
 };
 
 export default function EnhancedTable() {
@@ -408,6 +441,17 @@ export default function EnhancedTable() {
     navigate(`add_expense/${id}`);
   };
 
+  const handleFilter = (filteredValue) => {
+    if (filteredValue.length > 0) {
+      const filteredData = selectedMonth.expenses.filter((item) =>
+        item.description.toLowerCase().includes(filteredValue.toLowerCase())
+      );
+      setRows(filteredData);
+    } else {
+      setRows(selectedMonth.expenses);
+    }
+  };
+
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
   const emptyRows =
@@ -429,6 +473,7 @@ export default function EnhancedTable() {
           numSelected={selected}
           handleDelete={handleDelete}
           handleEdit={handleEdit}
+          handleFilter={handleFilter}
         />
         <TableContainer>
           <Table

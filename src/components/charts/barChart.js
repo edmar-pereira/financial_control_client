@@ -7,9 +7,6 @@ import PropTypes from 'prop-types';
 export default function BarChart({ chartData }) {
   const options = {
     indexAxis: 'y',
-    // aspectRatio: 1, // this would be a 1:1 aspect ratio
-    
-    // maintainAspectRatio: false,
   };
   return <Bar data={chartData} options={options} />;
 }
