@@ -15,72 +15,141 @@ export function APIContextProvider({ children }) {
     message: '',
     show: false,
   });
-
+  const [isCategoryFiltered, setIsCategoryFiltered] = useState(false); // This will be used to know when updating the view if is necessary to return to the category filtered
+  const [showTableView, setShowTableView] = useState(true);
   const expensesType = [
-    { id: 'all_categories', label: 'Todas', color: 'rgba(15, 99, 71, 0.6)', maxValue: 0 },
+    {
+      id: 'all_categories',
+      label: 'Todas',
+      color: 'rgba(15, 99, 71, 0.6)',
+      maxValue: 0,
+    },
     {
       id: 'bars_and_restaurants',
       label: 'Bares e Restaurantes',
       color: 'rgba(115, 99, 71, 0.6)',
-      maxValue: 800.00
+      maxValue: 800.0,
     },
     {
       id: 'credit_card',
       label: 'Cartão de Crédito',
       color: 'rgba(255, 69, 0, 0.6)',
-      maxValue: 0
+      maxValue: 0,
     },
     {
       id: 'personal_cares',
       label: 'Cuidados Pessoais',
       color: 'rgba(175, 238, 238, 0.6)',
-      maxValue: 150.0
+      maxValue: 250.0,
     },
-    { id: 'education', label: 'Educação', color: 'rgba(123, 132, 218, 0.6)', maxValue: 1250.00 },
-    { id: 'children', label: 'Filhos', color: 'rgba(32, 178, 170, 0.6)', maxValue: 120.00 },
+    {
+      id: 'education',
+      label: 'Educação',
+      color: 'rgba(123, 132, 218, 0.6)',
+      maxValue: 1250.0,
+    },
+    {
+      id: 'children',
+      label: 'Filhos',
+      color: 'rgba(32, 178, 170, 0.6)',
+      maxValue: 0.0,
+    },
     {
       id: 'financing',
       label: 'Financiamento',
-      color: 'rgba(173, 255, 47, 0.6)', maxValue: 3560.00,
+      color: 'rgba(173, 255, 47, 0.6)',
+      maxValue: 3560.0,
     },
     {
       id: 'miscellaneous_purchases',
       label: 'Gastos Diversos',
       color: 'rgba(255, 69, 0, 0.6)',
-      maxValue: 400.00
+      maxValue: 400.0,
     },
     {
       id: 'essential_expenses',
       label: 'Gastos Essenciais',
       color: 'rgba(255, 215, 0, 0.6)',
-      maxValue: 1200.00
+      maxValue: 1200.0,
     },
     {
       id: 'work_expenses',
       label: 'Gastos com Trabalho',
       color: 'rgba(128, 28, 18, 0.6) ',
-      maxValue: 0
+      maxValue: 0,
     },
-    { id: 'taxes_fees', label: 'Impostos', color: 'rgba(0, 191, 255, 0.6)', maxValue: 0 },
-    { id: 'stocks', label: 'Investimentos', color: 'rgba(211, 3, 252)',maxValue: 0 },
-    { id: 'leisure', label: 'Lazer', color: 'rgba(255, 140, 0, 0.6)', maxValue: 400.00 },
-    { id: 'maintence', label: 'Manutenção', color: 'rgba(127, 125, 22, 0.6)', maxValue: 1500.00 },
+    {
+      id: 'taxes_fees',
+      label: 'Impostos',
+      color: 'rgba(0, 191, 255, 0.6)',
+      maxValue: 0,
+    },
+    {
+      id: 'stocks',
+      label: 'Investimentos',
+      color: 'rgba(211, 3, 252)',
+      maxValue: 0,
+    },
+    {
+      id: 'leisure',
+      label: 'Lazer',
+      color: 'rgba(255, 140, 0, 0.6)',
+      maxValue: 400.0,
+    },
+    {
+      id: 'maintence',
+      label: 'Manutenção',
+      color: 'rgba(127, 125, 22, 0.6)',
+      maxValue: 1500.0,
+    },
     {
       id: 'uncategorized',
       label: 'Não Categorizado',
-      color: 'rgba(255, 159, 64, 0.6)', maxValue: 0,
+      color: 'rgba(255, 159, 64, 0.6)',
+      maxValue: 0,
     },
-    { id: 'gifts', label: 'Presentes', color: 'rgba(153, 102, 255, 0.6)', maxValue: 300.00 },
-    { id: 'revenue', label: 'Receita', color: 'rgba(75, 192, 12, 0.6)', maxValue: 0 },
-    { id: 'cash', label: 'Saque', color: 'rgba(255, 206, 86, 0.6)', maxValue: 100 },
-    { id: 'health', label: 'Saúde', color: 'rgba(54, 162, 235, 0.6)', maxValue: 200.00 },
+    {
+      id: 'gifts',
+      label: 'Presentes',
+      color: 'rgba(153, 102, 255, 0.6)',
+      maxValue: 300.0,
+    },
+    {
+      id: 'revenue',
+      label: 'Receita',
+      color: 'rgba(75, 192, 12, 0.6)',
+      maxValue: 0,
+    },
+    {
+      id: 'cash',
+      label: 'Saque',
+      color: 'rgba(255, 206, 86, 0.6)',
+      maxValue: 100,
+    },
+    {
+      id: 'health',
+      label: 'Saúde',
+      color: 'rgba(54, 162, 235, 0.6)',
+      maxValue: 200.0,
+    },
     {
       id: 'supermarket',
       label: 'Supermercado',
-      color: 'rgba(255, 99, 132, 0.6)', maxValue: 1200.00,
+      color: 'rgba(255, 99, 132, 0.6)',
+      maxValue: 1200.0,
     },
-    { id: 'fuel', label: 'Transporte', color: 'rgba(65, 105, 225, 0.6)', maxValue: 600 },
-    { id: 'tv', label: 'TV Internet', color: 'rgba(55, 99, 32, 0.6)', maxValue: 400.00 },
+    {
+      id: 'fuel',
+      label: 'Transporte',
+      color: 'rgba(65, 105, 225, 0.6)',
+      maxValue: 600,
+    },
+    {
+      id: 'tv',
+      label: 'TV Internet',
+      color: 'rgba(55, 99, 32, 0.6)',
+      maxValue: 400.0,
+    },
   ];
 
   async function fetchData(params) {
@@ -112,10 +181,18 @@ export function APIContextProvider({ children }) {
       .post(`${process.env.REACT_APP_BACKEND_URL}/api/data/create`, obj)
       .then((response) => {
         if (response.status === 200) {
-          setMessage({
-            severity: 'success',
-            content: 'Cadastrado com sucesso!',
-            show: true,
+          fetchData({
+            year: obj.year,
+            month: obj.month,
+          }).then((updatedData) => {
+            console.log(updatedData);
+            setSelectedMonth(updatedData);
+            setLoading(false);
+            setMessage({
+              severity: 'success',
+              content: 'Cadastrado com sucesso!',
+              show: true,
+            });
           });
         } else {
           setMessage({
@@ -137,7 +214,16 @@ export function APIContextProvider({ children }) {
             year: obj.year,
             month: obj.month,
           }).then((updatedData) => {
-            setSelectedMonth(updatedData);
+            let newUpdatedData = global.structuredClone(updatedData);
+
+            if (isCategoryFiltered) {
+              const filteredExpenses = updatedData.expenses.filter(
+                (e) => e.type === obj.type
+              );
+              newUpdatedData.expenses = filteredExpenses;
+              setCurrentCategory(obj.type);
+            }
+            setSelectedMonth(newUpdatedData);
             setLoading(false);
             setMessage({
               severity: 'info',
@@ -318,6 +404,10 @@ export function APIContextProvider({ children }) {
         arrCategory,
         message,
         handleFilter,
+        isCategoryFiltered,
+        setIsCategoryFiltered,
+        showTableView,
+        setShowTableView,
       }}
     >
       {children}

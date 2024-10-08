@@ -11,51 +11,25 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Container from '@mui/material/Container';
 import { useAPI } from '../../context/mainContext';
 import Button from '@mui/material/Button';
-import SearchIcon from '@mui/icons-material/Search';
 import InputBase from '@mui/material/InputBase';
 import MenuItem from '@mui/material/MenuItem';
-import Paper from '@mui/material/Paper';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import ViewListIcon from '@mui/icons-material/ViewList';
 
 const pages = ['Home', 'Adicionar', 'Grafico'];
 
-const Search = styled('div')(({ theme }) => ({
-  position: 'relative',
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
-  },
-  marginLeft: 0,
-}));
-
-const SearchIconWrapper = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: '100%',
-  position: 'absolute',
-  pointerEvents: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: 'inherit',
-  '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create('width'),
-  },
-}));
-
 function Header() {
-  const { handleFilter } = useAPI();
+  const { showTableView, setShowTableView } = useAPI();
   const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const headerRef = useRef(null);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
+  };
+
+  const handleChangeViewType = () => {
+    setShowTableView(!showTableView);
   };
 
   const handleCloseNavMenu = (e) => {
@@ -75,11 +49,6 @@ function Header() {
         break;
     }
     setAnchorElNav(null);
-  };
-
-  const handleFilterCurrent = () => {
-    handleFilter(searchTerm);
-    setSearchTerm('');
   };
 
   return (
@@ -163,26 +132,28 @@ function Header() {
               </Button>
             ))}
           </Box>
-          {/*} <Paper
-            component='form'
+
+          <Box
             sx={{
-              p: '2px 4px',
-              display: 'flex',
-              alignItems: 'center',
-              width: 150
+              display: { xs: 'none', md: 'flex', flexDirection: 'column' },
             }}
           >
-            <InputBase
-              sx={{ ml: 1, flex: 1 }}
-              placeholder='Pesquisa'
-              inputProps={{ 'aria-label': 'pesquisa' }}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              value={searchTerm}
-            />
-            <IconButton type='button' sx={{ p: '10px' }} aria-label='pesquisa' onClick={() => handleFilterCurrent()}>
-              <SearchIcon />
-            </IconButton>
-          </Paper> */}
+            {showTableView ? (
+              <IconButton
+                style={{ color: 'white' }}
+                onClick={() => handleChangeViewType()}
+              >
+                <TableChartIcon />
+              </IconButton>
+            ) : (
+              <IconButton
+                style={{ color: 'white' }}
+                onClick={() => handleChangeViewType()}
+              >
+                <ViewListIcon />
+              </IconButton>
+            )}
+          </Box>
         </Toolbar>
       </Container>
     </AppBar>

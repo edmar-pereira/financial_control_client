@@ -18,6 +18,7 @@ export default function Main() {
     arrCategory,
     handleChangeCategory,
     currentCategory,
+    showTableView
   } = useAPI();
 
   const filteredCategory = arrCategory.filter(
@@ -25,7 +26,6 @@ export default function Main() {
   );
 
   const { month, year, expenses, pageInfo } = selectedMonth;
-  const [showTableView, setShowTableView] = useState(true);
 
   const handleChange = (e) => {
     handleChangeMonth(e.target.value);
@@ -35,9 +35,6 @@ export default function Main() {
     handleChangeCategory(e.target.value);
   };
 
-  const handleChangeViewType = () => {
-    setShowTableView(!showTableView);
-  };
 
   return (
     <div>
@@ -77,15 +74,7 @@ export default function Main() {
             />
           ) : null}
 
-          {showTableView ? (
-            <IconButton onClick={() => handleChangeViewType()}>
-              <TableChartIcon />
-            </IconButton>
-          ) : (
-            <IconButton onClick={() => handleChangeViewType()}>
-              <ViewListIcon />
-            </IconButton>
-          )}
+
           {showTableView ? <MainTableComponent /> : <MainCardComponent />}
         </div>
       )}

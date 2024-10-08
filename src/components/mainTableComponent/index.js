@@ -279,9 +279,16 @@ export default function EnhancedTable() {
   const [rowsPerPage, setRowsPerPage] = React.useState(15);
   const navigate = useNavigate();
 
-  const { deleteExpense, expensesType, selectedMonth } = useAPI();
+  const {
+    deleteExpense,
+    expensesType,
+    selectedMonth,
+    handleLoadData,
+    currentCategory,
+    setIsCategoryFiltered
+  } = useAPI();
 
-  const [searched, setSearched] = React.useState('');
+  // const [searched, setSearched] = React.useState('');
 
   const [userData, setUserData] = React.useState({
     labels: [],
@@ -438,8 +445,21 @@ export default function EnhancedTable() {
   };
 
   const handleEdit = (event, id) => {
+    if (currentCategory === '' || currentCategory === 'Todas') {
+      setIsCategoryFiltered(false)
+    } else {
+      setIsCategoryFiltered(true)
+    }
     navigate(`add_expense/${id}`);
   };
+
+  // React.useEffect(() => {
+  //   console.log(selectedMonth.expenses);
+  //   if (!selectedMonth.expenses) {
+  //     handleLoadData();
+  //   }
+  //   //
+  // }, []);
 
   const handleFilter = (filteredValue) => {
     if (filteredValue.length > 0) {
