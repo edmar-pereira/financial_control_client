@@ -17,6 +17,8 @@ export function APIContextProvider({ children }) {
   });
   const [isCategoryFiltered, setIsCategoryFiltered] = useState(false); // This will be used to know when updating the view if is necessary to return to the category filtered
   const [showTableView, setShowTableView] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const expensesType = [
     {
       id: 'all_categories',
@@ -40,7 +42,7 @@ export function APIContextProvider({ children }) {
       id: 'personal_cares',
       label: 'Cuidados Pessoais',
       color: 'rgba(175, 238, 238, 0.6)',
-      maxValue: 250.0,
+      maxValue: 500.0,
     },
     {
       id: 'education',
@@ -58,7 +60,7 @@ export function APIContextProvider({ children }) {
       id: 'financing',
       label: 'Financiamento',
       color: 'rgba(173, 255, 47, 0.6)',
-      maxValue: 3560.0,
+      maxValue: 3505.03,
     },
     {
       id: 'miscellaneous_purchases',
@@ -382,7 +384,18 @@ export function APIContextProvider({ children }) {
       });
   };
 
+  const handleThemeChange = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   useEffect(() => {
+    console.log(isDarkMode);
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    const mode = localStorage.getItem('theme');
+    console.log(mode);
+    setIsDarkMode(mode === null ? false : true);
     handleLoadData();
   }, []);
 
@@ -408,6 +421,8 @@ export function APIContextProvider({ children }) {
         setIsCategoryFiltered,
         showTableView,
         setShowTableView,
+        isDarkMode,
+        handleThemeChange,
       }}
     >
       {children}

@@ -7,7 +7,6 @@ import PropTypes from 'prop-types';
 export default function BarChart({ chartData }) {
   let options = {};
   if (window.screen.width >= 1280) {
-    console.log('browser');
     options = {
       indexAxis: 'y',
       // aspectRatio: 1, // this would be a 1:1 aspect ratio

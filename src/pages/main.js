@@ -6,9 +6,6 @@ import DateBox from '../components/dateBox';
 import { useAPI } from '../context/mainContext';
 import SelectMonth from '../components/selectMonth';
 import SelectCategory from '../components/selectCategory';
-import TableChartIcon from '@mui/icons-material/TableChart';
-import ViewListIcon from '@mui/icons-material/ViewList';
-import { IconButton } from '@mui/material';
 
 export default function Main() {
   const {

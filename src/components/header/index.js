@@ -1,27 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AppBar from '@mui/material/AppBar';
-import { styled, alpha } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
-import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
-import { useAPI } from '../../context/mainContext';
-import Button from '@mui/material/Button';
-import InputBase from '@mui/material/InputBase';
-import MenuItem from '@mui/material/MenuItem';
+
+import {
+  Typography,
+  IconButton,
+  FormControlLabel,
+  Box,
+  Toolbar,
+  Menu,
+  Container,
+  Button,
+  MenuItem,
+  AppBar,
+  Switch,
+} from '@mui/material';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import ViewListIcon from '@mui/icons-material/ViewList';
+import MenuIcon from '@mui/icons-material/Menu';
+
+import { useAPI } from '../../context/mainContext';
 
 const pages = ['Home', 'Adicionar', 'Grafico'];
 
 function Header() {
-  const { showTableView, setShowTableView } = useAPI();
+  const { showTableView, setShowTableView, handleThemeChange, isDarkMode } = useAPI();
   const navigate = useNavigate();
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
+  const [anchorElNav, setAnchorElNav] = useState(null);
   const headerRef = useRef(null);
 
   const handleOpenNavMenu = (event) => {
@@ -31,6 +35,8 @@ function Header() {
   const handleChangeViewType = () => {
     setShowTableView(!showTableView);
   };
+
+
 
   const handleCloseNavMenu = (e) => {
     switch (e.nativeEvent.target.outerText.toLocaleLowerCase()) {
@@ -126,7 +132,7 @@ function Header() {
               <Button
                 key={page}
                 onClick={handleCloseNavMenu}
-                sx={{ my: 2, color: 'white', display: 'block' }}
+                sx={{ color: 'white', display: 'block' }}
               >
                 {page}
               </Button>
@@ -153,6 +159,19 @@ function Header() {
                 <ViewListIcon />
               </IconButton>
             )}
+          </Box>
+
+          <Box
+            sx={{
+              display: { xs: 'none', md: 'flex', flexDirection: 'column' },
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch checked={isDarkMode} onChange={handleThemeChange} />
+              }
+              label={isDarkMode ? 'Dark' : 'Light'}
+            />
           </Box>
         </Toolbar>
       </Container>
