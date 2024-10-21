@@ -17,13 +17,16 @@ import {
 import TableChartIcon from '@mui/icons-material/TableChart';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import MenuIcon from '@mui/icons-material/Menu';
+import { useTheme } from '@mui/material/styles';
 
 import { useAPI } from '../../context/mainContext';
 
-const pages = ['Home', 'Adicionar', 'Grafico'];
+const pages = ['Home', 'Adicionar', 'Grafico', 'Configurações'];
 
 function Header() {
-  const { showTableView, setShowTableView, handleThemeChange, isDarkMode } = useAPI();
+  const theme = useTheme();
+  const { showTableView, setShowTableView, handleThemeChange, isDarkMode } =
+    useAPI();
   const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = useState(null);
   const headerRef = useRef(null);
@@ -36,8 +39,6 @@ function Header() {
     setShowTableView(!showTableView);
   };
 
-
-
   const handleCloseNavMenu = (e) => {
     switch (e.nativeEvent.target.outerText.toLocaleLowerCase()) {
       case 'home':
@@ -48,6 +49,9 @@ function Header() {
         break;
       case 'grafico':
         navigate('/graphic');
+        break;
+      case 'configurações':
+        navigate('/configs');
         break;
 
       default:
@@ -159,19 +163,6 @@ function Header() {
                 <ViewListIcon />
               </IconButton>
             )}
-          </Box>
-
-          <Box
-            sx={{
-              display: { xs: 'none', md: 'flex', flexDirection: 'column' },
-            }}
-          >
-            <FormControlLabel
-              control={
-                <Switch checked={isDarkMode} onChange={handleThemeChange} />
-              }
-              label={isDarkMode ? 'Dark' : 'Light'}
-            />
           </Box>
         </Toolbar>
       </Container>

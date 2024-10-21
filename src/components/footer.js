@@ -5,7 +5,7 @@ import { Box, Container, Grid, Typography } from '@mui/material';
 import { useAPI } from '../context/mainContext';
 
 export default function Footer() {
-  const { selectedMonth } = useAPI();
+  const { selectedMonth, isDarkMode } = useAPI();
 
   const [unique, setUnique] = useState(0);
 
@@ -34,17 +34,18 @@ export default function Footer() {
         width: '100%',
         height: 'auto',
         backgroundColor: '#1976d2',
+        backgroundColor: isDarkMode ? '#1d1d1d' : '#1976d2',
         color: '#fff',
         paddingTop: '1rem',
         paddingBottom: '1rem',
       }}
     >
       <Container>
-        <Grid container direction="row" alignItems="center">
+        <Grid container direction='row' alignItems='center'>
           <Grid item xs={4} style={{ padding: 5, textAlign: 'center' }}>
             <Typography
-              color="#fff"
-              variant="subtitle1"
+              color='#fff'
+              variant='subtitle1'
               sx={{ fontWeight: 'bold', fontSize: '1rem' }}
             >
               {unique.length > 1 ? `Receita: ${MoneyFormat(totalRev)}` : null}
@@ -52,8 +53,8 @@ export default function Footer() {
           </Grid>
           <Grid item xs={4} style={{ padding: 5, textAlign: 'center' }}>
             <Typography
-              color="#fff"
-              variant="subtitle1"
+              color='#fff'
+              variant='subtitle1'
               sx={{ fontWeight: 'bold', fontSize: '1rem' }}
             >
               {unique.length > 0 ? `Gasto: ${MoneyFormat(totalExp)}` : null}
@@ -61,11 +62,13 @@ export default function Footer() {
           </Grid>
           <Grid item xs={4} style={{ padding: 5, textAlign: 'center' }}>
             <Typography
-              color="#fff"
-              variant="subtitle1"
+              color='#fff'
+              variant='subtitle1'
               sx={{ fontWeight: 'bold', fontSize: '1rem' }}
             >
-              {unique.length > 1 ? `Diferença: ${MoneyFormat(difference)}` : null}
+              {unique.length > 1
+                ? `Diferença: ${MoneyFormat(difference)}`
+                : null}
             </Typography>
           </Grid>
         </Grid>

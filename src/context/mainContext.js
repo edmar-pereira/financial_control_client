@@ -386,16 +386,13 @@ export function APIContextProvider({ children }) {
 
   const handleThemeChange = () => {
     setIsDarkMode(!isDarkMode);
+    localStorage.setItem('darkMode', !isDarkMode);
   };
 
   useEffect(() => {
-    console.log(isDarkMode);
-  }, [isDarkMode]);
-
-  useEffect(() => {
-    const mode = localStorage.getItem('theme');
+    const mode = localStorage.getItem('darkMode');
     console.log(mode);
-    setIsDarkMode(mode === null ? false : true);
+    setIsDarkMode(mode === null  || mode === 'false' ? false : true);
     handleLoadData();
   }, []);
 
