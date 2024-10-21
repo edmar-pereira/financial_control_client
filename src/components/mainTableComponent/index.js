@@ -223,6 +223,7 @@ function EnhancedTableToolbar(props) {
             id='outlined-adornment-filter'
             type={'text'}
             onChange={(e) => createFilterHandler(e.target.value)}
+            placeholder='Pesquisa'
             value={searchValue}
             endAdornment={
               <InputAdornment position='end'>
@@ -285,7 +286,7 @@ export default function EnhancedTable() {
     selectedMonth,
     handleLoadData,
     currentCategory,
-    setIsCategoryFiltered
+    setIsCategoryFiltered,
   } = useAPI();
 
   // const [searched, setSearched] = React.useState('');
@@ -446,9 +447,9 @@ export default function EnhancedTable() {
 
   const handleEdit = (event, id) => {
     if (currentCategory === '' || currentCategory === 'Todas') {
-      setIsCategoryFiltered(false)
+      setIsCategoryFiltered(false);
     } else {
-      setIsCategoryFiltered(true)
+      setIsCategoryFiltered(true);
     }
     navigate(`add_expense/${id}`);
   };
@@ -461,10 +462,18 @@ export default function EnhancedTable() {
   //   //
   // }, []);
 
-  const handleFilter = (filteredValue) => {
-    if (filteredValue.length > 0) {
-      const filteredData = selectedMonth.expenses.filter((item) =>
-        item.description.toLowerCase().includes(filteredValue.toLowerCase())
+  const handleFilter = (searchParam) => {
+    if (searchParam.length > 0) {
+      const filteredData = selectedMonth.expenses.filter(
+        (item) =>
+          (item.type &&
+            item.type.toLowerCase().includes(searchParam.toLowerCase())) ||
+          (item.description &&
+            item.description
+              .toLowerCase()
+              .includes(searchParam.toLowerCase())) ||
+          (item.value &&
+            item.value.toString().includes(searchParam.toLowerCase()))
       );
       setRows(filteredData);
     } else {
