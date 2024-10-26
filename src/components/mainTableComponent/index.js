@@ -466,14 +466,9 @@ export default function EnhancedTable() {
     if (searchParam.length > 0) {
       const filteredData = selectedMonth.expenses.filter(
         (item) =>
-          (item.type &&
-            item.type.toLowerCase().includes(searchParam.toLowerCase())) ||
-          (item.description &&
-            item.description
-              .toLowerCase()
-              .includes(searchParam.toLowerCase())) ||
-          (item.value &&
-            item.value.toString().includes(searchParam.toLowerCase()))
+          (item.type && item.type.toLowerCase().includes(searchParam.toLowerCase())) ||
+          (item.description && item.description.toLowerCase().includes(searchParam.toLowerCase())) ||
+          (item.value && item.value.toString().includes(searchParam.toLowerCase()))
       );
       setRows(filteredData);
     } else {

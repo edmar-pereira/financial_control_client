@@ -389,10 +389,18 @@ export function APIContextProvider({ children }) {
     localStorage.setItem('darkMode', !isDarkMode);
   };
 
+  const handleChangeTableView = () => {
+    setShowTableView(!showTableView)
+    localStorage.setItem('tableView', !showTableView);
+  }
+
   useEffect(() => {
     const mode = localStorage.getItem('darkMode');
-    console.log(mode);
     setIsDarkMode(mode === null  || mode === 'false' ? false : true);
+
+    const savedTableView = localStorage.getItem('tableView');
+    setShowTableView(savedTableView === null  || savedTableView === 'true' ? true : false);
+
     handleLoadData();
   }, []);
 
@@ -417,7 +425,7 @@ export function APIContextProvider({ children }) {
         isCategoryFiltered,
         setIsCategoryFiltered,
         showTableView,
-        setShowTableView,
+        handleChangeTableView,
         isDarkMode,
         handleThemeChange,
       }}

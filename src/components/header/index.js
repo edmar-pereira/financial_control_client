@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
   Typography,
   IconButton,
-  FormControlLabel,
   Box,
   Toolbar,
   Menu,
@@ -12,31 +11,20 @@ import {
   Button,
   MenuItem,
   AppBar,
-  Switch,
 } from '@mui/material';
-import TableChartIcon from '@mui/icons-material/TableChart';
-import ViewListIcon from '@mui/icons-material/ViewList';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '@mui/material/styles';
-
-import { useAPI } from '../../context/mainContext';
 
 const pages = ['Home', 'Adicionar', 'Grafico', 'Configurações'];
 
 function Header() {
   const theme = useTheme();
-  const { showTableView, setShowTableView, handleThemeChange, isDarkMode } =
-    useAPI();
   const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = useState(null);
   const headerRef = useRef(null);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
-  };
-
-  const handleChangeViewType = () => {
-    setShowTableView(!showTableView);
   };
 
   const handleCloseNavMenu = (e) => {
@@ -141,28 +129,6 @@ function Header() {
                 {page}
               </Button>
             ))}
-          </Box>
-
-          <Box
-            sx={{
-              display: { xs: 'none', md: 'flex', flexDirection: 'column' },
-            }}
-          >
-            {showTableView ? (
-              <IconButton
-                style={{ color: 'white' }}
-                onClick={() => handleChangeViewType()}
-              >
-                <TableChartIcon />
-              </IconButton>
-            ) : (
-              <IconButton
-                style={{ color: 'white' }}
-                onClick={() => handleChangeViewType()}
-              >
-                <ViewListIcon />
-              </IconButton>
-            )}
           </Box>
         </Toolbar>
       </Container>
