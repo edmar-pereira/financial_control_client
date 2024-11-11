@@ -297,13 +297,26 @@ export default function EnhancedTable() {
 
   // const [searched, setSearched] = React.useState('');
 
-  const [userData, setUserData] = React.useState({
+  const [userExpense, setUserExpense] = React.useState({
     labels: [],
     datasets: [
       {
         label: 'Despesas',
         data: [],
         backgroundColor: [],
+        extraData: [],
+      },
+    ],
+  });
+
+  const [userRevenue, setUserRevenue] = React.useState({
+    labels: [],
+    datasets: [
+      {
+        label: 'Receita',
+        data: [],
+        backgroundColor: [],
+        extraData: [],
       },
     ],
   });
@@ -312,6 +325,7 @@ export default function EnhancedTable() {
     let arrTotals = [];
     let arrColors = [];
     let arrLabels = [];
+    let arrExtraData = [];
 
     const categories = await expensesType.filter(
       (category) =>
@@ -339,6 +353,7 @@ export default function EnhancedTable() {
 
     async function getSum(item) {
       const objTotal = {};
+
       const dataFiltered = await selectedMonth.expenses.filter(
         (e) => e.type === item.label
       );
@@ -373,16 +388,18 @@ export default function EnhancedTable() {
           arrTotals.push(result.categorySum);
           arrColors.push(result.color);
           arrLabels.push(result.category + ' ' + result.percentage + '%');
+          arrExtraData.push(uniqueLabel.maxValue);
         })
       );
       // console.timeEnd('promise all');
-      setUserData({
+      setUserExpense({
         labels: arrLabels,
         datasets: [
           {
             label: 'Gastos ',
             data: arrTotals,
             backgroundColor: arrColors,
+            arrExtraData,
           },
         ],
       });
@@ -393,7 +410,6 @@ export default function EnhancedTable() {
 
   React.useEffect(() => {
     if (selectedMonth.expenses) {
-      console.log(selectedMonth)
       setRows(selectedMonth.expenses);
       GetExpVal();
     }
@@ -473,9 +489,14 @@ export default function EnhancedTable() {
     if (searchParam.length > 0) {
       const filteredData = selectedMonth.expenses.filter(
         (item) =>
-          (item.type && item.type.toLowerCase().includes(searchParam.toLowerCase())) ||
-          (item.description && item.description.toLowerCase().includes(searchParam.toLowerCase())) ||
-          (item.value && item.value.toString().includes(searchParam.toLowerCase()))
+          (item.type &&
+            item.type.toLowerCase().includes(searchParam.toLowerCase())) ||
+          (item.description &&
+            item.description
+              .toLowerCase()
+              .includes(searchParam.toLowerCase())) ||
+          (item.value &&
+            item.value.toString().includes(searchParam.toLowerCase()))
       );
       setRows(filteredData);
     } else {
@@ -580,8 +601,12 @@ export default function EnhancedTable() {
       />
 
       <Paper sx={{ width: '100%', mb: 2 }}>
-        <BarChart chartData={userData} />
+        <BarChart chartData={userExpense} />
       </Paper>
+
+      {/*<Paper sx={{ width: '100%', mb: 2 }}>
+      <BarChart chartData={userRevenue} />
+    </Paper>*/}
     </Box>
   );
 }
