@@ -84,7 +84,7 @@ export function APIContextProvider({ children }) {
       id: 'taxes_fees',
       label: 'Impostos',
       color: 'rgba(0, 191, 255, 0.6)',
-      maxValue: 0,
+      maxValue: 120.0,
     },
     {
       id: 'stocks',

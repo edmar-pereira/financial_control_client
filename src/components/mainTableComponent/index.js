@@ -49,6 +49,12 @@ const headCells = [
     label: 'Valor',
   },
   {
+    id: 'installments',
+    numeric: false,
+    disablePadding: false,
+    label: 'Parcelamento',
+  },
+  {
     id: 'date',
     numeric: false,
     disablePadding: false,
@@ -387,6 +393,7 @@ export default function EnhancedTable() {
 
   React.useEffect(() => {
     if (selectedMonth.expenses) {
+      console.log(selectedMonth)
       setRows(selectedMonth.expenses);
       GetExpVal();
     }
@@ -539,6 +546,7 @@ export default function EnhancedTable() {
                     </TableCell>
                     <TableCell align='left'>{row.description}</TableCell>
                     <TableCell align='left'>{MoneyFormat(row.value)}</TableCell>
+                    <TableCell align='left'>{row.installments}</TableCell>
                     <TableCell align='left'>{DateFormat(row.date)}</TableCell>
                     <TableCell align='left'>{row.type}</TableCell>
                   </TableRow>
