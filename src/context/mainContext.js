@@ -332,6 +332,7 @@ export function APIContextProvider({ children }) {
           content: 'Categoria atualizada com sucesso!',
           show: true,
         });
+        handleLoadCategory()
       } else {
         setMessage({
           severity: 'error',
