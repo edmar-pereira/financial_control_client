@@ -12,15 +12,8 @@ export default function Main() {
     selectedMonth,
     arrMonths,
     handleChangeMonth,
-    arrCategory,
-    handleChangeCategory,
-    currentCategory,
     showTableView
   } = useAPI();
-
-  const filteredCategory = arrCategory.filter(
-    (item) => item !== 'Cartão de Crédito' && item !== 'Filhos'
-  );
 
   const { month, year, expenses, pageInfo } = selectedMonth;
 
@@ -28,9 +21,6 @@ export default function Main() {
     handleChangeMonth(e.target.value);
   };
 
-  const changeCategory = (e) => {
-    handleChangeCategory(e.target.value);
-  };
 
 
   return (
@@ -42,11 +32,7 @@ export default function Main() {
           currentMonth={`${month} - ${year}`}
           label='Selecionar mês'
         />
-        <SelectCategory
-          arrCategory={filteredCategory}
-          changeCategory={changeCategory}
-          currentCategory={currentCategory}
-        />
+        <SelectCategory />
       </div>
       {expenses?.length === 0 ? (
         <div

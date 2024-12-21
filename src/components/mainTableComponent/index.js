@@ -486,18 +486,30 @@ export default function EnhancedTable() {
   // }, []);
 
   const handleFilter = (searchParam) => {
-    if (searchParam.length > 0) {
-      const filteredData = selectedMonth.expenses.filter(
-        (item) =>
-          (item.type &&
-            item.type.toLowerCase().includes(searchParam.toLowerCase())) ||
-          (item.description &&
-            item.description
-              .toLowerCase()
-              .includes(searchParam.toLowerCase())) ||
-          (item.value &&
-            item.value.toString().includes(searchParam.toLowerCase()))
-      );
+    // Preprocess searchParam: remove commas and dots
+    const normalizedSearchParam = searchParam
+      .replace(/[\.,]/g, '')
+      .toLowerCase();
+
+    if (normalizedSearchParam.length > 0) {
+      const filteredData = selectedMonth.expenses.filter((item) => {
+        // Preprocess fields for comparison
+        const normalizedType = item.type
+          ? item.type.replace(/[\.,]/g, '').toLowerCase()
+          : '';
+        const normalizedDescription = item.description
+          ? item.description.replace(/[\.,]/g, '').toLowerCase()
+          : '';
+        const normalizedValue = item.value
+          ? item.value.toString().replace(/[\.,]/g, '')
+          : '';
+
+        return (
+          normalizedType.includes(normalizedSearchParam) ||
+          normalizedDescription.includes(normalizedSearchParam) ||
+          normalizedValue.includes(normalizedSearchParam)
+        );
+      });
       setRows(filteredData);
     } else {
       setRows(selectedMonth.expenses);

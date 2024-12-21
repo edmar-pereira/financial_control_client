@@ -22,6 +22,7 @@ ChartJS.register(
 import PropTypes from 'prop-types';
 
 export default function BarChart({ chartData }) {
+  const dateRegex = /^\d{4}-\d{2}$/;
 
   function MoneyFormat(valueToFormat) {
     return valueToFormat.toLocaleString('pt-br', {
@@ -29,8 +30,6 @@ export default function BarChart({ chartData }) {
       currency: 'BRL',
     });
   }
-
-  // console.log(chartData.datasets[0].label)
 
   const data = {
     labels: chartData.labels,
@@ -64,31 +63,24 @@ export default function BarChart({ chartData }) {
       tooltip: {
         callbacks: {
           label: (tooltipItem) => {
-            const expense = tooltipItem.raw;
-            const monthIndex = tooltipItem.dataIndex;
-            const expenseEst = data.extraData.profit[monthIndex];
-            return [`Gasto total: ${MoneyFormat(expense)}`, `Gasto estimado: ${MoneyFormat(expenseEst)}`];
+            if (tooltipItem) {
+            }
+
+            if (!dateRegex.test(chartData.labels[0])) {
+              const expense = tooltipItem.raw;
+              const monthIndex = tooltipItem.dataIndex;
+              const expenseEst = data.extraData.profit[monthIndex];
+
+              return [
+                `Gasto total: ${MoneyFormat(expense)}`,
+                `Gasto estimado: ${MoneyFormat(expenseEst)}`,
+              ];
+            }
           },
         },
       },
     },
   };
-
-  // if (window.screen.width >= 1280) {
-  //   options = {
-  //     indexAxis: 'y',
-  //     // aspectRatio: 1, // this would be a 1:1 aspect ratio
-  //     // maintainAspectRatio: false,
-  //   };
-  // } else {
-  //   console.log('mobile');
-  //   options = {
-  //     indexAxis: 'y',
-  //     aspectRatio: 1, // this would be a 1:1 aspect ratio
-  //   };
-  // }
-
-
 
   return <Bar data={data} options={options} style={{ height: '600' }} />;
 }

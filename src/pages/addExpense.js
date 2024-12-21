@@ -84,15 +84,6 @@ export default function AddExpense() {
     return dateConverted;
   }
 
-  // function MoneyFormat(valueToFormat) {
-  //   if (valueToFormat !== undefined) {
-  //     return valueToFormat.toLocaleString('pt-br', {
-  //       style: 'currency',
-  //       currency: 'BRL',
-  //     });
-  //   }
-  // }
-
   const resetForm = () => {
     setType('');
     setExpenseValue(0);

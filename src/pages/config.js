@@ -45,6 +45,7 @@ export default function Config() {
     showTableView,
     handleChangeTableView,
     expensesType,
+    handleSaveCategoryChanges
   } = useAPI();
 
   const [hasChanges, setHasChanges] = useState(false);
@@ -56,9 +57,18 @@ export default function Config() {
     }, {})
   );
 
-  useEffect(() => {
-    console.log(hasChanges);
-  }, [hasChanges]);
+  // useEffect(() => {
+  //   console.log(hasChanges);
+  // }, [hasChanges]);
+
+  // useEffect(() => {
+  //   console.log(expenseValues);
+  // }, [expenseValues]);
+
+  
+  // useEffect(() => {
+  //   console.log(expensesType);
+  // }, [expensesType]);
 
   const handleSliderChange = (id, newValue) => {
     setHasChanges(true);
@@ -78,7 +88,23 @@ export default function Config() {
   };
 
   const handleSaveChanges = () => {
-    console.log('Changes saved:', expenseValues);
+    const updatedData = expensesType.map(item => ({
+      ...item,
+      maxValue: expenseValues[item.id] !== undefined ? expenseValues[item.id] : item.maxValue,
+    }));
+
+    handleSaveCategoryChanges(updatedData)
+    
+    setHasChanges(false); // Reset change indicator after saving
+  };
+
+  const handleCancelChanges = () => {
+
+    setExpenseValues(expensesType.reduce((acc, expense) => {
+      acc[expense.id] = expense.maxValue;
+      return acc;
+    }, {}))
+
     setHasChanges(false); // Reset change indicator after saving
   };
 
@@ -125,7 +151,44 @@ export default function Config() {
           </Grid>
           <Grid item xs={12}>
             <Item>
-              <h3>Valor gasto na categoria</h3>
+              <Box textAlign='center' width={'33%'}></Box>
+
+              <Box textAlign='center' width={'33%'}>
+                <h3 style={{ margin: 0 }}>Valor gasto na categoria</h3>
+              </Box>
+
+              {/* Right-aligned button */}
+              <Box textAlign='center' width={'33%'}>
+                {hasChanges && (
+                  <Box>
+                    <Button
+                      variant='contained'
+                      color='primary'
+                      onClick={handleSaveChanges}
+                      size='small'
+                      sx={{
+                        mr: 2,
+                        minWidth: 150,
+                      }}
+                    >
+                      Salvar
+                    </Button>
+
+                    <Button
+                      variant='contained'
+                      color='primary'
+                      onClick={handleCancelChanges}
+                      size='small'
+                      sx={{
+                        mr: 2,
+                        minWidth: 150,
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                  </Box>
+                )}
+              </Box>
             </Item>
           </Grid>
 
@@ -156,7 +219,7 @@ export default function Config() {
                     >
                       <TextField
                         variant='outlined'
-                        label='Max Value'
+                        label='Valor para categoria'
                         type='number'
                         value={expenseValues[expense.id]}
                         onChange={(e) => handleInputChange(expense.id, e)}
@@ -182,22 +245,6 @@ export default function Config() {
                 </Grid>
               ))}
           </Grid>
-          {hasChanges && (
-            <Button
-              variant='contained'
-              color='primary'
-              onClick={handleSaveChanges}
-              sx={{
-                position: 'fixed',
-                bottom: 16,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 1000,
-              }}
-            >
-              Save Changes
-            </Button>
-          )}
         </Grid>
       </Box>
     </Container>
