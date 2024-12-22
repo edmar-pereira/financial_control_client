@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import TextField from '@mui/material/TextField';
+import { TextField, Grid } from '@mui/material';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
@@ -167,152 +167,189 @@ export default function AddExpense() {
   }, [type, description, expenseValue]);
 
   return (
-    <div className='form-container'>
-      <FormControl
-        sx={{ m: 2, width: 300 }}
-        error={type.length === 0 && validate}
-        size='small'
+    <Box display='flex' justifyContent='center' sx={{ py: 4 }}>
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          maxWidth: '650px', // Adjust to fit two items per row (2 * 300px + spacing)
+          justifyContent: 'center',
+        }}
       >
-        <InputLabel htmlFor='price-method-input'>Tipo de gasto</InputLabel>
-        <Select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          label='Tipo de gasto'
-          labelId='expense_type_id'
-          size='sm'
-        >
-          {filteredCategory.map((item) => (
-            <MenuItem id='expense_type_item' key={item.id} value={item.label}>
-              {item.label}
-            </MenuItem>
-          ))}
-        </Select>
-        <FormHelperText>
-          {type.length === 0 && validate ? 'Campo obrigatório' : ''}
-        </FormHelperText>
-      </FormControl>
-      <FormControl sx={{ m: 2, width: 300 }} size='small'>
-        <TextField
-          id='description'
-          label='Descrição'
-          variant='outlined'
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          helperText={
-            description.length === 0 && validate ? 'Campo obrigatório' : ''
-          }
-          error={description.length === 0 && validate}
-        />
-      </FormControl>
-      <FormControl sx={{ m: 2, width: 300 }} size='small'>
-        <TextField
-          label='Valor'
-          value={expenseValue}
-          onChange={(e) => setExpenseValue(e.target.value)}
-          onFocus={(e) => e.target.select()}
-          name='set-expense-value'
-          id='expense-value'
-          InputProps={{
-            inputComponent: NumericFormatCustom,
-          }}
-          variant='outlined'
-        />
-        {/* <NumericFormat
-        //   key='number_format_value'
-        //   value={expenseValue}
-        //   id='value'
-        //   name='value'
-        //   label='Valor'
-        //   variant='outlined'
-        //   customInput={TextField}
-        //   thousandSeparator
-        //   decimalScale={2}
-        //   fixedDecimalScale
-        //   prefix='R$ '
-        //   type='text'
-        //   onValueChange={(values) => {
-        //     const { floatValue } = values;
-        //     setExpenseValue(floatValue);
-        //   }}
-        //   isAllowed={(values) => {
-        //     const { floatValue } = values;
-        //     return floatValue >= 0 && floatValue <= 100000000000;
-        //   }}
-        //   helperText={expenseValue === 0 && validate ? 'Campo obrigatório' : ''}
-        //   error={expenseValue === 0 && validate}
-    // />*/}
-      </FormControl>
-      <FormControl sx={{ m: 2, width: 300 }} size='small'>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DemoContainer components={['DateField', 'DatePicker']}>
-            <DatePicker
-              label={!extraFields ? 'Data da despesa' : 'Primeiro mês debitado'}
-              format='DD/MM/YYYY'
-              defaultValue={dayjs(date)}
-              onChange={(newValue) => setDate(new Date(newValue).toISOString())}
-            />
-          </DemoContainer>
-        </LocalizationProvider>
-      </FormControl>
-
-      <Box display={!extraFields ? 'none' : ''}>
-        <FormControl sx={{ m: 2, width: 300 }} size='small'>
-          <InputLabel htmlFor='total-months-html'>Total de meses</InputLabel>
-          <Select
-            value={totalMonths}
-            onChange={(e) => setTotalMonths(e.target.value)}
-            label='Total de meses'
-            labelId='total-months-id'
-            size='sm'
+        {/* Tipo de gasto */}
+        <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
+          <FormControl
+            size='small'
+            fullWidth
+            sx={{
+              '& .MuiInputBase-root': {
+                height: '56px', // Matches TextField height
+              },
+            }}
           >
-            {arrTotalMonths.map((item) => (
-              <MenuItem key={`item-options-months=${v4()}`} value={item}>
-                {item}
-              </MenuItem>
-            ))}
-          </Select>
-          <FormHelperText>
-            {type.length === 0 && validate ? 'Campo obrigatório' : ''}
-          </FormHelperText>
-        </FormControl>
-      </Box>
+            <InputLabel htmlFor='price-method-input'>Tipo de gasto</InputLabel>
+            <Select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              label='Tipo de gasto'
+              labelId='expense_type_id'
+            >
+              {filteredCategory.map((item) => (
+                <MenuItem
+                  id='expense_type_item'
+                  key={item.id}
+                  value={item.label}
+                >
+                  {item.label}
+                </MenuItem>
+              ))}
+            </Select>
+            <FormHelperText>
+              {type.length === 0 && validate ? 'Campo obrigatório' : ''}
+            </FormHelperText>
+          </FormControl>
+        </Grid>
 
-      <FormControl sx={{ m: 2, width: 300 }}>
-        <FormControlLabel
-          control={
-            <Checkbox checked={ignore} onChange={() => setIgnore(!ignore)} />
-          }
-          label='Ignorar transação'
-        />
-      </FormControl>
+        {/* Descrição */}
+        <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
+          <FormControl sx={{ width: '100%' }} size='small'>
+            <TextField
+              id='description'
+              label='Descrição'
+              variant='outlined'
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              helperText={
+                description.length === 0 && validate ? 'Campo obrigatório' : ''
+              }
+              error={description.length === 0 && validate}
+            />
+          </FormControl>
+        </Grid>
 
-      <Box display={param.id.length === 24 ? 'none' : ''}>
-        <FormControl sx={{ m: 2, width: 300 }} size='small'>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={extraFields}
-                onChange={() => setExtraFields(!extraFields)}
+        {/* Valor */}
+        <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
+          <FormControl sx={{ width: '100%', paddingTop: '8px' }} size='small'>
+            <TextField
+              label='Valor'
+              value={expenseValue}
+              onChange={(e) => setExpenseValue(e.target.value)}
+              onFocus={(e) => e.target.select()}
+              name='set-expense-value'
+              id='expense-value'
+              InputProps={{
+                inputComponent: NumericFormatCustom,
+              }}
+              variant='outlined'
+            />
+          </FormControl>
+        </Grid>
+
+        {/* Data da despesa */}
+        <Grid item xs={12} sm={6} sx={{ maxWidth: '309px', width: '100%' }}>
+          <FormControl fullWidth sx={{ width: { xs: '284px', sm: '309px', paddingTop: '8px' } }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Box sx={{ width: { xs: '284px', sm: '309px' }, height: '56px' }}>
+                <DatePicker
+                  label={
+                    !extraFields ? 'Data da despesa' : 'Primeiro mês debitado'
+                  }
+                  format='DD/MM/YYYY'
+                  defaultValue={dayjs(date)}
+                  onChange={(newValue) =>
+                    setDate(new Date(newValue).toISOString())
+                  }
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      sx: {
+                        width: { xs: '284px', sm: '309px' }, // Responsive width
+                        height: '56px', // Fixed height
+                      },
+                    },
+                  }}
+                />
+              </Box>
+            </LocalizationProvider>
+          </FormControl>
+        </Grid>
+
+        {/* Total de meses (conditionally displayed) */}
+        {extraFields && (
+          <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
+            <FormControl sx={{ width: '100%' }} size='small'>
+              <InputLabel htmlFor='total-months-html'>
+                Total de meses
+              </InputLabel>
+              <Select
+                value={totalMonths}
+                onChange={(e) => setTotalMonths(e.target.value)}
+                label='Total de meses'
+                labelId='total-months-id'
+              >
+                {arrTotalMonths.map((item) => (
+                  <MenuItem key={`item-options-months=${item}`} value={item}>
+                    {item}
+                  </MenuItem>
+                ))}
+              </Select>
+              <FormHelperText>
+                {type.length === 0 && validate ? 'Campo obrigatório' : ''}
+              </FormHelperText>
+            </FormControl>
+          </Grid>
+        )}
+
+        {/* Ignorar transação */}
+        <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
+          <FormControl sx={{ width: '100%' }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={ignore}
+                  onChange={() => setIgnore(!ignore)}
+                />
+              }
+              label='Ignorar transação'
+            />
+          </FormControl>
+        </Grid>
+
+        {/* Compra parcelada */}
+        {param.id.length !== 24 && (
+          <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
+            <FormControl sx={{ width: '100%' }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={extraFields}
+                    onChange={() => setExtraFields(!extraFields)}
+                  />
+                }
+                label='Compra parcelada'
               />
-            }
-            label='Compra parcelada'
-          />
-        </FormControl>
-      </Box>
-      <FormControl sx={{ m: 2, width: 300 }} size='small'>
-        <Button
-          disabled={disableAddBtn}
-          variant='contained'
-          color='success'
-          onClick={() =>
-            param.id.length === 24
-              ? handleUpdateExpense()
-              : handleAddNewExpense()
-          }
-        >
-          {param.id.length === 24 ? 'Atualizar despesa' : 'Salvar despesa'}
-        </Button>
-      </FormControl>
-    </div>
+            </FormControl>
+          </Grid>
+        )}
+
+        {/* Save/Update Button */}
+        <Grid item xs={12} sx={{ maxWidth: '300px' }}>
+          <FormControl sx={{ width: '100%' }}>
+            <Button
+              disabled={disableAddBtn}
+              variant='contained'
+              color='success'
+              onClick={() =>
+                param.id.length === 24
+                  ? handleUpdateExpense()
+                  : handleAddNewExpense()
+              }
+            >
+              {param.id.length === 24 ? 'Atualizar despesa' : 'Salvar despesa'}
+            </Button>
+          </FormControl>
+        </Grid>
+      </Grid>
+    </Box>
   );
 }
