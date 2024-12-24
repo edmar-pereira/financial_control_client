@@ -8,30 +8,15 @@ import SelectMonth from '../components/selectMonth';
 import SelectCategory from '../components/selectCategory';
 
 export default function Main() {
-  const {
-    selectedMonth,
-    arrMonths,
-    handleChangeMonth,
-    showTableView
-  } = useAPI();
+  const { selectedMonth, showTableView } = useAPI();
 
   const { month, year, expenses, pageInfo } = selectedMonth;
-
-  const handleChange = (e) => {
-    handleChangeMonth(e.target.value);
-  };
-
 
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-        <SelectMonth
-          arrMonths={arrMonths}
-          handleChange={handleChange}
-          currentMonth={`${month} - ${year}`}
-          label='Selecionar mês'
-        />
+        <SelectMonth />
         <SelectCategory />
       </div>
       {expenses?.length === 0 ? (
@@ -56,7 +41,6 @@ export default function Main() {
               }
             />
           ) : null}
-
 
           {showTableView ? <MainTableComponent /> : <MainCardComponent />}
         </div>

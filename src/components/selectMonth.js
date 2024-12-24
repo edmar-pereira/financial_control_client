@@ -4,23 +4,27 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import { v4 } from 'uuid';
-import PropTypes from 'prop-types';
+import { useAPI } from '../context/mainContext';
 
-export default function SelectMonth({
-  arrMonths,
-  handleChange,
-  currentMonth,
-  label,
-}) {
+export default function SelectMonth() {
+  const { selectedMonth, arrMonths, handleChangeMonth, showTableView } =
+    useAPI();
+
+  const { month, year } = selectedMonth;
+
+  const handleChange = (e) => {
+    handleChangeMonth(e.target.value);
+  };
+
   return (
     <FormControl sx={{ my: 2, width: 180 }} size='small'>
-      <InputLabel id='select-month-category'>{label}</InputLabel>
+      <InputLabel id='select-month-category'>{'Selecionar mês'}</InputLabel>
 
       <Select
         labelId='select-label'
         id='select-category'
-        value={currentMonth}
-        label={label}
+        value={`${month} - ${year}`}
+        label={'Selecionar mês'}
         onChange={handleChange}
         size='small'
       >
@@ -33,10 +37,3 @@ export default function SelectMonth({
     </FormControl>
   );
 }
-
-SelectMonth.propTypes = {
-  currentMonth: PropTypes.string.isRequired,
-  handleChange: PropTypes.func.isRequired,
-  arrMonths: PropTypes.arrayOf(PropTypes.string).isRequired,
-  label: PropTypes.string.isRequired,
-};

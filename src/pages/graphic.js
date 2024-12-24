@@ -121,12 +121,7 @@ function Graphic() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-        <SelectMonth
-          arrMonths={arrMonths}
-          handleChange={handleChange}
-          currentMonth={`${month} - ${year}`}
-          label='Selecionar mês'
-        />
+        <SelectMonth />
 
         <SelectCategory />
       </div>
