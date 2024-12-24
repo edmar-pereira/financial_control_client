@@ -12,7 +12,7 @@ export default function Router() {
       <Route path='graphic' element={<Graphic />} />
       <Route path='add_expense/:id?' element={<AddExpense />} />
       <Route path='configs' element={<Config />} />
-      <Route path='*' element={<Navigate to='/' />} />
+      <Route path='*' element={<Main />} />
     </Routes>
   );
 }
