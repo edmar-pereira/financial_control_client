@@ -8,11 +8,9 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import { v4 } from 'uuid';
 import FormHelperText from '@mui/material/FormHelperText';
 import { NumericFormat } from 'react-number-format';
 import dayjs from 'dayjs';
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -64,12 +62,64 @@ export default function AddExpense() {
   const [disableAddBtn, setDisableAddBtn] = useState(true);
   const [extraFields, setExtraFields] = useState(false);
   const [totalMonths, setTotalMonths] = useState(1);
+  const [searchedValue, setSearchedValue] = useState('');
 
   const arrTotalMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
   const filteredCategory = expensesType.filter(
     (item) => item.label !== 'Cartão de Crédito' && item.label !== 'Filhos'
   );
+
+  // console.log(selectedMonth.expenses);
+
+  useEffect(() => {
+    if (expenseValue && selectedMonth.expenses) {
+      const fileteredValue = selectedMonth.expenses.filter(
+        (item) =>
+          parseFloat(item.value).toFixed(2) ===
+          parseFloat(expenseValue).toFixed(2)
+      );
+
+      console.log(fileteredValue);
+
+      // Group entries by `value`
+      const grouped = fileteredValue.reduce((acc, entry) => {
+        if (!acc[entry.value]) {
+          acc[entry.value] = [];
+        }
+        acc[entry.value].push(entry);
+        return acc;
+      }, {});
+
+      // Generate the message dynamically
+      let message = '';
+      const totalMatches = Object.values(grouped).flat().length;
+
+      if (totalMatches === 0) {
+        message = ''; // No matches
+      } else if (totalMatches === 1) {
+        const entry = fileteredValue[0];
+        message = `Uma entrada foi encontrada:\n- Valor: R$ ${parseFloat(
+          entry.value
+        ).toFixed(2)}, Descrição: ${entry.description}, Data: ${new Date(
+          entry.date
+        ).toLocaleDateString('pt-BR')}`;
+      } else {
+        message = 'Foram encontradas entradas repetidas:\n';
+        Object.entries(grouped).forEach(([value, entries]) => {
+          entries.forEach((entry) => {
+            message += `- Valor: R$ ${parseFloat(value).toFixed(
+              2
+            )}, Descrição: ${entry.description}, Data: ${new Date(
+              entry.date
+            ).toLocaleDateString('pt-BR')}\n`;
+          });
+        });
+      }
+
+      setSearchedValue(message);
+    }
+  }, [expenseValue]);
 
   async function getDate() {
     const shortDate = new Date(date).toISOString().substring(0, 10);
@@ -247,7 +297,10 @@ export default function AddExpense() {
 
         {/* Data da despesa */}
         <Grid item xs={12} sm={6} sx={{ maxWidth: '309px', width: '100%' }}>
-          <FormControl fullWidth sx={{ width: { xs: '284px', sm: '309px', paddingTop: '8px' } }}>
+          <FormControl
+            fullWidth
+            sx={{ width: { xs: '284px', sm: '309px', paddingTop: '8px' } }}
+          >
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <Box sx={{ width: { xs: '284px', sm: '309px' }, height: '56px' }}>
                 <DatePicker
@@ -331,6 +384,15 @@ export default function AddExpense() {
             </FormControl>
           </Grid>
         )}
+
+        <Grid item xs={12} sm={12}>
+          {searchedValue.length > 0 && (
+            <div style={{ color: 'red', marginBottom: '16px' }}>
+              <strong>Foram encontradas entradas repetidas:</strong>
+              <pre>{searchedValue}</pre>
+            </div>
+          )}
+        </Grid>
 
         {/* Save/Update Button */}
         <Grid item xs={12} sx={{ maxWidth: '300px' }}>
