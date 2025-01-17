@@ -12,6 +12,7 @@ import {
   Container,
   Button,
 } from '@mui/material';
+import { NumericFormat } from 'react-number-format';
 import { styled } from '@mui/material/styles';
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -45,7 +46,7 @@ export default function Config() {
     showTableView,
     handleChangeTableView,
     expensesType,
-    handleSaveCategoryChanges
+    handleSaveCategoryChanges,
   } = useAPI();
 
   const [hasChanges, setHasChanges] = useState(false);
@@ -65,7 +66,6 @@ export default function Config() {
   //   console.log(expenseValues);
   // }, [expenseValues]);
 
-  
   // useEffect(() => {
   //   console.log(expensesType);
   // }, [expensesType]);
@@ -88,22 +88,26 @@ export default function Config() {
   };
 
   const handleSaveChanges = () => {
-    const updatedData = expensesType.map(item => ({
+    const updatedData = expensesType.map((item) => ({
       ...item,
-      maxValue: expenseValues[item.id] !== undefined ? expenseValues[item.id] : item.maxValue,
+      maxValue:
+        expenseValues[item.id] !== undefined
+          ? expenseValues[item.id]
+          : item.maxValue,
     }));
 
-    handleSaveCategoryChanges(updatedData)
-    
+    handleSaveCategoryChanges(updatedData);
+
     setHasChanges(false); // Reset change indicator after saving
   };
 
   const handleCancelChanges = () => {
-
-    setExpenseValues(expensesType.reduce((acc, expense) => {
-      acc[expense.id] = expense.maxValue;
-      return acc;
-    }, {}))
+    setExpenseValues(
+      expensesType.reduce((acc, expense) => {
+        acc[expense.id] = expense.maxValue;
+        return acc;
+      }, {})
+    );
 
     setHasChanges(false); // Reset change indicator after saving
   };
@@ -217,17 +221,29 @@ export default function Config() {
                       alignItems='center'
                       sx={{ mt: 1 }}
                     >
-                      <TextField
+                      <NumericFormat
+                        value={expenseValues[expense.id]}
+                        onValueChange={(values) => {
+                          handleInputChange(expense.id, {
+                            target: { value: values.floatValue },
+                          });
+                        }}
+                        thousandSeparator='.'
+                        decimalSeparator=','
+                        prefix='R$ '
+                        decimalScale={2}
+                        fixedDecimalScale={true}
+                        allowNegative={false}
+                        customInput={TextField}
                         variant='outlined'
                         label='Valor para categoria'
-                        type='number'
-                        value={expenseValues[expense.id]}
-                        onChange={(e) => handleInputChange(expense.id, e)}
-                        InputProps={{
-                          inputProps: { min: 0, max: 5000, step: 10 },
-                        }}
                         sx={{ width: '60%' }}
                         size='small'
+                        inputProps={{
+                          min: 0,
+                          max: 5000,
+                          step: 10,
+                        }}
                       />
                       <Slider
                         value={expenseValues[expense.id]}
