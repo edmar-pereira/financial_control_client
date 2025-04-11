@@ -33,6 +33,7 @@
     "dayjs": "latest",
     "debounce": "^2.2.0",
     "notistack": "^3.0.1",
+    "or": "^0.2.0",
     "prop-types": "^15.8.1",
     "react": "^17.0.1",
     "react-chartjs-2": "^5.2.0",
@@ -45,9 +46,6 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
     "ajv": "^7.2.4",
     "eslint": "^6.7.2",
     "eslint-config-airbnb": "^18.0.1",
