@@ -26,7 +26,7 @@ const ImportModal = ({ open, onClose }) => {
   const [file, setFile] = useState(null);
   const [importedData, setImportedData] = useState([]);
   const [isImported, setIsImported] = useState(false);
-  const [invalidDescriptionIndexes, setInvalidDescriptionIndexes] = useState([]);
+  // const [invalidDescriptionIndexes, setInvalidDescriptionIndexes] = useState([]);
   const [arrCategories, setArrCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [rows, setRows] = useState([]);
@@ -170,21 +170,21 @@ const ImportModal = ({ open, onClose }) => {
   //   }
   // };
 
-  useEffect(() => {
-    const invalidIndexes = importedData
-      .map((row, index) => (row.description.trim() === '' ? index : null))
-      .filter((index) => index !== null);
+  // useEffect(() => {
+  //   const invalidIndexes = importedData
+  //     .map((row, index) => (row.description.trim() === '' ? index : null))
+  //     .filter((index) => index !== null);
 
-    setInvalidDescriptionIndexes(invalidIndexes);
+  //   setInvalidDescriptionIndexes(invalidIndexes);
 
-    if (invalidIndexes.length > 0) {
-      setMessage({
-        severity: 'info',
-        content: `Favor preencher as descrições nas linhas: ${invalidIndexes.join(', ')}`,
-        show: true,
-      });
-    }
-  }, [importedData, setMessage]);
+  //   if (invalidIndexes.length > 0) {
+  //     setMessage({
+  //       severity: 'info',
+  //       content: `Favor preencher as descrições nas linhas: ${invalidIndexes.join(', ')}`,
+  //       show: true,
+  //     });
+  //   }
+  // }, [importedData, setMessage]);
 
   // useEffect(() => {
   //   if (open && importedData.length > 0) {

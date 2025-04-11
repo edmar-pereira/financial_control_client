@@ -59,8 +59,6 @@ export default function Config() {
     }, {})
   );
 
-  console.log(arrCategories);
-
   // useEffect(() => {
   //   console.log(hasChanges);
   // }, [hasChanges]);

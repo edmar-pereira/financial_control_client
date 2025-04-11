@@ -26,7 +26,6 @@ export default function MainCardComponent() {
   const [difference, setDifference] = useState(0);
 
   async function fetchData(params) {
-    console.log(params);
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/data/getData`,
@@ -39,14 +38,9 @@ export default function MainCardComponent() {
       );
 
       const { data } = response.data;
-
-      console.log(data);
-      // console.log(data);
       setTotalExp(data.totalExp);
       setTotalRev(data.totalRev);
       setDifference(data.difference);
-
-      // setRows(data.expenses);
       setExpenses(data.expenses);
 
       return data;
