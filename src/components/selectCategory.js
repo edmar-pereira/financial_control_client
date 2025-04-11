@@ -5,17 +5,16 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import { useAPI } from '../context/mainContext';
 
-
-export default function SelectCategory({rowIndex = null}) {
-  const { arrCategories, handleChangeCategory, selectedCategory  } =  useAPI();
+export default function SelectCategory({ rowIndex = null, selectedType }) {
+  const { arrCategories, handleChangeCategory } = useAPI();
 
   return (
-    <FormControl sx={{minWidth: '180px'}} size='small'>
+    <FormControl sx={{ minWidth: '180px' }} size='small'>
       <InputLabel id='item-select-label'>Categoria</InputLabel>
       <Select
         labelId='item-select-label'
         id={`select-category-${rowIndex ?? 'default'}`}
-        value={selectedCategory}
+        value={selectedType || ''}
         label='Categoria'
         onChange={(e) =>
           rowIndex !== null

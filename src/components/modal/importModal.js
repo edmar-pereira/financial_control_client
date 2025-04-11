@@ -22,13 +22,20 @@ import SelectCategory from '../selectCategory';
 import { useAPI } from '../../context/mainContext';
 
 const ImportModal = ({ open, onClose }) => {
-  const { setMessage, triggerReload } = useAPI();
+  const {
+    setMessage,
+    triggerReload,
+    selectedCategory,
+    setImportedData,
+    importedData,
+  } = useAPI();
   const [file, setFile] = useState(null);
-  const [importedData, setImportedData] = useState([]);
+
+  console.log(importedData)
+
   const [isImported, setIsImported] = useState(false);
   // const [invalidDescriptionIndexes, setInvalidDescriptionIndexes] = useState([]);
   const [arrCategories, setArrCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -65,6 +72,8 @@ const ImportModal = ({ open, onClose }) => {
         }
       );
 
+      console.log(response.data.data);
+
       setImportedData(response.data.data);
       setIsImported(true);
       setMessage({
@@ -96,13 +105,6 @@ const ImportModal = ({ open, onClose }) => {
     setImportedData(updatedData);
   };
 
-  const handleChangeCategory = useCallback((value, index) => {
-    setSelectedCategory(value);
-    const updatedData = [...importedData];
-    updatedData[index].type = value;
-    setImportedData(updatedData);
-  }, [importedData]);
-
   const handleRemoveRow = (index) => {
     const updatedData = importedData.filter((_, i) => i !== index);
     setImportedData(updatedData);
@@ -122,7 +124,7 @@ const ImportModal = ({ open, onClose }) => {
           show: true,
         });
         handleClose(); // Close modal after success
-        triggerReload()
+        triggerReload();
       } else {
         setMessage({
           severity: 'error',
@@ -193,7 +195,12 @@ const ImportModal = ({ open, onClose }) => {
   // }, [open, importedData]);
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth={isImported ? 'xl' : 'xl'} fullWidth={isImported}>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth={isImported ? 'xl' : 'xl'}
+      fullWidth={isImported}
+    >
       <DialogTitle>Importar extrato xlsx</DialogTitle>
       <DialogContent>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -225,7 +232,9 @@ const ImportModal = ({ open, onClose }) => {
                   <TableRow>
                     <TableCell>Data</TableCell>
                     <TableCell>Tipo</TableCell>
-                    <TableCell style={{ width: '25%' }}>Desc. Inicial</TableCell>
+                    <TableCell style={{ width: '25%' }}>
+                      Desc. Inicial
+                    </TableCell>
                     <TableCell style={{ width: '25%' }}>Descrição</TableCell>
                     <TableCell>Valor gasto</TableCell>
                     <TableCell>Categoria</TableCell>
@@ -267,19 +276,7 @@ const ImportModal = ({ open, onClose }) => {
                         />
                       </TableCell>
                       <TableCell>
-                        {arrCategories.length > 0 && (
-                          <SelectCategory
-                            key={row._id}
-                            arrCategories={arrCategories}
-                            selectedCategory={row.type}
-                            rowIndex={index}
-                            handleChangeCategory={(newCategory, rowIndex) => {
-                              const updated = [...importedData];
-                              updated[rowIndex].type = newCategory;
-                              setRows(updated);
-                            }}
-                          />
-                        )}
+                      <SelectCategory rowIndex={index} selectedType={row.type} />
                       </TableCell>
                       <TableCell>
                         <IconButton

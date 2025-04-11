@@ -24,7 +24,7 @@ export function APIContextProvider({ children }) {
   // const [isCategoryFiltered, setIsCategoryFiltered] = useState(false); // This will be used to know when updating the view if is necessary to return to the category filtered
   const [showTableView, setShowTableView] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
-
+  const [importedData, setImportedData] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
 
   const triggerReload = () => {
@@ -76,8 +76,21 @@ export function APIContextProvider({ children }) {
     localStorage.setItem('tableView', !showTableView);
   };
 
-  const handleChangeCategory = async (categoryId) => {
-    setSelectedCategory(categoryId); // or whatever logic you have
+  useEffect(() => {
+    console.log(importedData);
+  }, [importedData]);
+
+  const handleChangeCategory = (newCategoryId, rowIndex = null) => {
+    if (rowIndex !== null) {
+      setImportedData((prevData) =>
+        prevData.map((item, i) =>
+          i === rowIndex ? { ...item, type: newCategoryId } : item
+        )
+      );
+    } else {
+      // Optional: update selectedCategory globally if needed
+      setSelectedCategory(newCategoryId);
+    }
   };
 
   useEffect(() => {
@@ -100,12 +113,11 @@ export function APIContextProvider({ children }) {
         arrCategories,
         handleChangeCategory,
         selectedCategory,
-
         loading,
-
         message,
         setMessage,
-
+        importedData,
+        setImportedData,
         showTableView,
         handleChangeTableView,
         isDarkMode,
