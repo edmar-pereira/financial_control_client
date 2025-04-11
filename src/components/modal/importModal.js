@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import debounce from 'debounce';
 import axios from 'axios';
 import {
   Dialog,
@@ -22,21 +23,9 @@ import SelectCategory from '../selectCategory';
 import { useAPI } from '../../context/mainContext';
 
 const ImportModal = ({ open, onClose }) => {
-  const {
-    setMessage,
-    triggerReload,
-    selectedCategory,
-    setImportedData,
-    importedData,
-  } = useAPI();
+  const { setMessage, triggerReload, setImportedData, importedData } = useAPI();
   const [file, setFile] = useState(null);
-
-  console.log(importedData)
-
   const [isImported, setIsImported] = useState(false);
-  // const [invalidDescriptionIndexes, setInvalidDescriptionIndexes] = useState([]);
-  const [arrCategories, setArrCategories] = useState([]);
-  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const isFormValid = importedData.every(
@@ -99,10 +88,18 @@ const ImportModal = ({ open, onClose }) => {
     setImportedData(updatedData);
   };
 
+  const debouncedSetDescription = useMemo(
+    () =>
+      debounce((index, value) => {
+        const updatedData = [...importedData];
+        updatedData[index].description = value;
+        setImportedData(updatedData);
+      }, 300),
+    [importedData]
+  );
+
   const handleDescriptionChange = (e, index) => {
-    const updatedData = [...importedData];
-    updatedData[index].description = e.target.value;
-    setImportedData(updatedData);
+    debouncedSetDescription(index, e.target.value);
   };
 
   const handleRemoveRow = (index) => {
@@ -276,7 +273,10 @@ const ImportModal = ({ open, onClose }) => {
                         />
                       </TableCell>
                       <TableCell>
-                      <SelectCategory rowIndex={index} selectedType={row.type} />
+                        <SelectCategory
+                          rowIndex={index}
+                          selectedType={row.type}
+                        />
                       </TableCell>
                       <TableCell>
                         <IconButton
