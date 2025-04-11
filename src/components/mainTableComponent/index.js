@@ -104,7 +104,6 @@ function getComparator(order, orderBy) {
 }
 
 function stableSort(array, comparator) {
-  // console.log(array)
   const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
@@ -325,11 +324,10 @@ export default function MainView() {
   }
 
   async function fetchData(params) {
-    // console.log(params);
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/data/getData`,
-        params, // 🔹 Send as POST body
+        params,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -341,7 +339,7 @@ export default function MainView() {
       setTotalExp(data.totalExp);
       setTotalRev(data.totalRev);
       setDifference(data.difference);
-
+      setOriginalData(data);
       setRows(data.expenses);
 
       return data;
@@ -354,7 +352,7 @@ export default function MainView() {
           show: true,
         });
       }
-      return null; // optional: return null if error happens
+      return null;
     }
   }
 
@@ -377,7 +375,7 @@ export default function MainView() {
       if (err.response) {
         setMessage(err.response.data.error);
       }
-      return null; // optional: return null if error happens
+      return null; 
     }
   }
 
@@ -431,18 +429,11 @@ export default function MainView() {
   };
 
   const handleEdit = (event, id) => {
-    // selectedCategory === 'all_categories' ? '' : selectedCategory,
-
-    // if (selectedCategory === '' || selectedCategory === 'all_categories') {
-    //   setIsCategoryFiltered(false);
-    // } else {
-    //   setIsCategoryFiltered(true);
-    // }
     navigate(`add_expense/${id}`);
   };
 
   const handleChangeDate = useCallback((newDate) => {
-    setSelectedDate(newDate); // or whatever logic you have
+    setSelectedDate(newDate);
   }, []);
 
   function GetSelectedCategory(currCategory) {
@@ -463,18 +454,15 @@ export default function MainView() {
   }
 
   const getExtpenses = async () => {
-    // console.log('called 1')
     const currentMonth = await fetchData({
       startDate: new Date().toISOString().substring(0, 10),
       categoryIds: '',
     });
-    setOriginalData(currentMonth);
   };
 
   const getCategory = async () => {
     const categoryResponse = await fetchCategory();
     setArrCategories(categoryResponse);
-    // console.log(categoryResponse);
     setSelectedCategory('');
   };
 
@@ -484,30 +472,14 @@ export default function MainView() {
   }, []);
 
   useEffect(() => {
-    // {
-    //   "startDate": "2025-03-01",
-    //   "endDate": "2025-03-31",
-    //   "categoryIds":  ["fuel", "supermarket"],
-    //   "descriptions": ["combustível"],
-    //   "values": ["100", "200"]
-    // }
-
     if (selectedDate !== '') {
-      // console.log('Reload data')
       fetchData({
         startDate: selectedDate.substring(0, 10),
-        // "endDate": "2025-03-31",
         categoryIds:
           selectedCategory === 'all_categories' ? '' : selectedCategory,
-        // "descriptions": ["combustível"],
-        // "values": ["100", "200"]
       });
     }
   }, [selectedCategory, selectedDate, reloadKey]);
-
-  // useEffect(() => {
-  //   getExtpenses();
-  // }, [reloadKey]);
 
   const handleFilter = (searchParam) => {
     const normalizedSearchParam = searchParam
@@ -537,7 +509,6 @@ export default function MainView() {
 
       setRows(filteredData);
     } else {
-      // Reset to original data when search box is cleared
       setRows(originalData.expenses);
     }
   };
@@ -549,9 +520,6 @@ export default function MainView() {
 
   const visibleRows = useMemo(() => {
     if (!rows || rows.length === 0) return [];
-
-    // console.log(rows.expenses);
-
     return stableSort(rows, getComparator(order, orderBy)).slice(
       page * rowsPerPage,
       page * rowsPerPage + rowsPerPage
@@ -564,10 +532,10 @@ export default function MainView() {
         <Box
           sx={{
             display: 'flex',
-            justifyContent: 'space-between', // Pushes items to ends
+            justifyContent: 'space-between', 
             alignItems: 'center',
-            px: 2, // Optional: adds horizontal padding
-            py: 1, // Optional: adds vertical padding
+            px: 2, 
+            py: 1, 
           }}
         >
           <SelectMonth
