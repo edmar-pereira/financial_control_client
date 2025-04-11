@@ -8,10 +8,10 @@ import DateBox from '../components/dateBox';
 import './styles.css';
 
 function Graphic() {
-  const { selectedMonth, expensesType, arrMonths, handleChangeMonth } =
+  const { selectedMonth, expensesType, handleChangeMonth } =
     useAPI();
 
-  const { month, year, expenses, totalExp, totalRev } = selectedMonth;
+  const { expenses, totalExp, totalRev } = selectedMonth;
 
   const handleChange = (e) => {
     handleChangeMonth(e.target.value);

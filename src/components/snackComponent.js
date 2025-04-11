@@ -5,7 +5,7 @@ import MuiAlert from '@mui/material/Alert';
 import { useAPI } from '../context/mainContext';
 
 const Alert = React.forwardRef(function Alert(props, ref) {
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+  return <MuiAlert elevation={6} ref={ref} variant='filled' {...props} />;
 });
 
 export default function SnackComponent() {
@@ -15,9 +15,11 @@ export default function SnackComponent() {
   const [severity, setSeverity] = React.useState('');
 
   React.useEffect(() => {
-    setMsg(message.content);
-    setOpen(message.show);
-    setSeverity(message.severity);
+    if (message !== undefined) {
+      setMsg(message.content);
+      setOpen(message.show);
+      setSeverity(message.severity);
+    }
   }, [message]);
 
   const handleClose = (event, reason) => {

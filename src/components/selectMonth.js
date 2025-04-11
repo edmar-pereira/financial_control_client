@@ -1,39 +1,72 @@
-import React from 'react';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import { v4 } from 'uuid';
-import { useAPI } from '../context/mainContext';
+import { Box, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import { useState, useEffect } from 'react';
 
-export default function SelectMonth() {
-  const { selectedMonth, arrMonths, handleChangeMonth, showTableView } =
-    useAPI();
+const monthsBR = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+];
 
-  const { month, year } = selectedMonth;
+export default function SelectMonth({ currentDate, handleChangeDate }) {
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1); // getMonth is 0-indexed
 
-  const handleChange = (e) => {
-    handleChangeMonth(e.target.value);
-  };
+  const years = [2025, 2024, 2023];
+
+  useEffect(() => {
+    const formattedDate = new Date(Date.UTC(selectedYear, selectedMonth - 1, 1)).toISOString();
+    handleChangeDate(formattedDate);
+  }, [selectedYear, selectedMonth]);
 
   return (
-    <FormControl sx={{ my: 2, width: 180 }} size='small'>
-      <InputLabel id='select-month-category'>{'Selecionar mês'}</InputLabel>
+    <Box sx={{ display: 'flex', gap: 2, my: 2 }}>
+      {/* Year Selector */}
+      <FormControl size="small" sx={{ minWidth: 120 }}>
+        <InputLabel id="select-year-label">Ano</InputLabel>
+        <Select
+          labelId="select-year-label"
+          id="select-year"
+          value={selectedYear}
+          label="Ano"
+          onChange={(e) => setSelectedYear(e.target.value)}
+        >
+          {years.map((yr) => (
+            <MenuItem key={yr} value={yr}>
+              {yr}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
-      <Select
-        labelId='select-label'
-        id='select-category'
-        value={`${month} - ${year}`}
-        label={'Selecionar mês'}
-        onChange={handleChange}
-        size='small'
-      >
-        {arrMonths.map((item) => (
-          <MenuItem key={`item-options-${v4()}`} value={item}>
-            {item}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+      {/* Month Selector */}
+      <FormControl size="small" sx={{ minWidth: 180 }}>
+        <InputLabel id="select-month-label">Mês</InputLabel>
+        <Select
+          labelId="select-month-label"
+          id="select-month"
+          value={monthsBR[selectedMonth - 1]}
+          label="Mês"
+          onChange={(e) => {
+            const monthIndex = monthsBR.indexOf(e.target.value) + 1;
+            setSelectedMonth(monthIndex);
+          }}
+        >
+          {monthsBR.map((mes) => (
+            <MenuItem key={mes} value={mes}>
+              {mes}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </Box>
   );
 }

@@ -4,20 +4,8 @@ import { Box, Container, Grid, Typography } from '@mui/material';
 
 import { useAPI } from '../context/mainContext';
 
-export default function Footer() {
-  const { selectedMonth, isDarkMode } = useAPI();
-
-  const [unique, setUnique] = useState(0);
-
-  const { difference, totalExp, totalRev } = selectedMonth;
-
-  useEffect(() => {
-    const { expenses } = selectedMonth;
-    if (expenses?.length > 0) {
-      const total = [...new Set(expenses.map((item) => item.type))];
-      setUnique(total);
-    }
-  }, [selectedMonth]);
+export default function Footer({ totalRev, totalExp, difference }) {
+  const { isDarkMode } = useAPI();
 
   function MoneyFormat(valueToFormat) {
     if (valueToFormat !== undefined) {
@@ -48,7 +36,7 @@ export default function Footer() {
               variant='subtitle1'
               sx={{ fontWeight: 'bold', fontSize: '1rem' }}
             >
-              {unique.length > 1 ? `Receita: ${MoneyFormat(totalRev)}` : null}
+              {`Receita: ${MoneyFormat(totalRev)}`}
             </Typography>
           </Grid>
           <Grid item xs={4} style={{ padding: 5, textAlign: 'center' }}>
@@ -57,7 +45,7 @@ export default function Footer() {
               variant='subtitle1'
               sx={{ fontWeight: 'bold', fontSize: '1rem' }}
             >
-              {unique.length > 0 ? `Gasto: ${MoneyFormat(totalExp)}` : null}
+              {`Gasto: ${MoneyFormat(totalExp)}`}
             </Typography>
           </Grid>
           <Grid item xs={4} style={{ padding: 5, textAlign: 'center' }}>
@@ -66,9 +54,7 @@ export default function Footer() {
               variant='subtitle1'
               sx={{ fontWeight: 'bold', fontSize: '1rem' }}
             >
-              {unique.length > 1
-                ? `Diferença: ${MoneyFormat(difference)}`
-                : null}
+              {`Diferença: ${MoneyFormat(difference)}`}
             </Typography>
           </Grid>
         </Grid>

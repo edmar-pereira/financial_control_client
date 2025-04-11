@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { TextField, Grid } from '@mui/material';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -9,7 +10,6 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import FormHelperText from '@mui/material/FormHelperText';
-import { NumericFormat } from 'react-number-format';
 import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -17,128 +17,74 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Button from '@mui/material/Button';
 
 import { useAPI } from '../context/mainContext';
+import { NumericFormatCustom } from '../components/numericFormatCustom';
 
-const NumericFormatCustom = React.forwardRef(function NumericFormatCustom(
-  props,
-  ref
-) {
-  const { onChange, ...other } = props;
-
-  return (
-    <NumericFormat
-      {...other}
-      getInputRef={ref}
-      onValueChange={(values) => {
-        onChange({
-          target: {
-            name: props.name,
-            value: values.value,
-          },
-        });
-      }}
-      thousandSeparator='.'
-      decimalSeparator=','
-      decimalScale={2}
-      fixedDecimalScale
-      prefix='R$ '
-    />
-  );
-});
+import SelectCategory from '../components/selectCategory';
 
 export default function AddExpense() {
-  const { addNewExpense, updateExpense, expensesType, selectedMonth } =
-    useAPI();
+  const {
+    setMessage,
+    arrCategories,
+    selectedCategory,
+    handleChangeCategory,
+    setSelectedCategory,
+  } = useAPI();
 
   const param = useParams();
   const navigate = useNavigate();
 
-  const [type, setType] = useState('');
   const [expenseValue, setExpenseValue] = useState(0);
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date().toISOString());
   const [ignore, setIgnore] = useState(false);
-  const [id, setId] = useState('');
   const [validate, setValidate] = useState(false);
   const [disableAddBtn, setDisableAddBtn] = useState(true);
   const [extraFields, setExtraFields] = useState(false);
   const [totalMonths, setTotalMonths] = useState(1);
   const [searchedValue, setSearchedValue] = useState('');
-
   const arrTotalMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-
-  const filteredCategory = expensesType.filter(
-    (item) => item.label !== 'Cartão de Crédito' && item.label !== 'Filhos'
-  );
-
-  // console.log(selectedMonth.expenses);
-
-  useEffect(() => {
-    if (expenseValue && selectedMonth.expenses) {
-      const fileteredValue = selectedMonth.expenses.filter(
-        (item) =>
-          parseFloat(item.value).toFixed(2) ===
-          parseFloat(expenseValue).toFixed(2)
+  const [currentMonth, setCurrentMonth] = useState([]);
+  async function fetchData(params) {
+    // console.log(params);
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/data/getData`,
+        params, // 🔹 Send as POST body
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
 
-      console.log(fileteredValue);
-
-      // Group entries by `value`
-      const grouped = fileteredValue.reduce((acc, entry) => {
-        if (!acc[entry.value]) {
-          acc[entry.value] = [];
-        }
-        acc[entry.value].push(entry);
-        return acc;
-      }, {});
-
-      // Generate the message dynamically
-      let message = '';
-      const totalMatches = Object.values(grouped).flat().length;
-
-      if (totalMatches === 0) {
-        message = ''; // No matches
-      } else if (totalMatches === 1) {
-        const entry = fileteredValue[0];
-        message = `Uma entrada foi encontrada:\n- Valor: R$ ${parseFloat(
-          entry.value
-        ).toFixed(2)}, Descrição: ${entry.description}, Data: ${new Date(
-          entry.date
-        ).toLocaleDateString('pt-BR')}`;
-      } else {
-        message = 'Foram encontradas entradas repetidas:\n';
-        Object.entries(grouped).forEach(([value, entries]) => {
-          entries.forEach((entry) => {
-            message += `- Valor: R$ ${parseFloat(value).toFixed(
-              2
-            )}, Descrição: ${entry.description}, Data: ${new Date(
-              entry.date
-            ).toLocaleDateString('pt-BR')}\n`;
-          });
+      const { data } = response.data;
+      setCurrentMonth(data.expenses);
+      // return data.expenses;
+    } catch (error) {
+      console.log(error.response.data.error);
+      if (error.response) {
+        setMessage({
+          severity: 'error',
+          content: error.response.data.error,
+          show: true,
         });
       }
-
-      setSearchedValue(message);
+      return null; // optional: return null if error happens
     }
-  }, [expenseValue]);
-
-  async function getDate() {
-    const shortDate = new Date(date).toISOString().substring(0, 10);
-    const obj = shortDate.split('-');
-    const dateFormated = new Date(obj[0], obj[1] - 1, obj[2]); // 2009-11-10
-    const dateConverted = dateFormated.toLocaleString('pt-BR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-
-    return dateConverted;
   }
 
+  useEffect(() => {
+    fetchData({
+      startDate: new Date().toISOString().substring(0, 10),
+      categoryIds: '',
+    });
+  }, [date]);
+
   const resetForm = () => {
-    setType('');
+    // setType('');
     setExpenseValue(0);
     setDescription('');
-    // setDate(new Date().toISOString());
+    setDate(new Date().toISOString());
     setIgnore(false);
     setValidate(false);
     setExtraFields(false);
@@ -146,75 +92,160 @@ export default function AddExpense() {
   };
 
   const handleUpdateExpense = async () => {
-    setValidate(true);
-    const filteredType = expensesType.filter((e) => e.label === type);
+    const obj = {
+      date: date,
+      description: description,
+      ignore: ignore,
+      categoryId: selectedCategory,
+      value: expenseValue,
+      currentInstallment: 1,
+      totalInstallment: totalMonths,
+    };
 
-    const newDate = await getDate();
-    const splitedDate = newDate.split(' ');
-
-    updateExpense(
-      {
-        type,
-        avatarType: filteredType[0].id,
-        value: expenseValue,
-        ignore,
-        description,
-        date: dayjs(date).toISOString(),
-        year: splitedDate[4],
-        month:
-          splitedDate[2].charAt(0).toUpperCase() +
-          splitedDate[2].slice(1).toString(),
-      },
-      id
-    );
-    // resetForm();
-    navigate('/');
+    await axios
+      .put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/data/update/${param.id}`,
+        obj
+      )
+      .then((response) => {
+        if (response.status === 200) {
+          setMessage({
+            severity: 'success',
+            content: 'Atualizado com sucesso!',
+            show: true,
+          });
+          resetForm();
+          navigate('/');
+        } else {
+          setMessage({
+            severity: 'error',
+            content: 'Erro ao atualizar despesa',
+            show: true,
+          });
+          // setLoading(false);
+        }
+      });
   };
 
   const handleAddNewExpense = async () => {
-    setValidate(true);
-    const filteredType = expensesType.filter((e) => e.label === type);
-
-    const newDate = await getDate();
-    const splitedDate = newDate.split(' ');
-
-    addNewExpense({
-      type,
-      avatarType: filteredType[0].id,
+    const obj = {
+      date: date,
+      description: description,
+      ignore: ignore,
+      categoryId: selectedCategory,
       value: expenseValue,
-      ignore,
-      description,
-      date: dayjs(date).toISOString(),
-      year: splitedDate[4],
-      month:
-        splitedDate[2].charAt(0).toUpperCase() +
-        splitedDate[2].slice(1).toString(),
-      installment: totalMonths,
-    });
-    resetForm();
+      currentInstallment: 1,
+      totalInstallment: totalMonths,
+    };
+
+    await axios
+      .post(`${process.env.REACT_APP_BACKEND_URL}/api/data/create`, obj)
+      .then((response) => {
+        if (response.status === 200) {
+          setSelectedCategory('');
+          resetForm();
+          setMessage({
+            severity: 'success',
+            content: 'Cadastrado com sucesso!',
+            show: true,
+          });
+        } else {
+          setMessage({
+            severity: 'error',
+            content: 'Erro ao cadastrar despesa',
+            show: true,
+          });
+        }
+      });
+  };
+
+  const getExtpenses = async (id) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/data/getById/${id}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      const { data } = response.data;
+      handleChangeCategory(data.categoryId);
+      setExpenseValue(data.value);
+      setDescription(data.description);
+      setDate(data.date);
+      setIgnore(data.ignore);
+    } catch (error) {
+      if (error.response) {
+        setMessage({
+          severity: 'error',
+          content: error.response.statusText,
+          show: true,
+        });
+      }
+      return null;
+    }
   };
 
   useEffect(() => {
-    const { expenses } = selectedMonth;
-    const data = expenses?.filter((e) => e._id === param.id);
-    resetForm();
-    if (data !== undefined && data.length > 0) {
-      setType(data[0].type);
-      setExpenseValue(data[0].value);
-      setDescription(data[0].description);
-      setDate(data[0].date);
-      setIgnore(data[0].ignore);
-      setId(data[0]._id);
+    if (param.id !== ':id') {
+      getExtpenses(param.id);
     }
   }, [param.id]);
 
   useEffect(() => {
-    if (type.length > 0 && description.length > 0 && expenseValue > 0) {
+    if (
+      selectedCategory.length > 0 &&
+      description.length > 0 &&
+      expenseValue > 0
+    ) {
       setDisableAddBtn(false);
+      if (expenseValue && currentMonth) {
+        const fileteredValue = currentMonth.filter(
+          (item) =>
+            parseFloat(item.value).toFixed(2) ===
+            parseFloat(expenseValue).toFixed(2)
+        );
+        const grouped = fileteredValue.reduce((acc, entry) => {
+          if (!acc[entry.value]) {
+            acc[entry.value] = [];
+          }
+          acc[entry.value].push(entry);
+          return acc;
+        }, {});
+
+        // Generate the message dynamically
+        let message = '';
+        const totalMatches = Object.values(grouped).flat().length;
+
+        if (totalMatches === 0) {
+          message = ''; // No matches
+        } else if (totalMatches === 1) {
+          const entry = fileteredValue[0];
+          message = `Uma entrada foi encontrada:\n- Valor: R$ ${parseFloat(
+            entry.value
+          ).toFixed(2)}, Descrição: ${entry.description}, Data: ${new Date(
+            entry.date
+          ).toLocaleDateString('pt-BR')}`;
+        } else {
+          message = 'Foram encontradas entradas repetidas:\n';
+          Object.entries(grouped).forEach(([value, entries]) => {
+            entries.forEach((entry) => {
+              message += `- Valor: R$ ${parseFloat(value).toFixed(
+                2
+              )}, Descrição: ${entry.description}, Data: ${new Date(
+                entry.date
+              ).toLocaleDateString('pt-BR')}\n`;
+            });
+          });
+        }
+
+        setSearchedValue(message);
+      }
     } else {
       setDisableAddBtn(true);
     }
-  }, [type, description, expenseValue]);
+  }, [description, expenseValue]);
 
   return (
     <Box display='flex' justifyContent='center' sx={{ py: 4 }}>
@@ -237,25 +268,13 @@ export default function AddExpense() {
               },
             }}
           >
-            <InputLabel htmlFor='price-method-input'>Tipo de gasto</InputLabel>
-            <Select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              label='Tipo de gasto'
-              labelId='expense_type_id'
-            >
-              {filteredCategory.map((item) => (
-                <MenuItem
-                  id='expense_type_item'
-                  key={item.id}
-                  value={item.label}
-                >
-                  {item.label}
-                </MenuItem>
-              ))}
-            </Select>
+            {arrCategories && selectedCategory !== undefined && (
+              <SelectCategory />
+            )}
             <FormHelperText>
-              {type.length === 0 && validate ? 'Campo obrigatório' : ''}
+              {selectedCategory.length === 0 && validate
+                ? 'Campo obrigatório'
+                : ''}
             </FormHelperText>
           </FormControl>
         </Grid>
@@ -308,7 +327,7 @@ export default function AddExpense() {
                     !extraFields ? 'Data da despesa' : 'Primeiro mês debitado'
                   }
                   format='DD/MM/YYYY'
-                  defaultValue={dayjs(date)}
+                  value={dayjs(date)}
                   onChange={(newValue) =>
                     setDate(new Date(newValue).toISOString())
                   }
@@ -347,7 +366,8 @@ export default function AddExpense() {
                 ))}
               </Select>
               <FormHelperText>
-                {type.length === 0 && validate ? 'Campo obrigatório' : ''}
+                {/* {type.length === 0 && validate ? 'Campo obrigatório' : ''}
+                 */}{' '}
               </FormHelperText>
             </FormControl>
           </Grid>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Footer from './components/footer';
+// import Footer from './components/footer';
 import Router from './router';
 import Header from './components/header';
 import Loader from './components/loading';
@@ -33,7 +33,7 @@ export default function App() {
           ) : (
             <div>
               <Router />
-              <Footer />
+           
             </div>
           )}
         </div>

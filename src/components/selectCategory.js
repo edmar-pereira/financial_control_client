@@ -1,34 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import { v4 } from 'uuid';
 import { useAPI } from '../context/mainContext';
 
-export default function SelectCategory() {
-  const {
-    expensesType,
-    handleChangeCategory,
-    currentCategory,
-  } = useAPI();
 
-  const changeCategory = (e) => {
-    handleChangeCategory(e.target.value);
-  };
+export default function SelectCategory({rowIndex = null}) {
+  const { arrCategories, handleChangeCategory, selectedCategory  } =  useAPI();
+
   return (
-    <FormControl sx={{ my: 2, width: 180 }} size='small'>
+    <FormControl sx={{minWidth: '180px'}} size='small'>
       <InputLabel id='item-select-label'>Categoria</InputLabel>
-
       <Select
         labelId='item-select-label'
-        id='select-category'
-        value={currentCategory}
+        id={`select-category-${rowIndex ?? 'default'}`}
+        value={selectedCategory}
         label='Categoria'
-        onChange={changeCategory}
+        onChange={(e) =>
+          rowIndex !== null
+            ? handleChangeCategory(e.target.value, rowIndex)
+            : handleChangeCategory(e.target.value)
+        }
       >
-        {expensesType.map((item) => (
-          <MenuItem key={`item-options-${v4()}`} value={item.label}>
+        {(arrCategories || []).map((item) => (
+          <MenuItem key={item.id} value={item.id}>
             {item.label}
           </MenuItem>
         ))}
@@ -36,4 +32,3 @@ export default function SelectCategory() {
     </FormControl>
   );
 }
-

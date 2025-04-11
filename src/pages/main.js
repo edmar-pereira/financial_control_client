@@ -8,17 +8,16 @@ import SelectMonth from '../components/selectMonth';
 import SelectCategory from '../components/selectCategory';
 
 export default function Main() {
-  const { selectedMonth, showTableView } = useAPI();
+  const { showTableView } = useAPI();
 
-  const { month, year, expenses, pageInfo } = selectedMonth;
-
+  // const { month, year, expenses, pageInfo } = selectedMonth;
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+      {/*} <div style={{ display: 'flex', justifyContent: 'space-around' }}>
         <SelectMonth />
         <SelectCategory />
-      </div>
+      </div> 
       {expenses?.length === 0 ? (
         <div
           style={{
@@ -32,19 +31,17 @@ export default function Main() {
             Não foi possível carregar suas finanças
           </Typography>
         </div>
-      ) : (
-        <div>
-          {!showTableView ? (
-            <DateBox
-              info={
-                pageInfo !== undefined ? `${pageInfo}` : `${month} - ${year}`
-              }
-            />
-          ) : null}
+      ) : (*/}
+      <div>
+        {/*{!showTableView ? (
+           <DateBox
+            info={pageInfo !== undefined ? `${pageInfo}` : `${month} - ${year}`}
+          />
+        ) : null}*/}
 
-          {showTableView ? <MainTableComponent /> : <MainCardComponent />}
-        </div>
-      )}
+        {showTableView ? <MainTableComponent /> : <MainCardComponent />}
+      </div>
+      {/*}  )}*/}
     </div>
   );
 }

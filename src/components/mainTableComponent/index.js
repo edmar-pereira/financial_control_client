@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -15,8 +15,6 @@ import Paper from '@mui/material/Paper';
 import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { visuallyHidden } from '@mui/utils';
@@ -32,8 +30,12 @@ import { format } from 'date-fns-tz';
 import { useAPI } from '../../context/mainContext';
 import { useNavigate } from 'react-router-dom';
 
+import SelectMonth from '../../components/selectMonth';
+import SelectCategory from '../../components/selectCategory';
+import Footer from '../../components/footer';
+
 import BarChart from '../charts/barChart';
-import { TrendingUp } from '@material-ui/icons';
+import axios from 'axios';
 
 const headCells = [
   {
@@ -102,6 +104,7 @@ function getComparator(order, orderBy) {
 }
 
 function stableSort(array, comparator) {
+  // console.log(array)
   const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
@@ -181,7 +184,7 @@ EnhancedTableHead.propTypes = {
 
 function EnhancedTableToolbar(props) {
   const { numSelected, handleDelete, handleEdit, handleFilter } = props;
-  const [searchValue, setSearchedValue] = React.useState('');
+  const [searchValue, setSearchedValue] = useState('');
 
   const createDeleteHandler = (property) => (event) => {
     handleDelete(event, property);
@@ -270,150 +273,113 @@ function EnhancedTableToolbar(props) {
 }
 
 EnhancedTableToolbar.propTypes = {
-  numSelected: PropTypes.string.isRequired,
+  numSelected: PropTypes.array.isRequired,
   handleDelete: PropTypes.func.isRequired,
   handleEdit: PropTypes.func.isRequired,
   handleFilter: PropTypes.func.isRequired,
 };
 
-export default function EnhancedTable() {
-  const [order, setOrder] = React.useState('asc');
-  const [orderBy, setOrderBy] = React.useState('calories');
-  const [selected, setSelected] = React.useState([]);
-  const [page, setPage] = React.useState(0);
-  const [dense, setDense] = React.useState(TrendingUp);
-  const [rows, setRows] = React.useState([]);
-  const [rowsPerPage, setRowsPerPage] = React.useState(15);
+export default function MainView() {
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('calories');
+  const [selected, setSelected] = useState([]);
+  const [page, setPage] = useState(0);
+  const [originalData, setOriginalData] = useState([]); // holds unfiltered data
+  const [rows, setRows] = useState([]); // filtered version
+  const [rowsPerPage, setRowsPerPage] = useState(15);
+  const [arrCategories, setArrCategories] = useState([]);
+  const [totalRev, setTotalRev] = useState(0);
+  const [totalExp, setTotalExp] = useState(0);
+  const [difference, setDifference] = useState(0);
   const navigate = useNavigate();
 
   const {
-    deleteExpense,
-    expensesType,
-    selectedMonth,
-    handleLoadData,
-    currentCategory,
-    setIsCategoryFiltered,
+    selectedCategory,
+    setSelectedCategory,
+    selectedDate,
+    setSelectedDate,
+    setMessage,
+    reloadKey,
+    triggerReload,
   } = useAPI();
 
-  // const [searched, setSearched] = React.useState('');
-
-  const [userExpense, setUserExpense] = React.useState({
-    labels: [],
-    datasets: [
-      {
-        label: 'Despesas',
-        data: [],
-        backgroundColor: [],
-        extraData: [],
-      },
-    ],
-  });
-
-  const [userRevenue, setUserRevenue] = React.useState({
-    labels: [],
-    datasets: [
-      {
-        label: 'Receita',
-        data: [],
-        backgroundColor: [],
-        extraData: [],
-      },
-    ],
-  });
-
-  const GetExpVal = async () => {
-    let arrTotals = [];
-    let arrColors = [];
-    let arrLabels = [];
-    let arrExtraData = [];
-
-    const categories = await expensesType.filter(
-      (category) =>
-        category.id !== 'credit_card' &&
-        category.id !== 'revenue' &&
-        category.id !== 'all_categories' &&
-        category.id !== 'uncategorized' &&
-        category.id !== 'stocks' &&
-        category.id !== 'children'
-    );
-
-    function getColor(percentageToSearch) {
-      let colorSearched = '';
-      if (percentageToSearch <= 0) {
-        colorSearched = '#f44336';
-      } else if (percentageToSearch <= 50) {
-        colorSearched = '#4caf50';
-      } else if (percentageToSearch <= 100) {
-        colorSearched = '#ffc107';
-      } else if (percentageToSearch > 100) {
-        colorSearched = '#f44336';
-      }
-      return colorSearched;
-    }
-
-    async function getSum(item) {
-      const objTotal = {};
-
-      const dataFiltered = await selectedMonth.expenses.filter(
-        (e) => e.type === item.label
-      );
-
-      const categorySum = await dataFiltered.reduce((accumulator, object) => {
-        return accumulator + object.value;
-      }, 0);
-
-      const percentage = isFinite(
-        ((categorySum / item.maxValue) * 100).toFixed(1)
-      )
-        ? ((categorySum / item.maxValue) * 100).toFixed(1)
-        : '0';
-
-      const color = getColor(percentage);
-
-      return {
-        categorySum,
-        percentage:
-          percentage !== 'NaN' || percentage !== 'Infinity' ? percentage : 0,
-        color,
-        category: item.label,
-      };
-    }
-
-    const getWithPromiseAll = async () => {
-      // console.time('promise all');
-
-      let data = await Promise.all(
-        categories.map(async (uniqueLabel) => {
-          const result = await getSum(uniqueLabel);
-          arrTotals.push(result.categorySum);
-          arrColors.push(result.color);
-          arrLabels.push(result.category + ' ' + result.percentage + '%');
-          arrExtraData.push(uniqueLabel.maxValue);
-        })
-      );
-      // console.timeEnd('promise all');
-      setUserExpense({
-        labels: arrLabels,
-        datasets: [
-          {
-            label: 'Gastos ',
-            data: arrTotals,
-            backgroundColor: arrColors,
-            arrExtraData,
-          },
-        ],
+  async function deleteData(id) {
+    await axios
+      .delete(`${process.env.REACT_APP_BACKEND_URL}/api/data/delete/${id}`)
+      .then((response) => {
+        if (response.status === 200) {
+          setMessage({
+            severity: 'info',
+            content: 'Deletado com sucesso!',
+            show: true,
+          });
+          triggerReload();
+        } else {
+          setMessage({
+            severity: 'error',
+            content: 'Erro ao deletar despesa',
+            show: true,
+          });
+        }
       });
-    };
+  }
 
-    getWithPromiseAll();
-  };
+  async function fetchData(params) {
+    // console.log(params);
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/data/getData`,
+        params, // 🔹 Send as POST body
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-  React.useEffect(() => {
-    if (selectedMonth.expenses) {
-      setRows(selectedMonth.expenses);
-      GetExpVal();
+      const { data } = response.data;
+      setTotalExp(data.totalExp);
+      setTotalRev(data.totalRev);
+      setDifference(data.difference);
+
+      setRows(data.expenses);
+
+      return data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      if (error.response) {
+        setMessage({
+          severity: 'error',
+          content: error.response.data.error,
+          show: true,
+        });
+      }
+      return null; // optional: return null if error happens
     }
-  }, [selectedMonth.expenses]);
+  }
+
+  async function fetchCategory() {
+    try {
+      const response = await axios({
+        method: 'get',
+        url: `${process.env.REACT_APP_BACKEND_URL}/api/data/getCategory/`,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.status === 200) {
+        const { data } = response.data;
+        return data;
+      } else {
+        console.log(error);
+      }
+    } catch (err) {
+      if (err.response) {
+        setMessage(err.response.data.error);
+      }
+      return null; // optional: return null if error happens
+    }
+  }
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -457,45 +423,103 @@ export default function EnhancedTable() {
     setPage(0);
   };
 
-  const handleChangeDense = (event) => {
-    setDense(event.target.checked);
-  };
-
   const handleDelete = (event, id) => {
     id.map((item) => {
-      deleteExpense(item);
+      deleteData(item);
     });
     setSelected([]);
   };
 
   const handleEdit = (event, id) => {
-    if (currentCategory === '' || currentCategory === 'Todas') {
-      setIsCategoryFiltered(false);
-    } else {
-      setIsCategoryFiltered(true);
-    }
+    // selectedCategory === 'all_categories' ? '' : selectedCategory,
+
+    // if (selectedCategory === '' || selectedCategory === 'all_categories') {
+    //   setIsCategoryFiltered(false);
+    // } else {
+    //   setIsCategoryFiltered(true);
+    // }
     navigate(`add_expense/${id}`);
   };
 
-  // React.useEffect(() => {
-  //   console.log(selectedMonth.expenses);
-  //   if (!selectedMonth.expenses) {
-  //     handleLoadData();
-  //   }
-  //   //
-  // }, []);
+  const handleChangeDate = useCallback((newDate) => {
+    setSelectedDate(newDate); // or whatever logic you have
+  }, []);
+
+  function GetSelectedCategory(currCategory) {
+    const safeCategories = arrCategories || [];
+
+    try {
+      const filteredCategory = safeCategories.filter(
+        (item) => item.id === currCategory
+      );
+
+      return filteredCategory.length > 0
+        ? filteredCategory[0].label
+        : 'Categoria não encontrada';
+    } catch (err) {
+      console.error('Erro ao buscar categoria:', currCategory, err);
+      return 'Erro';
+    }
+  }
+
+  const getExtpenses = async () => {
+    // console.log('called 1')
+    const currentMonth = await fetchData({
+      startDate: new Date().toISOString().substring(0, 10),
+      categoryIds: '',
+    });
+    setOriginalData(currentMonth);
+  };
+
+  const getCategory = async () => {
+    const categoryResponse = await fetchCategory();
+    setArrCategories(categoryResponse);
+    // console.log(categoryResponse);
+    setSelectedCategory('');
+  };
+
+  useEffect(() => {
+    getCategory();
+    getExtpenses();
+  }, []);
+
+  useEffect(() => {
+    // {
+    //   "startDate": "2025-03-01",
+    //   "endDate": "2025-03-31",
+    //   "categoryIds":  ["fuel", "supermarket"],
+    //   "descriptions": ["combustível"],
+    //   "values": ["100", "200"]
+    // }
+
+    if (selectedDate !== '') {
+      // console.log('Reload data')
+      fetchData({
+        startDate: selectedDate.substring(0, 10),
+        // "endDate": "2025-03-31",
+        categoryIds:
+          selectedCategory === 'all_categories' ? '' : selectedCategory,
+        // "descriptions": ["combustível"],
+        // "values": ["100", "200"]
+      });
+    }
+  }, [selectedCategory, selectedDate, reloadKey]);
+
+  // useEffect(() => {
+  //   getExtpenses();
+  // }, [reloadKey]);
 
   const handleFilter = (searchParam) => {
-    // Preprocess searchParam: remove commas and dots
     const normalizedSearchParam = searchParam
       .replace(/[\.,]/g, '')
       .toLowerCase();
 
     if (normalizedSearchParam.length > 0) {
-      const filteredData = selectedMonth.expenses.filter((item) => {
-        // Preprocess fields for comparison
-        const normalizedType = item.type
-          ? item.type.replace(/[\.,]/g, '').toLowerCase()
+      const filteredData = originalData.expenses.filter((item) => {
+        const filteredCategory = GetSelectedCategory(item.categoryId);
+
+        const normalizedType = filteredCategory
+          ? filteredCategory.replace(/[\.,]/g, '').toLowerCase()
           : '';
         const normalizedDescription = item.description
           ? item.description.replace(/[\.,]/g, '').toLowerCase()
@@ -510,9 +534,11 @@ export default function EnhancedTable() {
           normalizedValue.includes(normalizedSearchParam)
         );
       });
+
       setRows(filteredData);
     } else {
-      setRows(selectedMonth.expenses);
+      // Reset to original data when search box is cleared
+      setRows(originalData.expenses);
     }
   };
 
@@ -521,18 +547,37 @@ export default function EnhancedTable() {
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-  const visibleRows = React.useMemo(
-    () =>
-      stableSort(rows, getComparator(order, orderBy)).slice(
-        page * rowsPerPage,
-        page * rowsPerPage + rowsPerPage
-      ),
-    [order, orderBy, page, rowsPerPage, rows]
-  );
+  const visibleRows = useMemo(() => {
+    if (!rows || rows.length === 0) return [];
+
+    // console.log(rows.expenses);
+
+    return stableSort(rows, getComparator(order, orderBy)).slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
+  }, [order, orderBy, page, rowsPerPage, rows]);
 
   return (
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between', // Pushes items to ends
+            alignItems: 'center',
+            px: 2, // Optional: adds horizontal padding
+            py: 1, // Optional: adds vertical padding
+          }}
+        >
+          <SelectMonth
+            currentDate={new Date()}
+            handleChangeDate={handleChangeDate}
+          />
+          {arrCategories && selectedCategory !== undefined && (
+            <SelectCategory />
+          )}
+        </Box>
         <EnhancedTableToolbar
           numSelected={selected}
           handleDelete={handleDelete}
@@ -543,7 +588,7 @@ export default function EnhancedTable() {
           <Table
             sx={{ minWidth: 650 }}
             aria-labelledby='tableTitle'
-            size={dense ? 'small' : 'medium'}
+            size={'small'}
           >
             <EnhancedTableHead
               numSelected={selected.length}
@@ -551,47 +596,69 @@ export default function EnhancedTable() {
               orderBy={orderBy}
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
-              rowCount={rows.length}
+              rowCount={rows.length || 0}
             />
             <TableBody>
-              {visibleRows.map((row, index) => {
-                const isItemSelected = isSelected(row._id);
-                const labelId = `enhanced-table-checkbox-${index}`;
-                return (
-                  <TableRow
-                    hover
-                    onClick={(event) => handleClick(event, row._id)}
-                    role='checkbox'
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={row._id}
-                    selected={isItemSelected}
-                    sx={{ cursor: 'pointer' }}
-                  >
-                    <TableCell padding='checkbox'>
-                      <Checkbox
-                        color='primary'
-                        checked={isItemSelected}
-                        inputProps={{
-                          'aria-labelledby': labelId,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align='left'>{row.description}</TableCell>
-                    <TableCell align='left'>{MoneyFormat(row.value)}</TableCell>
-                    <TableCell align='left'>{row.installments}</TableCell>
-                    <TableCell align='left'>{DateFormat(row.date)}</TableCell>
-                    <TableCell align='left'>{row.type}</TableCell>
-                  </TableRow>
-                );
-              })}
+              {visibleRows.length > 0 ? (
+                visibleRows.map((row, index) => {
+                  const isItemSelected = isSelected(row._id);
+                  const labelId = `enhanced-table-checkbox-${index}`;
+                  return (
+                    <TableRow
+                      hover
+                      onClick={(event) => handleClick(event, row._id)}
+                      role='checkbox'
+                      aria-checked={isItemSelected}
+                      tabIndex={-1}
+                      key={row._id}
+                      selected={isItemSelected}
+                      sx={{ cursor: 'pointer' }}
+                    >
+                      <TableCell padding='checkbox'>
+                        <Checkbox
+                          color='primary'
+                          checked={isItemSelected}
+                          inputProps={{
+                            'aria-labelledby': labelId,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell align='left'>{row.description}</TableCell>
+                      <TableCell align='left'>
+                        {MoneyFormat(row.value)}
+                      </TableCell>
+                      <TableCell align='left'>
+                        {row.currentInstallment !== undefined &&
+                        row.totalInstallment !== undefined &&
+                        !(
+                          row.currentInstallment === 1 &&
+                          row.totalInstallment === 1
+                        )
+                          ? `${row.currentInstallment} de ${row.totalInstallment}`
+                          : ''}
+                      </TableCell>
+                      <TableCell align='left'>{DateFormat(row.date)}</TableCell>
+                      <TableCell align='left'>
+                        {GetSelectedCategory(row.categoryId)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} align='center'>
+                    Nenhum dado carregado
+                  </TableCell>
+                </TableRow>
+              )}
+
               {emptyRows > 0 && (
                 <TableRow
                   style={{
-                    height: (dense ? 33 : 53) * emptyRows,
+                    height: 33 * emptyRows,
                   }}
                 >
-                  <TableCell colSpan={4} />
+                  <TableCell colSpan={6} />
                 </TableRow>
               )}
             </TableBody>
@@ -600,25 +667,19 @@ export default function EnhancedTable() {
         <TablePagination
           rowsPerPageOptions={[15, 30, 50, 100]}
           component='div'
-          count={rows.length}
+          count={rows?.length || 0}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-      <FormControlLabel
-        control={<Switch checked={dense} onChange={handleChangeDense} />}
-        label='Espaçamento'
-      />
 
       <Paper sx={{ width: '100%', mb: 2 }}>
-        <BarChart chartData={userExpense} />
+        <BarChart transactions={rows} categories={arrCategories} />
       </Paper>
 
-      {/*<Paper sx={{ width: '100%', mb: 2 }}>
-      <BarChart chartData={userRevenue} />
-    </Paper>*/}
+      <Footer totalRev={totalRev} totalExp={totalExp} difference={difference} />
     </Box>
   );
 }

@@ -46,17 +46,20 @@ export default function Config() {
     showTableView,
     handleChangeTableView,
     expensesType,
+    arrCategories,
     handleSaveCategoryChanges,
   } = useAPI();
 
   const [hasChanges, setHasChanges] = useState(false);
 
-  const [expenseValues, setExpenseValues] = useState(
-    expensesType.reduce((acc, expense) => {
+  const [expenseValues, setExpenseValues] = useState(() =>
+    arrCategories.reduce((acc, expense) => {
       acc[expense.id] = expense.maxValue;
       return acc;
     }, {})
   );
+
+  console.log(arrCategories);
 
   // useEffect(() => {
   //   console.log(hasChanges);
@@ -88,7 +91,7 @@ export default function Config() {
   };
 
   const handleSaveChanges = () => {
-    const updatedData = expensesType.map((item) => ({
+    const updatedData = arrCategories.map((item) => ({
       ...item,
       maxValue:
         expenseValues[item.id] !== undefined
@@ -97,8 +100,7 @@ export default function Config() {
     }));
 
     handleSaveCategoryChanges(updatedData);
-
-    setHasChanges(false); // Reset change indicator after saving
+    setHasChanges(false);
   };
 
   const handleCancelChanges = () => {
@@ -201,7 +203,7 @@ export default function Config() {
             spacing={2}
             sx={{ flexGrow: 1, mt: '30px', mb: '30px', ml: '2px' }}
           >
-            {expensesType
+            {arrCategories
               .filter(
                 (expense) =>
                   ![
@@ -222,7 +224,7 @@ export default function Config() {
                       sx={{ mt: 1 }}
                     >
                       <NumericFormat
-                        value={expenseValues[expense.id]}
+                        value={expenseValues[expense.id] || 0}
                         onValueChange={(values) => {
                           handleInputChange(expense.id, {
                             target: { value: values.floatValue },
@@ -245,11 +247,12 @@ export default function Config() {
                           step: 10,
                         }}
                       />
+
                       <Slider
-                        value={expenseValues[expense.id]}
+                        value={expenseValues[expense.id] || 0}
                         min={0}
-                        max={5000} // Adjust as needed
-                        step={10} // Adjust as needed
+                        max={5000}
+                        step={10}
                         onChange={(e, newValue) =>
                           handleSliderChange(expense.id, newValue)
                         }
