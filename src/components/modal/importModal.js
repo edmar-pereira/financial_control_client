@@ -61,8 +61,6 @@ const ImportModal = ({ open, onClose }) => {
         }
       );
 
-      console.log(response.data.data);
-
       setImportedData(response.data.data);
       setIsImported(true);
       setMessage({
