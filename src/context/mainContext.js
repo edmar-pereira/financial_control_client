@@ -76,10 +76,6 @@ export function APIContextProvider({ children }) {
     localStorage.setItem('tableView', !showTableView);
   };
 
-  useEffect(() => {
-    console.log(importedData);
-  }, [importedData]);
-
   const handleChangeCategory = (newCategoryId, rowIndex = null) => {
     if (rowIndex !== null) {
       setImportedData((prevData) =>
