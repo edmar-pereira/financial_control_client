@@ -27,6 +27,7 @@ const ImportModal = ({ open, onClose }) => {
   const [file, setFile] = useState(null);
   const [isImported, setIsImported] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [editedData, setEditedData] = useState([]);
 
   const isFormValid = importedData.every(
     (item) => item.description.trim() !== ''
@@ -96,8 +97,22 @@ const ImportModal = ({ open, onClose }) => {
     [importedData]
   );
 
+  useEffect(() => {
+    if (isImported) {
+      setEditedData(importedData); // Initialize local copy on import
+    }
+  }, [isImported, importedData]);
+
   const handleDescriptionChange = (e, index) => {
-    debouncedSetDescription(index, e.target.value);
+    const updated = [...editedData];
+    updated[index].description = e.target.value;
+    setEditedData(updated);
+  };
+
+  const handleDescriptionBlur = (index) => {
+    const updatedImported = [...importedData];
+    updatedImported[index].description = editedData[index].description;
+    setImportedData(updatedImported);
   };
 
   const handleRemoveRow = (index) => {
@@ -247,8 +262,9 @@ const ImportModal = ({ open, onClose }) => {
                       <TableCell>
                         <TextField
                           fullWidth
-                          value={row.description}
+                          value={editedData[index]?.description || ''}
                           onChange={(e) => handleDescriptionChange(e, index)}
+                          onBlur={() => handleDescriptionBlur(index)}
                           variant='outlined'
                           size='small'
                           error={row.description.trim() === ''}
