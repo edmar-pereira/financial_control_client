@@ -10,7 +10,14 @@ import {
   Legend,
 } from 'chart.js';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 import PropTypes from 'prop-types';
 
@@ -25,7 +32,14 @@ export default function BarChart({ transactions, categories }) {
   const chartData = useMemo(() => {
     const filteredCategories = categories.filter(
       (cat) =>
-        !['credit_card', 'revenue', 'all_categories', 'uncategorized', 'stocks', 'children'].includes(cat.id)
+        ![
+          'credit_card',
+          'revenue',
+          'all_categories',
+          'uncategorized',
+          'stocks',
+          'children',
+        ].includes(cat.id)
     );
 
     const labels = [];
@@ -41,9 +55,13 @@ export default function BarChart({ transactions, categories }) {
     }
 
     filteredCategories.forEach((category) => {
-      const transInCategory = transactions.filter((t) => t.categoryId === category.id);
+      const transInCategory = transactions.filter(
+        (t) => t.categoryId === category.id
+      );
       const total = transInCategory.reduce((sum, t) => sum + t.value, 0);
-      const percentage = category.maxValue ? ((total / category.maxValue) * 100).toFixed(1) : 0;
+      const percentage = category.maxValue
+        ? ((total / category.maxValue) * 100).toFixed(1)
+        : 0;
       labels.push(`${category.label} ${percentage}%`);
       data.push(total);
       backgroundColor.push(getColor(percentage));
@@ -86,7 +104,16 @@ export default function BarChart({ transactions, categories }) {
     },
   };
 
-  return <Bar data={chartData} options={options} style={{ height: '600px' }} />;
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: window.innerWidth >= 600 ? '500px' : '300px', // mobile vs web
+      }}
+    >
+      <Bar data={chartData} options={options} />
+    </div>
+  );
 }
 
 BarChart.propTypes = {

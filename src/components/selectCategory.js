@@ -9,7 +9,14 @@ export default function SelectCategory({ rowIndex = null, selectedType }) {
   const { arrCategories, handleChangeCategory } = useAPI();
 
   return (
-    <FormControl sx={{ minWidth: '180px' }} size='small'>
+    <FormControl
+      size='small'
+      sx={{
+        minWidth: 140,
+        // maxWidth: 200,
+        width: { xs: '100%', sm: 'auto' }, // 100% on mobile, auto on desktop
+      }}
+    >
       <InputLabel id='item-select-label'>Categoria</InputLabel>
       <Select
         labelId='item-select-label'

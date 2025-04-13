@@ -223,13 +223,16 @@ function EnhancedTableToolbar(props) {
         </Typography>
       ) : (
         <FormControl
-          sx={{ m: 1, width: '200px' }}
           variant='outlined'
           size='small'
+          sx={{
+            width: { xs: '100%', sm: '200px', lg: '270px' },
+            m: { xs: 0, sm: 1 },
+          }}
         >
           <OutlinedInput
             id='outlined-adornment-filter'
-            type={'text'}
+            type='text'
             onChange={(e) => createFilterHandler(e.target.value)}
             placeholder='Pesquisa'
             value={searchValue}
@@ -301,6 +304,17 @@ export default function MainView() {
     reloadKey,
     triggerReload,
   } = useAPI();
+
+  const emptyRows =
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+
+  const visibleRows = useMemo(() => {
+    if (!rows || rows.length === 0) return [];
+    return stableSort(rows, getComparator(order, orderBy)).slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
+  }, [order, orderBy, page, rowsPerPage, rows]);
 
   async function deleteData(id) {
     await axios
@@ -379,6 +393,23 @@ export default function MainView() {
     }
   }
 
+  function GetSelectedCategory(currCategory) {
+    const safeCategories = arrCategories || [];
+
+    try {
+      const filteredCategory = safeCategories.filter(
+        (item) => item.id === currCategory
+      );
+
+      return filteredCategory.length > 0
+        ? filteredCategory[0].label
+        : 'Categoria não encontrada';
+    } catch (err) {
+      console.error('Erro ao buscar categoria:', currCategory, err);
+      return 'Erro';
+    }
+  }
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -436,51 +467,6 @@ export default function MainView() {
     setSelectedDate(newDate);
   }, []);
 
-  function GetSelectedCategory(currCategory) {
-    const safeCategories = arrCategories || [];
-
-    try {
-      const filteredCategory = safeCategories.filter(
-        (item) => item.id === currCategory
-      );
-
-      return filteredCategory.length > 0
-        ? filteredCategory[0].label
-        : 'Categoria não encontrada';
-    } catch (err) {
-      console.error('Erro ao buscar categoria:', currCategory, err);
-      return 'Erro';
-    }
-  }
-
-  const getExtpenses = async () => {
-    const currentMonth = await fetchData({
-      startDate: new Date().toISOString().substring(0, 10),
-      categoryIds: '',
-    });
-  };
-
-  const getCategory = async () => {
-    const categoryResponse = await fetchCategory();
-    setArrCategories(categoryResponse);
-    setSelectedCategory('');
-  };
-
-  useEffect(() => {
-    getCategory();
-    getExtpenses();
-  }, []);
-
-  useEffect(() => {
-    if (selectedDate !== '') {
-      fetchData({
-        startDate: selectedDate.substring(0, 10),
-        categoryIds:
-          selectedCategory === 'all_categories' ? '' : selectedCategory,
-      });
-    }
-  }, [selectedCategory, selectedDate, reloadKey]);
-
   const handleFilter = (searchParam) => {
     const normalizedSearchParam = searchParam
       .replace(/\[\.,]/g, '')
@@ -513,18 +499,35 @@ export default function MainView() {
     }
   };
 
+  const getExtpenses = async () => {
+    const currentMonth = await fetchData({
+      startDate: new Date().toISOString().substring(0, 10),
+      categoryIds: '',
+    });
+  };
+
+  const getCategory = async () => {
+    const categoryResponse = await fetchCategory();
+    setArrCategories(categoryResponse);
+    setSelectedCategory('');
+  };
+
+  useEffect(() => {
+    if (selectedDate !== '') {
+      fetchData({
+        startDate: selectedDate.substring(0, 10),
+        categoryIds:
+          selectedCategory === 'all_categories' ? '' : selectedCategory,
+      });
+    }
+  }, [selectedCategory, selectedDate, reloadKey]);
+
+  useEffect(() => {
+    getCategory();
+    getExtpenses();
+  }, []);
+
   const isSelected = (id) => selected.indexOf(id) !== -1;
-
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
-
-  const visibleRows = useMemo(() => {
-    if (!rows || rows.length === 0) return [];
-    return stableSort(rows, getComparator(order, orderBy)).slice(
-      page * rowsPerPage,
-      page * rowsPerPage + rowsPerPage
-    );
-  }, [order, orderBy, page, rowsPerPage, rows]);
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -532,8 +535,10 @@ export default function MainView() {
         <Box
           sx={{
             display: 'flex',
+            flexWrap: 'wrap',
             justifyContent: 'space-between',
             alignItems: 'center',
+            gap: 2,
             px: 2,
             py: 1,
           }}
