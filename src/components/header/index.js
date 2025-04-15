@@ -16,7 +16,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '@mui/material/styles';
 import { ImportModal } from '../modal/importModal';
 
-const pages = ['Home', 'Adicionar', 'Grafico', 'Configurações', 'Importar'];
+const pages = ['Home', 'Adicionar', 'Grafico', 'Importar', 'Configurações'];
 
 function Header() {
   const theme = useTheme();

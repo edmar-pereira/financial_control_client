@@ -85,7 +85,6 @@ export function APIContextProvider({ children }) {
 
   useEffect(() => {
     if (currentMonth.expenses !== undefined) {
-      console.log(currentMonth.expenses);
       setLoading(false);
     } else {
       setLoading(true);

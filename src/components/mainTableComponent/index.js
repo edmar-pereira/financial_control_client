@@ -283,7 +283,7 @@ EnhancedTableToolbar.propTypes = {
 
 export default function MainView() {
   const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('calories');
+  const [orderBy, setOrderBy] = useState('');
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
   const [originalData, setOriginalData] = useState([]); // holds unfiltered data
@@ -341,8 +341,6 @@ export default function MainView() {
 
   async function fetchData(params) {
     try {
-      // setLoading(true);
-      console.log('fetchData');
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/data/getData`,
         params,
@@ -352,6 +350,7 @@ export default function MainView() {
           },
         }
       );
+
       const { data } = response.data;
       setTotalExp(data.totalExp);
       setTotalRev(data.totalRev);
@@ -481,153 +480,153 @@ export default function MainView() {
     }
   };
 
-  const getExtpenses = async () => {
-    await fetchData({
-      startDate: new Date().toISOString().substring(0, 10),
-      categoryIds: '',
-    });
-  };
-
   useEffect(() => {
-    if (selectedDate !== '') {
+    const dateToUse = selectedDate ? new Date(selectedDate) : new Date();
       fetchData({
-        startDate: selectedDate.substring(0, 10),
+        startDate: dateToUse.toISOString().substring(0, 10),
         categoryIds:
           selectedCategory === 'all_categories' ? '' : selectedCategory,
       });
-    }
+    
   }, [selectedCategory, selectedDate, reloadKey]);
 
   useEffect(() => {
-    console.log('first call');
-    // getCategory();
-    getExtpenses();
+    setSelectedCategory('all_categories');
   }, []);
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
-
   return (
-    <Box sx={{ width: '100%' }}>
-      <Paper sx={{ width: '100%', mb: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 2,
-            px: 2,
-            py: 1,
-          }}
-        >
-          <SelectMonth
-            currentDate={new Date()}
-            handleChangeDate={handleChangeDate}
-          />
-          {arrCategories && selectedCategory !== undefined && (
-            <SelectCategory selectedType={selectedCategory} />
-          )}
-        </Box>
-        <EnhancedTableToolbar
-          numSelected={selected}
-          handleDelete={handleDelete}
-          handleEdit={handleEdit}
-          handleFilter={handleFilter}
-        />
-        <TableContainer>
-          <Table
-            sx={{ minWidth: 650 }}
-            aria-labelledby='tableTitle'
-            size={'small'}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+      }}
+    >
+      <Box sx={{ flex: 1, width: '100%' }}>
+        <Paper sx={{ width: '100%', mb: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 2,
+              px: 2,
+              py: 1,
+            }}
           >
-            <EnhancedTableHead
-              numSelected={selected.length}
-              order={order}
-              orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
-              onRequestSort={handleRequestSort}
-              rowCount={rows.length || 0}
+            <SelectMonth
+              currentDate={new Date()}
+              handleChangeDate={handleChangeDate}
             />
-            <TableBody>
-              {visibleRows.length > 0 ? (
-                visibleRows.map((row, index) => {
-                  const isItemSelected = isSelected(row._id);
-                  const labelId = `enhanced-table-checkbox-${index}`;
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row._id)}
-                      role='checkbox'
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={row._id}
-                      selected={isItemSelected}
-                      sx={{ cursor: 'pointer' }}
-                    >
-                      <TableCell padding='checkbox'>
-                        <Checkbox
-                          color='primary'
-                          checked={isItemSelected}
-                          inputProps={{
-                            'aria-labelledby': labelId,
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align='left'>{row.description}</TableCell>
-                      <TableCell align='left'>
-                        {MoneyFormat(row.value)}
-                      </TableCell>
-                      <TableCell align='left'>
-                        {row.currentInstallment !== undefined &&
-                        row.totalInstallment !== undefined &&
-                        !(
-                          row.currentInstallment === 1 &&
-                          row.totalInstallment === 1
-                        )
-                          ? `${row.currentInstallment} de ${row.totalInstallment}`
-                          : ''}
-                      </TableCell>
-                      <TableCell align='left'>{DateFormat(row.date)}</TableCell>
-                      <TableCell align='left'>
-                        {GetSelectedCategory(row.categoryId)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} align='center'>
-                    Nenhum dado carregado
-                  </TableCell>
-                </TableRow>
-              )}
+            {arrCategories && selectedCategory !== undefined && (
+              <SelectCategory selectedType={selectedCategory} />
+            )}
+          </Box>
+          <EnhancedTableToolbar
+            numSelected={selected}
+            handleDelete={handleDelete}
+            handleEdit={handleEdit}
+            handleFilter={handleFilter}
+          />
+          <TableContainer>
+            <Table
+              sx={{ minWidth: 650 }}
+              aria-labelledby='tableTitle'
+              size={'small'}
+            >
+              <EnhancedTableHead
+                numSelected={selected.length}
+                order={order}
+                orderBy={orderBy}
+                onSelectAllClick={handleSelectAllClick}
+                onRequestSort={handleRequestSort}
+                rowCount={rows.length || 0}
+              />
+              <TableBody>
+                {visibleRows.length > 0 ? (
+                  visibleRows.map((row, index) => {
+                    const isItemSelected = isSelected(row._id);
+                    const labelId = `enhanced-table-checkbox-${index}`;
+                    return (
+                      <TableRow
+                        hover
+                        onClick={(event) => handleClick(event, row._id)}
+                        role='checkbox'
+                        aria-checked={isItemSelected}
+                        tabIndex={-1}
+                        key={row._id}
+                        selected={isItemSelected}
+                        sx={{ cursor: 'pointer' }}
+                      >
+                        <TableCell padding='checkbox'>
+                          <Checkbox
+                            color='primary'
+                            checked={isItemSelected}
+                            inputProps={{
+                              'aria-labelledby': labelId,
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell align='left'>{row.description}</TableCell>
+                        <TableCell align='left'>
+                          {MoneyFormat(row.value)}
+                        </TableCell>
+                        <TableCell align='left'>
+                          {row.currentInstallment !== undefined &&
+                          row.totalInstallment !== undefined &&
+                          !(
+                            row.currentInstallment === 1 &&
+                            row.totalInstallment === 1
+                          )
+                            ? `${row.currentInstallment} de ${row.totalInstallment}`
+                            : ''}
+                        </TableCell>
+                        <TableCell align='left'>
+                          {DateFormat(row.date)}
+                        </TableCell>
+                        <TableCell align='left'>
+                          {GetSelectedCategory(row.categoryId)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} align='center'>
+                      Nenhum dado carregado
+                    </TableCell>
+                  </TableRow>
+                )}
 
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: 33 * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[15, 30, 50, 100]}
-          component='div'
-          count={rows?.length || 0}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
+                {emptyRows > 0 && (
+                  <TableRow
+                    style={{
+                      height: 33 * emptyRows,
+                    }}
+                  >
+                    <TableCell colSpan={6} />
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[15, 30, 50, 100]}
+            component='div'
+            count={rows?.length || 0}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
 
-      <Paper sx={{ width: '100%', mb: 2 }}>
-        <BarChart transactions={rows} categories={arrCategories} />
-      </Paper>
+        <Paper sx={{ width: '100%', mb: 2 }}>
+          <BarChart transactions={rows} categories={arrCategories} />
+        </Paper>
+      </Box>
 
       <Footer totalRev={totalRev} totalExp={totalExp} difference={difference} />
     </Box>
