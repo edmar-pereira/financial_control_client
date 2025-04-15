@@ -21,7 +21,7 @@ export default function App() {
         <div>
           {loading ? (
             <div>
-              <Loader />
+              <Loader label={'Carregando gastos...'} />
             </div>
           ) : (
             <div>

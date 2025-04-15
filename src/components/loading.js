@@ -1,7 +1,7 @@
 import * as React from 'react';
 import '../pages/styles.css';
 
-export default function Loader({ label = 'Loading data...' }) {
+export default function Loader({ label }) {
   return (
     <div className='dot-wave-wrapper'>
       <div className='dot-wave-loader'>
