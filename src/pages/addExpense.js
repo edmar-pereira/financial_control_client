@@ -122,7 +122,6 @@ export default function AddExpense() {
             content: 'Erro ao atualizar despesa',
             show: true,
           });
-          // setLoading(false);
         }
       });
   };
@@ -269,7 +268,7 @@ export default function AddExpense() {
             }}
           >
             {arrCategories && selectedCategory !== undefined && (
-              <SelectCategory />
+              <SelectCategory selectedType={selectedCategory} />
             )}
             <FormHelperText>
               {selectedCategory.length === 0 && validate

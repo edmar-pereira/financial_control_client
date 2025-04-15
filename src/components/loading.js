@@ -1,10 +1,17 @@
 import * as React from 'react';
-import CircularProgress from '@mui/material/CircularProgress';
+import '../pages/styles.css';
 
-export default function Loader() {
+export default function Loader({ label = 'Loading data...' }) {
   return (
-    <div>
-      <CircularProgress />
+    <div className='dot-wave-wrapper'>
+      <div className='dot-wave-loader'>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <span className='loader-label'>{label}</span>
     </div>
   );
 }

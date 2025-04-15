@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import debounce from 'debounce';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   Dialog,
@@ -21,13 +20,15 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 import { NumericFormatCustom } from '../numericFormatCustom';
 import SelectCategory from '../selectCategory';
 import { useAPI } from '../../context/mainContext';
+import Loader from '../loading';
 
 const ImportModal = ({ open, onClose }) => {
   const { setMessage, triggerReload, setImportedData, importedData } = useAPI();
   const [file, setFile] = useState(null);
   const [isImported, setIsImported] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
   const [editedData, setEditedData] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   const isFormValid = importedData.every(
     (item) => item.description.trim() !== ''
@@ -51,7 +52,7 @@ const ImportModal = ({ open, onClose }) => {
     formData.append('file', file);
 
     try {
-      setLoading(true);
+      setImportLoading(true);
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/upload`,
         formData,
@@ -77,7 +78,7 @@ const ImportModal = ({ open, onClose }) => {
       });
       console.error('Erro ao importar o arquivo:', error);
     } finally {
-      setLoading(false);
+      setImportLoading(false);
     }
   };
 
@@ -86,22 +87,6 @@ const ImportModal = ({ open, onClose }) => {
     updatedData[index].value = e.target.value;
     setImportedData(updatedData);
   };
-
-  const debouncedSetDescription = useMemo(
-    () =>
-      debounce((index, value) => {
-        const updatedData = [...importedData];
-        updatedData[index].description = value;
-        setImportedData(updatedData);
-      }, 300),
-    [importedData]
-  );
-
-  useEffect(() => {
-    if (isImported) {
-      setEditedData(importedData); // Initialize local copy on import
-    }
-  }, [isImported, importedData]);
 
   const handleDescriptionChange = (e, index) => {
     const updated = [...editedData];
@@ -122,6 +107,8 @@ const ImportModal = ({ open, onClose }) => {
 
   const handleSave = async () => {
     try {
+      setSaving(true);
+
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/data/insertmany`,
         importedData
@@ -133,8 +120,13 @@ const ImportModal = ({ open, onClose }) => {
           content: 'Dados salvos com sucesso!',
           show: true,
         });
-        handleClose(); // Close modal after success
+
         triggerReload();
+
+        // Delay modal close so user sees success + loader
+        setTimeout(() => {
+          handleClose();
+        }, 1000); // 1 second delay
       } else {
         setMessage({
           severity: 'error',
@@ -148,6 +140,8 @@ const ImportModal = ({ open, onClose }) => {
         content: 'Erro ao salvar os dados',
         show: true,
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -158,51 +152,11 @@ const ImportModal = ({ open, onClose }) => {
     onClose();
   };
 
-  // const getCategory = async () => {
-  //   try {
-  //     const response = await axios.get(
-  //       `${process.env.REACT_APP_BACKEND_URL}/api/data/getCategory/`,
-  //       {
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //       }
-  //     );
-  //     if (response.status === 200) {
-  //       const { data } = response.data;
-  //       const filteredCategories = data.filter(
-  //         (item) => item.id !== 'all_categories'
-  //       );
-  //       setArrCategories(filteredCategories);
-  //     }
-  //   } catch (err) {
-  //     if (err.response) {
-  //       setMessage(err.response.data.error);
-  //     }
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   const invalidIndexes = importedData
-  //     .map((row, index) => (row.description.trim() === '' ? index : null))
-  //     .filter((index) => index !== null);
-
-  //   setInvalidDescriptionIndexes(invalidIndexes);
-
-  //   if (invalidIndexes.length > 0) {
-  //     setMessage({
-  //       severity: 'info',
-  //       content: `Favor preencher as descrições nas linhas: ${invalidIndexes.join(', ')}`,
-  //       show: true,
-  //     });
-  //   }
-  // }, [importedData, setMessage]);
-
-  // useEffect(() => {
-  //   if (open && importedData.length > 0) {
-  //     getCategory();
-  //   }
-  // }, [open, importedData]);
+  useEffect(() => {
+    if (isImported) {
+      setEditedData(importedData); // Initialize local copy on import
+    }
+  }, [isImported, importedData]);
 
   return (
     <Dialog
@@ -226,14 +180,20 @@ const ImportModal = ({ open, onClose }) => {
           {file && <span>{file.name}</span>}
         </div>
 
-        {loading && (
+        {importLoading && (
           <div style={{ padding: '20px', textAlign: 'center' }}>
             <CircularProgress />
             <p>Importando arquivo...</p>
           </div>
         )}
 
-        {isImported && !loading && (
+        {saving && (
+          <div style={{ padding: '40px 0', textAlign: 'center' }}>
+            <Loader label='Salvando dados...' />
+          </div>
+        )}
+
+        {isImported && !importLoading && !saving && (
           <>
             <h3>Revise os dados</h3>
             <TableContainer style={{ maxHeight: '400px' }}>
@@ -332,7 +292,7 @@ const ImportModal = ({ open, onClose }) => {
             onClick={handleImport}
             color='primary'
             variant='contained'
-            disabled={loading}
+            disabled={importLoading}
           >
             Importar
           </Button>

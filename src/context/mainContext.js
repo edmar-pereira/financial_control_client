@@ -1,17 +1,10 @@
-import React, {
-  useContext,
-  useState,
-  useEffect,
-  createContext,
-  useCallback,
-} from 'react';
+import React, { useContext, useState, useEffect, createContext } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 
 const MainContext = createContext();
 
 export function APIContextProvider({ children }) {
-  // const [arrMonths, setArrMonths] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,6 +19,7 @@ export function APIContextProvider({ children }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [importedData, setImportedData] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
+  const [currentMonth, setCurrentMonth] = useState([]);
 
   const triggerReload = () => {
     setReloadKey((prev) => prev + 1);
@@ -90,6 +84,15 @@ export function APIContextProvider({ children }) {
   };
 
   useEffect(() => {
+    if (currentMonth.expenses !== undefined) {
+      console.log(currentMonth.expenses);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+  }, [currentMonth]);
+
+  useEffect(() => {
     const mode = localStorage.getItem('darkMode');
     setIsDarkMode(mode === null || mode === 'false' ? false : true);
 
@@ -97,10 +100,7 @@ export function APIContextProvider({ children }) {
     setShowTableView(
       savedTableView === null || savedTableView === 'true' ? true : false
     );
-
     handleLoadCategory();
-
-    // handleLoadData();
   }, []);
 
   return (
@@ -125,6 +125,10 @@ export function APIContextProvider({ children }) {
         setSelectedCategory,
         selectedDate,
         setSelectedDate,
+        setLoading,
+        loading,
+        currentMonth,
+        setCurrentMonth,
       }}
     >
       {children}

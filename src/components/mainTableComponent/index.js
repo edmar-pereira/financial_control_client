@@ -289,7 +289,6 @@ export default function MainView() {
   const [originalData, setOriginalData] = useState([]); // holds unfiltered data
   const [rows, setRows] = useState([]); // filtered version
   const [rowsPerPage, setRowsPerPage] = useState(15);
-  const [arrCategories, setArrCategories] = useState([]);
   const [totalRev, setTotalRev] = useState(0);
   const [totalExp, setTotalExp] = useState(0);
   const [difference, setDifference] = useState(0);
@@ -303,6 +302,9 @@ export default function MainView() {
     setMessage,
     reloadKey,
     triggerReload,
+    setLoading,
+    arrCategories,
+    setCurrentMonth,
   } = useAPI();
 
   const emptyRows =
@@ -339,6 +341,8 @@ export default function MainView() {
 
   async function fetchData(params) {
     try {
+      // setLoading(true);
+      console.log('fetchData');
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/data/getData`,
         params,
@@ -348,16 +352,17 @@ export default function MainView() {
           },
         }
       );
-
       const { data } = response.data;
       setTotalExp(data.totalExp);
       setTotalRev(data.totalRev);
       setDifference(data.difference);
       setOriginalData(data);
       setRows(data.expenses);
+      setCurrentMonth(data);
 
       return data;
     } catch (error) {
+      setLoading(false);
       console.log(error.response.data.error);
       if (error.response) {
         setMessage({
@@ -365,29 +370,6 @@ export default function MainView() {
           content: error.response.data.error,
           show: true,
         });
-      }
-      return null;
-    }
-  }
-
-  async function fetchCategory() {
-    try {
-      const response = await axios({
-        method: 'get',
-        url: `${process.env.REACT_APP_BACKEND_URL}/api/data/getCategory/`,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.status === 200) {
-        const { data } = response.data;
-        return data;
-      } else {
-        console.log(error);
-      }
-    } catch (err) {
-      if (err.response) {
-        setMessage(err.response.data.error);
       }
       return null;
     }
@@ -500,16 +482,10 @@ export default function MainView() {
   };
 
   const getExtpenses = async () => {
-    const currentMonth = await fetchData({
+    await fetchData({
       startDate: new Date().toISOString().substring(0, 10),
       categoryIds: '',
     });
-  };
-
-  const getCategory = async () => {
-    const categoryResponse = await fetchCategory();
-    setArrCategories(categoryResponse);
-    setSelectedCategory('');
   };
 
   useEffect(() => {
@@ -523,7 +499,8 @@ export default function MainView() {
   }, [selectedCategory, selectedDate, reloadKey]);
 
   useEffect(() => {
-    getCategory();
+    console.log('first call');
+    // getCategory();
     getExtpenses();
   }, []);
 
@@ -548,7 +525,7 @@ export default function MainView() {
             handleChangeDate={handleChangeDate}
           />
           {arrCategories && selectedCategory !== undefined && (
-            <SelectCategory />
+            <SelectCategory selectedType={selectedCategory} />
           )}
         </Box>
         <EnhancedTableToolbar

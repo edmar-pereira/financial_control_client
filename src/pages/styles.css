@@ -39,3 +39,67 @@
   align-items: center;
   padding-left: 1rem;
 }
+
+.dot-wave-wrapper {
+  position: fixed;
+  top: 20px; /* set to 50% for vertical centering if needed */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 9999;
+}
+
+.dot-wave-loader {
+  display: flex;
+  gap: 6px;
+}
+
+.dot-wave-loader div {
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(45deg, #00c6ff, #0072ff);
+  border-radius: 50%;
+  animation: dot-wave 1s infinite ease-in-out;
+}
+
+.dot-wave-loader div:nth-child(1) {
+  animation-delay: 0s;
+}
+.dot-wave-loader div:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.dot-wave-loader div:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.dot-wave-loader div:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.dot-wave-loader div:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dot-wave {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.loader-label {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #555;
+  font-weight: 500;
+}
+
+.dot-wave-wrapper {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

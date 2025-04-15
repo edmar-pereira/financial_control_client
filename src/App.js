@@ -20,20 +20,12 @@ export default function App() {
         <SnackComponent />
         <div>
           {loading ? (
-            <div
-              style={{
-                marginTop: '50px',
-                width: '100%',
-                height: '100%',
-                textAlign: 'center',
-              }}
-            >
+            <div>
               <Loader />
             </div>
           ) : (
             <div>
               <Router />
-           
             </div>
           )}
         </div>
