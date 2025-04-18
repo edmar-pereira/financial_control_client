@@ -1,145 +1,124 @@
 import React, { useState, useEffect } from 'react';
 import { useAPI } from '../context/mainContext';
 import SelectMonth from '../components/selectMonth';
-import SelectCategory from '../components/selectCategory';
 import BarChart from '../components/charts/barChart';
 import PieChart from '../components/charts/pieChart';
-import DateBox from '../components/dateBox';
-import './styles.css';
+import {
+  IconButton,
+  Typography,
+  Box,
+  Stack,
+  ToggleButtonGroup,
+  ToggleButton,
+} from '@mui/material';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import PieChartIcon from '@mui/icons-material/PieChart';
 
 function Graphic() {
-  const { selectedMonth, expensesType, handleChangeMonth } =
-    useAPI();
+  const { selectedMonth, arrCategories, currentMonth, selectedDate } = useAPI();
+  // const { expenses, selectedDate } = selectedMonth;
 
-  const { expenses, totalExp, totalRev } = selectedMonth;
+  const [chartType, setChartType] = useState('pie');
+  const [chartData, setChartData] = useState(null);
+  const [title, setTitle] = useState('');
 
-  const handleChange = (e) => {
-    handleChangeMonth(e.target.value);
+  const monthNames = [
+    'Janeiro',
+    'Fevereiro',
+    'Março',
+    'Abril',
+    'Maio',
+    'Junho',
+    'Julho',
+    'Agosto',
+    'Setembro',
+    'Outubro',
+    'Novembro',
+    'Dezembro',
+  ];
+
+  const formatMonth = (isoDate) => {
+    const date = new Date(isoDate);
+    return `${monthNames[date.getMonth()]} de ${date.getFullYear()}`;
   };
 
-  const [userData, setUserData] = useState({
-    labels: [],
-    datasets: [
-      {
-        label: 'Despesas',
-        data: [],
-        backgroundColor: [],
-        arrExtraData: [],
-      },
-    ],
-  });
-
-  const [expRev, setExpRev] = useState({
-    labels: '',
-    datasets: [
-      {
-        label: '',
-        data: [],
-      },
-      {
-        label: '',
-        data: [],
-      },
-    ],
-  });
-
-  async function getVal(val) {
-    const dataFiltered = expenses.filter((e) => e.type === val);
-    return dataFiltered;
-  }
-
-  const GetExpensesValues = async () => {
-    const categoryTotal = [];
-    const color = [];
-    const extraData = [];
-    let i = 0;
-
-    let unique = [...new Set(expenses.map((e) => e.type))];
-
-    unique = unique.filter((e) => e !== 'Receita');
-
-    (async function GetExpenses() {
-      for (const num of unique) {
-        const filteredType = await getVal(num);
-
-        const categorySum = filteredType.reduce((accumulator, object) => {
-          return accumulator + object.value;
-        }, 0);
-
-        const currObj = expensesType.filter((item) => item.label === num);
-
-        categoryTotal.push(categorySum);
-
-        color.push(currObj[0].color);
-
-        extraData.push(currObj[0].maxValue);
-
-        unique[i] = `${unique[i]} R$${categorySum.toFixed(2)}`;
-
-        i += 1;
-      }
-    })().then(() => {
-      setUserData({
-        labels: unique,
-        datasets: [
-          {
-            label: 'Despesas',
-            data: categoryTotal,
-            backgroundColor: color,
-            arrExtraData: extraData,
-          },
-        ],
-      });
-    });
-  };
-
-  const GetExpectedRevenue = () => {
-    const label = [...new Set(expenses.map((e) => e.date.substring(0, 7)))];
-
-    setExpRev({
-      labels: label,
-      datasets: [
-        {
-          label: 'Receitas',
-          data: [totalRev],
-        },
-        {
-          label: 'Gastos',
-          data: [totalExp],
-        },
-      ],
-    });
+  const handleChartTypeChange = (_, newType) => {
+    if (newType !== null) setChartType(newType);
   };
 
   useEffect(() => {
-    if (Object.keys(selectedMonth).length > 0) {
-      GetExpensesValues();
-      GetExpectedRevenue();
-    }
-  }, [selectedMonth]);
+    if (!currentMonth.expenses || !selectedDate || !arrCategories) return;
+
+    const planned = arrCategories.filter(
+      (c) => !['revenue', 'uncategorized'].includes(c.id)
+    );
+    const actualByCategory = {};
+
+    currentMonth.expenses.forEach((exp) => {
+      if (!actualByCategory[exp.categoryId]) {
+        actualByCategory[exp.categoryId] = 0;
+      }
+      actualByCategory[exp.categoryId] += exp.value;
+    });
+
+    const labels = [];
+    const plannedValues = [];
+    const actualValues = [];
+    const colors = [];
+
+    planned.forEach((category) => {
+      labels.push(category.label);
+      plannedValues.push(category.maxValue);
+      actualValues.push(actualByCategory[category.id] || 0);
+      colors.push(category.color);
+    });
+
+    setTitle(`Despesas ${formatMonth(selectedDate)}`);
+
+    setChartData({
+      labels,
+      datasets: [
+        {
+          label: 'Planejado',
+          data: plannedValues,
+          backgroundColor: colors,
+        },
+        {
+          label: 'Gasto Real',
+          data: actualValues,
+          backgroundColor: 'rgba(255, 99, 132, 0.6)',
+        },
+      ],
+    });
+  }, [selectedMonth, arrCategories]);
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-        <SelectMonth />
+    <Box sx={{ p: 2 }}>
+      <Stack
+        direction='row'
+        justifyContent='space-between'
+        alignItems='center'
+        mb={2}
+      >
+        <Typography variant='h6'>{title}</Typography>
+        <ToggleButtonGroup
+          value={chartType}
+          exclusive
+          onChange={handleChartTypeChange}
+          size='small'
+        >
+          <ToggleButton value='pie'>
+            <PieChartIcon />
+          </ToggleButton>
+          <ToggleButton value='bar'>
+            <BarChartIcon />
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Stack>
 
-        <SelectCategory />
-      </div>
-      <div className='container'>
-        <div className='container-bar'>
-          <DateBox selectedDate={`Despesas mês ${selectedMonth.month}`} />
-          <BarChart chartData={userData} />
-        </div>
-
-        <div className='container-pizza'>
-          <PieChart chartData={userData} />
-        </div>
-
-        <div className='container-bar-exp'>
-          <BarChart chartData={expRev} />
-        </div>
-      </div>
-    </div>
+      {chartData && chartType === 'pie' && <PieChart chartData={chartData} />}
+      {chartData && chartType === 'bar' && <BarChart chartData={chartData} />}
+    </Box>
   );
 }
 

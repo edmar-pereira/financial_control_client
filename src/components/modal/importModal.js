@@ -255,7 +255,7 @@ const ImportModal = ({ open, onClose }) => {
                       <TableCell>
                         <IconButton
                           onClick={() => handleRemoveRow(index)}
-                          sx={{ '&:hover': { color: 'red' } }}
+                          sx={{ '&:hover': { color: 'secondary' } }}
                         >
                           <DeleteIcon />
                         </IconButton>
@@ -273,7 +273,7 @@ const ImportModal = ({ open, onClose }) => {
           onClick={handleClose}
           color='secondary'
           variant='contained'
-          sx={{ backgroundColor: 'red' }}
+          // sx={{ backgroundColor: 'red' }}
         >
           Cancelar
         </Button>
@@ -282,7 +282,7 @@ const ImportModal = ({ open, onClose }) => {
             onClick={handleSave}
             color='primary'
             variant='contained'
-            sx={{ backgroundColor: 'green' }}
+            // sx={{ backgroundColor: 'green' }}
             disabled={!isFormValid}
           >
             Salvar

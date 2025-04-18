@@ -1,41 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Typography,
   Box,
+  Container,
   Switch,
   FormControlLabel,
-  Grid,
+  Typography,
+  IconButton,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Paper,
-  Slider,
   TextField,
   Stack,
-  Container,
-  Button,
+  Fade,
 } from '@mui/material';
 import { NumericFormat } from 'react-number-format';
-import { styled } from '@mui/material/styles';
-
-const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: '#fff',
-  minHeight: '54px',
-  display: 'flex', // Added to enable flexbox
-  alignItems: 'center', // Centers items vertically
-  justifyContent: 'center', // Centers items horizontally
-  ...theme.typography.body2,
-  padding: theme.spacing(1),
-  textAlign: 'center',
-  color: theme.palette.text.secondary,
-  ...theme.applyStyles('dark', {
-    backgroundColor: '#1A2027',
-  }),
-}));
-
-const ExpenseItem = styled(Paper)(({ theme, bgcolor }) => ({
-  padding: theme.spacing(1),
-  textAlign: 'center',
-  color: theme.palette.text.secondary,
-  backgroundColor: bgcolor,
-}));
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 
 import { useAPI } from '../context/mainContext';
 
@@ -51,6 +36,7 @@ export default function Config() {
   } = useAPI();
 
   const [hasChanges, setHasChanges] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
 
   const [expenseValues, setExpenseValues] = useState(() =>
     arrCategories.reduce((acc, expense) => {
@@ -58,26 +44,6 @@ export default function Config() {
       return acc;
     }, {})
   );
-
-  // useEffect(() => {
-  //   console.log(hasChanges);
-  // }, [hasChanges]);
-
-  // useEffect(() => {
-  //   console.log(expenseValues);
-  // }, [expenseValues]);
-
-  // useEffect(() => {
-  //   console.log(expensesType);
-  // }, [expensesType]);
-
-  const handleSliderChange = (id, newValue) => {
-    setHasChanges(true);
-    setExpenseValues((prevValues) => ({
-      ...prevValues,
-      [id]: newValue,
-    }));
-  };
 
   const handleInputChange = (id, event) => {
     setHasChanges(true);
@@ -108,162 +74,143 @@ export default function Config() {
         return acc;
       }, {})
     );
-
-    setHasChanges(false); // Reset change indicator after saving
+    setHasChanges(false);
   };
 
+  const filteredCategories = arrCategories.filter(
+    (expense) =>
+      !['all_categories', 'revenue', 'credit_card', 'uncategorized'].includes(
+        expense.id
+      )
+  );
+
   return (
-    <Container maxWidth='xl'>
-      <Box sx={{ flexGrow: 1, mt: '30px' }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Item>
-              <h3>Preferencias do usuário</h3>
-            </Item>
-          </Grid>
-          <Grid item xs={3}>
-            <Item>Tema</Item>
-          </Grid>
-          <Grid item xs={9}>
-            <Item>
-              <FormControlLabel
-                control={
-                  <Switch checked={isDarkMode} onChange={handleThemeChange} />
-                }
-                label={isDarkMode ? 'Dark' : 'Light'}
-                labelPlacement='start'
-              />
-            </Item>
-          </Grid>
+    <Container maxWidth='xl' sx={{ mt: 4, mb: 4 }}>
+      {/* Preferências do usuário */}
+      <Typography variant='h6' gutterBottom>
+        Preferências do usuário
+      </Typography>
 
-          <Grid item xs={3}>
-            <Item>Modo de exibição</Item>
-          </Grid>
-          <Grid item xs={9}>
-            <Item>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={!showTableView}
-                    onChange={() => handleChangeTableView(!showTableView)}
+      <TableContainer component={Paper} sx={{ mb: 4 }}>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell>Tema</TableCell>
+              <TableCell>
+                <FormControlLabel
+                  control={
+                    <Switch checked={isDarkMode} onChange={handleThemeChange} />
+                  }
+                  label={isDarkMode ? 'Dark' : 'Light'}
+                />
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Modo de exibição</TableCell>
+              <TableCell>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={!showTableView}
+                      onChange={() => handleChangeTableView(!showTableView)}
+                    />
+                  }
+                  label={showTableView ? 'Tabela' : 'Card'}
+                />
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Lock + Action Buttons */}
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent='space-between'
+        alignItems='center'
+        spacing={2}
+        sx={{ mb: 2 }}
+      >
+        <Stack direction='row' alignItems='center' spacing={1}>
+          <Typography variant='h6'>Valor gasto na categoria</Typography>
+          <Fade in timeout={300}>
+            <IconButton
+              onClick={() => setIsLocked((prev) => !prev)}
+              sx={{
+                transition: 'transform 0.3s ease',
+                transform: isLocked ? 'rotate(0deg)' : 'rotate(20deg)',
+              }}
+            >
+              {isLocked ? (
+                <LockIcon color='primary' />
+              ) : (
+                <LockOpenIcon color='secondary' />
+              )}
+            </IconButton>
+          </Fade>
+        </Stack>
+
+        {hasChanges && (
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={handleSaveChanges}
+              disabled={isLocked}
+            >
+              Salvar
+            </Button>
+            <Button
+              variant='contained'
+              color='secondary'
+              onClick={handleCancelChanges}
+              disabled={isLocked}
+            >
+              Cancelar
+            </Button>
+          </Stack>
+        )}
+      </Stack>
+
+      {/* Category Table */}
+      <TableContainer component={Paper}>
+        <Table size='small'>
+          <TableHead>
+            <TableRow>
+              <TableCell>Categoria</TableCell>
+              <TableCell>Valor (R$)</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredCategories.map((expense) => (
+              <TableRow key={expense.id}>
+                <TableCell>{expense.label}</TableCell>
+                <TableCell>
+                  <NumericFormat
+                    value={expenseValues[expense.id] || 0}
+                    onValueChange={(values) => {
+                      handleInputChange(expense.id, {
+                        target: { value: values.floatValue },
+                      });
+                    }}
+                    thousandSeparator='.'
+                    decimalSeparator=','
+                    prefix='R$ '
+                    decimalScale={2}
+                    fixedDecimalScale
+                    allowNegative={false}
+                    customInput={TextField}
+                    size='small'
+                    variant='outlined'
+                    sx={{ width: 120 }}
+                    disabled={isLocked}
                   />
-                }
-                label={showTableView ? 'Tabela' : 'Card'}
-                labelPlacement='start'
-              />
-            </Item>
-          </Grid>
-          <Grid item xs={12}>
-            <Item>
-              <Box textAlign='center' width={'33%'}></Box>
-
-              <Box textAlign='center' width={'33%'}>
-                <h3 style={{ margin: 0 }}>Valor gasto na categoria</h3>
-              </Box>
-
-              {/* Right-aligned button */}
-              <Box textAlign='center' width={'33%'}>
-                {hasChanges && (
-                  <Box>
-                    <Button
-                      variant='contained'
-                      color='primary'
-                      onClick={handleSaveChanges}
-                      size='small'
-                      sx={{
-                        mr: 2,
-                        minWidth: 150,
-                      }}
-                    >
-                      Salvar
-                    </Button>
-
-                    <Button
-                      variant='contained'
-                      color='primary'
-                      onClick={handleCancelChanges}
-                      size='small'
-                      sx={{
-                        mr: 2,
-                        minWidth: 150,
-                      }}
-                    >
-                      Cancelar
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            </Item>
-          </Grid>
-
-          <Grid
-            container
-            spacing={2}
-            sx={{ flexGrow: 1, mt: '30px', mb: '30px', ml: '2px' }}
-          >
-            {arrCategories
-              .filter(
-                (expense) =>
-                  ![
-                    'all_categories',
-                    'revenue',
-                    'credit_card',
-                    'uncategorized',
-                  ].includes(expense.id)
-              )
-              .map((expense) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={expense.id}>
-                  <ExpenseItem bgcolor={expense.color}>
-                    <Typography>{expense.label}</Typography>
-                    <Stack
-                      direction='row'
-                      spacing={2}
-                      alignItems='center'
-                      sx={{ mt: 1 }}
-                    >
-                      <NumericFormat
-                        value={expenseValues[expense.id] || 0}
-                        onValueChange={(values) => {
-                          handleInputChange(expense.id, {
-                            target: { value: values.floatValue },
-                          });
-                        }}
-                        thousandSeparator='.'
-                        decimalSeparator=','
-                        prefix='R$ '
-                        decimalScale={2}
-                        fixedDecimalScale={true}
-                        allowNegative={false}
-                        customInput={TextField}
-                        variant='outlined'
-                        label='Valor para categoria'
-                        sx={{ width: '60%' }}
-                        size='small'
-                        inputProps={{
-                          min: 0,
-                          max: 5000,
-                          step: 10,
-                        }}
-                      />
-
-                      <Slider
-                        value={expenseValues[expense.id] || 0}
-                        min={0}
-                        max={5000}
-                        step={10}
-                        onChange={(e, newValue) =>
-                          handleSliderChange(expense.id, newValue)
-                        }
-                        aria-labelledby={`slider-${expense.id}`}
-                        sx={{ width: '40%' }}
-                      />
-                    </Stack>
-                  </ExpenseItem>
-                </Grid>
-              ))}
-          </Grid>
-        </Grid>
-      </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Container>
   );
 }

@@ -21,6 +21,8 @@ export function APIContextProvider({ children }) {
   const [reloadKey, setReloadKey] = useState(0);
   const [currentMonth, setCurrentMonth] = useState([]);
 
+  console.log(arrCategories)
+
   const triggerReload = () => {
     setReloadKey((prev) => prev + 1);
   };
