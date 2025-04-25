@@ -1,40 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useAPI } from '../context/mainContext';
-import SelectMonth from '../components/selectMonth';
-import BarChart from '../components/charts/barChart';
 import PieChart from '../components/charts/pieChart';
-import {
-  IconButton,
-  Typography,
-  Box,
-  Stack,
-  ToggleButtonGroup,
-  ToggleButton,
-} from '@mui/material';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import PieChartIcon from '@mui/icons-material/PieChart';
+import BarChartComparativo from '../components/charts/barChartComparativo';
+import { Typography, Box, Grid } from '@mui/material';
 
 function Graphic() {
   const { selectedMonth, arrCategories, currentMonth, selectedDate } = useAPI();
-  // const { expenses, selectedDate } = selectedMonth;
 
-  const [chartType, setChartType] = useState('pie');
-  const [chartData, setChartData] = useState(null);
+  const [barChartData, setBarChartData] = useState(null);
+  const [pieChartData, setPieChartData] = useState(null);
   const [title, setTitle] = useState('');
 
   const monthNames = [
-    'Janeiro',
-    'Fevereiro',
-    'Março',
-    'Abril',
-    'Maio',
-    'Junho',
-    'Julho',
-    'Agosto',
-    'Setembro',
-    'Outubro',
-    'Novembro',
-    'Dezembro',
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
 
   const formatMonth = (isoDate) => {
@@ -42,51 +21,77 @@ function Graphic() {
     return `${monthNames[date.getMonth()]} de ${date.getFullYear()}`;
   };
 
-  const handleChartTypeChange = (_, newType) => {
-    if (newType !== null) setChartType(newType);
+  const MoneyFormat = (value) => {
+    return value.toLocaleString('pt-br', {
+      style: 'currency',
+      currency: 'BRL',
+    });
   };
 
   useEffect(() => {
     if (!currentMonth.expenses || !selectedDate || !arrCategories) return;
 
-    const planned = arrCategories.filter(
+    const plannedCategories = arrCategories.filter(
       (c) => !['revenue', 'uncategorized'].includes(c.id)
     );
+
     const actualByCategory = {};
+    let totalExpenses = 0;
 
     currentMonth.expenses.forEach((exp) => {
       if (!actualByCategory[exp.categoryId]) {
         actualByCategory[exp.categoryId] = 0;
       }
       actualByCategory[exp.categoryId] += exp.value;
+      totalExpenses += exp.value;
     });
 
     const labels = [];
     const plannedValues = [];
     const actualValues = [];
+    const pieData = [];
     const colors = [];
+    const legendLabels = [];
 
-    planned.forEach((category) => {
+    plannedCategories.forEach((category) => {
+      const actual = actualByCategory[category.id] || 0;
+      const percentage = totalExpenses ? (actual / totalExpenses) * 100 : 0;
+
       labels.push(category.label);
       plannedValues.push(category.maxValue);
-      actualValues.push(actualByCategory[category.id] || 0);
-      colors.push(category.color);
+      actualValues.push(actual);
+      pieData.push(percentage.toFixed(1));  // Mostrar a porcentagem do gasto real
+      colors.push(category.color || '#888');
+
+      // Modificando a legenda para mostrar a categoria e o valor gasto
+      legendLabels.push(`${category.label}: ${MoneyFormat(actual)}`);
     });
 
-    setTitle(`Despesas ${formatMonth(selectedDate)}`);
+    setTitle(`Despesas - ${formatMonth(selectedDate)}`);
 
-    setChartData({
+    setBarChartData({
       labels,
       datasets: [
         {
           label: 'Planejado',
           data: plannedValues,
-          backgroundColor: colors,
+          backgroundColor: 'rgba(75, 192, 192, 0.7)',
         },
         {
           label: 'Gasto Real',
           data: actualValues,
-          backgroundColor: 'rgba(255, 99, 132, 0.6)',
+          backgroundColor: 'rgba(255, 99, 132, 0.7)',
+        },
+      ],
+    });
+
+    setPieChartData({
+      labels,
+      datasets: [
+        {
+          label: '% do Gasto Real',
+          data: pieData,
+          backgroundColor: colors,
         },
       ],
     });
@@ -94,30 +99,62 @@ function Graphic() {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Stack
-        direction='row'
-        justifyContent='space-between'
-        alignItems='center'
-        mb={2}
-      >
-        <Typography variant='h6'>{title}</Typography>
-        <ToggleButtonGroup
-          value={chartType}
-          exclusive
-          onChange={handleChartTypeChange}
-          size='small'
-        >
-          <ToggleButton value='pie'>
-            <PieChartIcon />
-          </ToggleButton>
-          <ToggleButton value='bar'>
-            <BarChartIcon />
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Stack>
+      <Typography variant='h6' mb={2}>{title}</Typography>
 
-      {chartData && chartType === 'pie' && <PieChart chartData={chartData} />}
-      {chartData && chartType === 'bar' && <BarChart chartData={chartData} />}
+      <Box sx={{ width: '70%', mx: 'auto' }}>
+        <Grid container spacing={2}>
+          {/* Gráfico de Pizza - Ocupando 50% da largura */}
+          <Grid item xs={12} md={6}>
+            {pieChartData && (
+              <PieChart
+                chartData={pieChartData}
+                options={{
+                  plugins: {
+                    tooltip: {
+                      callbacks: {
+                        label: (tooltipItem) => {
+                          const label = pieChartData.labels[tooltipItem.dataIndex];
+                          const value = pieChartData.datasets[0].data[tooltipItem.dataIndex];
+                          const actual = currentMonth.expenses.filter(
+                            (exp) => exp.categoryId === tooltipItem.index
+                          ).reduce((sum, exp) => sum + exp.value, 0);
+                          return `${label}: ${MoneyFormat(actual)} (${value}%)`;
+                        },
+                      },
+                    },
+                    legend: {
+                      position: 'bottom',
+                      labels: {
+                        generateLabels: (chart) => {
+                          return chart.data.labels.map((label, index) => ({
+                            text: `${label}: ${MoneyFormat(pieChartData.datasets[0].data[index])}`,
+                            fillStyle: pieChartData.datasets[0].backgroundColor[index],
+                            index,
+                          }));
+                        },
+                      },
+                    },
+                    datalabels: {
+                      display: true,
+                      formatter: (value, context) => {
+                        return `${value}%`;  // Exibindo a porcentagem
+                      },
+                      color: '#fff',
+                    },
+                  },
+                }}
+              />
+            )}
+          </Grid>
+
+          {/* Gráfico de Barras - Ocupando 70% da largura */}
+          <Grid item xs={12} md={6}>
+            {barChartData && (
+              <BarChartComparativo chartData={barChartData} />
+            )}
+          </Grid>
+        </Grid>
+      </Box>
     </Box>
   );
 }

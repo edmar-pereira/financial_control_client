@@ -22,6 +22,8 @@ ChartJS.register(
 import PropTypes from 'prop-types';
 
 export default function BarChart({ transactions, categories }) {
+  const arrItems = [];
+
   function MoneyFormat(valueToFormat) {
     return valueToFormat.toLocaleString('pt-br', {
       style: 'currency',
@@ -66,6 +68,7 @@ export default function BarChart({ transactions, categories }) {
       data.push(total);
       backgroundColor.push(getColor(percentage));
       extraData.push(category.maxValue || 0);
+      arrItems.push(transInCategory); // ← armazenando as transações
     });
 
     return {
@@ -76,6 +79,7 @@ export default function BarChart({ transactions, categories }) {
           data,
           backgroundColor,
           arrExtraData: extraData,
+          arrItems,
         },
       ],
     };
@@ -91,12 +95,20 @@ export default function BarChart({ transactions, categories }) {
         callbacks: {
           label: (tooltipItem) => {
             const expense = tooltipItem.raw;
-            const monthIndex = tooltipItem.dataIndex;
-            const expenseEst = chartData.datasets[0].arrExtraData[monthIndex];
+            const index = tooltipItem.dataIndex;
+            const expenseEst = chartData.datasets[0].arrExtraData[index];
+            const items = chartData.datasets[0].arrItems[index];
+
+            const itemDescriptions = items.map(
+              (t) =>
+                `- ${t.description || 'Sem descrição'}: ${MoneyFormat(t.value)}`
+            );
 
             return [
               `Gasto total: ${MoneyFormat(expense)}`,
               `Gasto estimado: ${MoneyFormat(expenseEst)}`,
+              'Detalhes:',
+              ...itemDescriptions,
             ];
           },
         },
