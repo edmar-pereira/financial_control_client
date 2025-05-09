@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAPI } from '../context/mainContext';
 import PieChart from '../components/charts/pieChart';
 import BarChartComparativo from '../components/charts/barChartComparativo';
-import { Typography, Box, Grid } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 
 function Graphic() {
   const { selectedMonth, arrCategories, currentMonth, selectedDate } = useAPI();
@@ -51,7 +51,6 @@ function Graphic() {
     const actualValues = [];
     const pieData = [];
     const colors = [];
-    const legendLabels = [];
 
     plannedCategories.forEach((category) => {
       const actual = actualByCategory[category.id] || 0;
@@ -60,11 +59,8 @@ function Graphic() {
       labels.push(category.label);
       plannedValues.push(category.maxValue);
       actualValues.push(actual);
-      pieData.push(percentage.toFixed(1));  // Mostrar a porcentagem do gasto real
+      pieData.push(percentage.toFixed(1)); // % of actual expense
       colors.push(category.color || '#888');
-
-      // Modificando a legenda para mostrar a categoria e o valor gasto
-      legendLabels.push(`${category.label}: ${MoneyFormat(actual)}`);
     });
 
     setTitle(`Despesas - ${formatMonth(selectedDate)}`);
@@ -101,59 +97,53 @@ function Graphic() {
     <Box sx={{ p: 2 }}>
       <Typography variant='h6' mb={2}>{title}</Typography>
 
-      <Box sx={{ width: '70%', mx: 'auto' }}>
-        <Grid container spacing={2}>
-          {/* Gráfico de Pizza - Ocupando 50% da largura */}
-          <Grid item xs={12} md={6}>
-            {pieChartData && (
-              <PieChart
-                chartData={pieChartData}
-                options={{
-                  plugins: {
-                    tooltip: {
-                      callbacks: {
-                        label: (tooltipItem) => {
-                          const label = pieChartData.labels[tooltipItem.dataIndex];
-                          const value = pieChartData.datasets[0].data[tooltipItem.dataIndex];
-                          const actual = currentMonth.expenses.filter(
-                            (exp) => exp.categoryId === tooltipItem.index
-                          ).reduce((sum, exp) => sum + exp.value, 0);
-                          return `${label}: ${MoneyFormat(actual)} (${value}%)`;
-                        },
+      <Box sx={{ width: '50%', mx: 'auto' }}>
+        {pieChartData && (
+          <Box mb={4}>
+            <PieChart
+              chartData={pieChartData}
+              options={{
+                plugins: {
+                  tooltip: {
+                    callbacks: {
+                      label: (tooltipItem) => {
+                        const label = pieChartData.labels[tooltipItem.dataIndex];
+                        const value = pieChartData.datasets[0].data[tooltipItem.dataIndex];
+                        const actual = currentMonth.expenses
+                          .filter((exp) => exp.categoryId === tooltipItem.index)
+                          .reduce((sum, exp) => sum + exp.value, 0);
+                        return `${label}: ${MoneyFormat(actual)} (${value}%)`;
                       },
-                    },
-                    legend: {
-                      position: 'bottom',
-                      labels: {
-                        generateLabels: (chart) => {
-                          return chart.data.labels.map((label, index) => ({
-                            text: `${label}: ${MoneyFormat(pieChartData.datasets[0].data[index])}`,
-                            fillStyle: pieChartData.datasets[0].backgroundColor[index],
-                            index,
-                          }));
-                        },
-                      },
-                    },
-                    datalabels: {
-                      display: true,
-                      formatter: (value, context) => {
-                        return `${value}%`;  // Exibindo a porcentagem
-                      },
-                      color: '#fff',
                     },
                   },
-                }}
-              />
-            )}
-          </Grid>
+                  legend: {
+                    position: 'bottom',
+                    labels: {
+                      generateLabels: (chart) => {
+                        return chart.data.labels.map((label, index) => ({
+                          text: `${label}: ${MoneyFormat(pieChartData.datasets[0].data[index])}`,
+                          fillStyle: pieChartData.datasets[0].backgroundColor[index],
+                          index,
+                        }));
+                      },
+                    },
+                  },
+                  datalabels: {
+                    display: true,
+                    formatter: (value) => `${value}%`,
+                    color: '#fff',
+                  },
+                },
+              }}
+            />
+          </Box>
+        )}
 
-          {/* Gráfico de Barras - Ocupando 70% da largura */}
-          <Grid item xs={12} md={6}>
-            {barChartData && (
-              <BarChartComparativo chartData={barChartData} />
-            )}
-          </Grid>
-        </Grid>
+        {barChartData && (
+          <Box>
+            <BarChartComparativo chartData={barChartData} />
+          </Box>
+        )}
       </Box>
     </Box>
   );

@@ -45,6 +45,9 @@ export default function Config() {
     }, {})
   );
 
+
+
+
   const handleInputChange = (id, event) => {
     setHasChanges(true);
     const newValue = Number(event.target.value) || 0;
@@ -83,6 +86,8 @@ export default function Config() {
         expense.id
       )
   );
+
+  const totalMaxValue = filteredCategories.reduce((sum, item) => sum + item.maxValue, 0);
 
   return (
     <Container maxWidth='xl' sx={{ mt: 4, mb: 4 }}>
@@ -132,7 +137,7 @@ export default function Config() {
         sx={{ mb: 2 }}
       >
         <Stack direction='row' alignItems='center' spacing={1}>
-          <Typography variant='h6'>Valor gasto na categoria</Typography>
+          <Typography variant='h6'>Valor gasto em todas categorias R$ {totalMaxValue}</Typography>
           <Fade in timeout={300}>
             <IconButton
               onClick={() => setIsLocked((prev) => !prev)}
