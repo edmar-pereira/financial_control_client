@@ -17,7 +17,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
-import { NumericFormatCustom } from '../numericFormatCustom';
+import ShiftedCurrencyInput from '../ShiftedCurrencyInput';
 import SelectCategory from '../selectCategory';
 import { useAPI } from '../../context/mainContext';
 import Loader from '../loading';
@@ -29,6 +29,7 @@ const ImportModal = ({ open, onClose }) => {
   const [importLoading, setImportLoading] = useState(false);
   const [editedData, setEditedData] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [expenseValue, setExpenseValue] = useState(0); // cents
 
   const isFormValid = importedData.every(
     (item) => item.description.trim() !== ''
@@ -236,14 +237,12 @@ const ImportModal = ({ open, onClose }) => {
                         />
                       </TableCell>
                       <TableCell>
-                        <TextField
-                          value={row.value}
-                          onChange={(e) => handleValueChange(e, index)}
-                          variant='outlined'
-                          size='small'
-                          InputProps={{
-                            inputComponent: NumericFormatCustom,
-                          }}
+                        <ShiftedCurrencyInput
+                          label='Valor'
+                          value={expenseValue}
+                          onChange={setExpenseValue}
+                          name='set-expense-value'
+                          id='expense-value'
                         />
                       </TableCell>
                       <TableCell>

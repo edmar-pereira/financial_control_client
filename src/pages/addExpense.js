@@ -17,7 +17,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Button from '@mui/material/Button';
 
 import { useAPI } from '../context/mainContext';
-import { NumericFormatCustom } from '../components/numericFormatCustom';
+// import { NumericFormatCustom } from '../components/ShiftedCurrencyInput';
+import ShiftedCurrencyInput from '../components/ShiftedCurrencyInput';
 
 import SelectCategory from '../components/selectCategory';
 
@@ -44,6 +45,7 @@ export default function AddExpense() {
   const [searchedValue, setSearchedValue] = useState('');
   const arrTotalMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const [currentMonth, setCurrentMonth] = useState([]);
+  const [cents, setCents] = useState(0);
   async function fetchData(params) {
     // console.log(params);
     try {
@@ -97,7 +99,7 @@ export default function AddExpense() {
       description: description,
       ignore: ignore,
       categoryId: selectedCategory,
-      value: expenseValue,
+      value: (expenseValue / 100).toFixed(2),
       currentInstallment: 1,
       totalInstallment: totalMonths,
     };
@@ -132,30 +134,30 @@ export default function AddExpense() {
       description: description,
       ignore: ignore,
       categoryId: selectedCategory,
-      value: expenseValue,
+      value: (expenseValue / 100).toFixed(2),
       currentInstallment: 1,
       totalInstallment: totalMonths,
     };
 
-    await axios
-      .post(`${process.env.REACT_APP_BACKEND_URL}/api/data/create`, obj)
-      .then((response) => {
-        if (response.status === 200) {
-          setSelectedCategory('');
-          resetForm();
-          setMessage({
-            severity: 'success',
-            content: 'Cadastrado com sucesso!',
-            show: true,
-          });
-        } else {
-          setMessage({
-            severity: 'error',
-            content: 'Erro ao cadastrar despesa',
-            show: true,
-          });
-        }
-      });
+    // await axios
+    //   .post(`${process.env.REACT_APP_BACKEND_URL}/api/data/create`, obj)
+    //   .then((response) => {
+    //     if (response.status === 200) {
+    //       setSelectedCategory('');
+    //       resetForm();
+    //       setMessage({
+    //         severity: 'success',
+    //         content: 'Cadastrado com sucesso!',
+    //         show: true,
+    //       });
+    //     } else {
+    //       setMessage({
+    //         severity: 'error',
+    //         content: 'Erro ao cadastrar despesa',
+    //         show: true,
+    //       });
+    //     }
+    //   });
   };
 
   const getExtpenses = async (id) => {
@@ -298,17 +300,12 @@ export default function AddExpense() {
         {/* Valor */}
         <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
           <FormControl sx={{ width: '100%', paddingTop: '8px' }} size='small'>
-            <TextField
+            <ShiftedCurrencyInput
               label='Valor'
               value={expenseValue}
-              onChange={(e) => setExpenseValue(e.target.value)}
-              onFocus={(e) => e.target.select()}
+              onChange={setExpenseValue}
               name='set-expense-value'
               id='expense-value'
-              InputProps={{
-                inputComponent: NumericFormatCustom,
-              }}
-              variant='outlined'
             />
           </FormControl>
         </Grid>

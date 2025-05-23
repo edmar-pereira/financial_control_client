@@ -362,14 +362,22 @@ export default function MainView() {
       return data;
     } catch (error) {
       setLoading(false);
-      console.log(error.response.data.error);
-      if (error.response) {
+      if (error.code === 'ERR_NETWORK') {
+        console.log('======>');
+        setMessage({
+          severity: 'error',
+          content: 'Not possible to connect, please contact admin!',
+          show: true,
+        });
+      } else {
+        console.log(error.response.data.error);
         setMessage({
           severity: 'error',
           content: error.response.data.error,
           show: true,
         });
       }
+
       return null;
     }
   }
@@ -482,12 +490,11 @@ export default function MainView() {
 
   useEffect(() => {
     const dateToUse = selectedDate ? new Date(selectedDate) : new Date();
-      fetchData({
-        startDate: dateToUse.toISOString().substring(0, 10),
-        categoryIds:
-          selectedCategory === 'all_categories' ? '' : selectedCategory,
-      });
-    
+    fetchData({
+      startDate: dateToUse.toISOString().substring(0, 10),
+      categoryIds:
+        selectedCategory === 'all_categories' ? '' : selectedCategory,
+    });
   }, [selectedCategory, selectedDate, reloadKey]);
 
   useEffect(() => {
