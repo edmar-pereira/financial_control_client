@@ -45,7 +45,6 @@ export default function AddExpense() {
   const [searchedValue, setSearchedValue] = useState('');
   const arrTotalMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const [currentMonth, setCurrentMonth] = useState([]);
-  const [cents, setCents] = useState(0);
   async function fetchData(params) {
     // console.log(params);
     try {
@@ -139,25 +138,25 @@ export default function AddExpense() {
       totalInstallment: totalMonths,
     };
 
-    // await axios
-    //   .post(`${process.env.REACT_APP_BACKEND_URL}/api/data/create`, obj)
-    //   .then((response) => {
-    //     if (response.status === 200) {
-    //       setSelectedCategory('');
-    //       resetForm();
-    //       setMessage({
-    //         severity: 'success',
-    //         content: 'Cadastrado com sucesso!',
-    //         show: true,
-    //       });
-    //     } else {
-    //       setMessage({
-    //         severity: 'error',
-    //         content: 'Erro ao cadastrar despesa',
-    //         show: true,
-    //       });
-    //     }
-    //   });
+    await axios
+      .post(`${process.env.REACT_APP_BACKEND_URL}/api/data/create`, obj)
+      .then((response) => {
+        if (response.status === 200) {
+          setSelectedCategory('');
+          resetForm();
+          setMessage({
+            severity: 'success',
+            content: 'Cadastrado com sucesso!',
+            show: true,
+          });
+        } else {
+          setMessage({
+            severity: 'error',
+            content: 'Erro ao cadastrar despesa',
+            show: true,
+          });
+        }
+      });
   };
 
   const getExtpenses = async (id) => {
