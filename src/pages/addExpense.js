@@ -45,6 +45,14 @@ export default function AddExpense() {
   const [searchedValue, setSearchedValue] = useState('');
   const arrTotalMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const [currentMonth, setCurrentMonth] = useState([]);
+
+  function parseBRLStringToCents(valueString) {
+    if (!valueString) return 0;
+    const floatVal = parseFloat(valueString);
+    if (isNaN(floatVal)) return 0;
+    return Math.round(floatVal * 100);
+  }
+
   async function fetchData(params) {
     // console.log(params);
     try {
@@ -81,8 +89,9 @@ export default function AddExpense() {
     });
   }, [date]);
 
+
+
   const resetForm = () => {
-    // setType('');
     setExpenseValue(0);
     setDescription('');
     setDate(new Date().toISOString());
@@ -98,7 +107,7 @@ export default function AddExpense() {
       description: description,
       ignore: ignore,
       categoryId: selectedCategory,
-      value: (expenseValue / 100).toFixed(2),
+      value: expenseValue,
       currentInstallment: 1,
       totalInstallment: totalMonths,
     };
@@ -133,7 +142,7 @@ export default function AddExpense() {
       description: description,
       ignore: ignore,
       categoryId: selectedCategory,
-      value: (expenseValue / 100).toFixed(2),
+      value: expenseValue,
       currentInstallment: 1,
       totalInstallment: totalMonths,
     };
@@ -301,8 +310,10 @@ export default function AddExpense() {
           <FormControl sx={{ width: '100%', paddingTop: '8px' }} size='small'>
             <ShiftedCurrencyInput
               label='Valor'
-              value={expenseValue}
-              onChange={setExpenseValue}
+              value={parseBRLStringToCents(expenseValue)} // convert "13.00" → 1300
+              onChange={(newCents) => {
+                setExpenseValue((newCents / 100).toFixed(2)); // convert 1303 → "13.03"
+              }}
               name='set-expense-value'
               id='expense-value'
             />

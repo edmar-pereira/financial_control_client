@@ -25,6 +25,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import TablePagination from '@mui/material/TablePagination';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
+import { utcToZonedTime } from 'date-fns-tz';
 
 import { format } from 'date-fns-tz';
 import { useAPI } from '../../context/mainContext';
@@ -75,9 +76,9 @@ const headCells = [
   //   label: 'Ignorar',
   // },
 ];
-
 function DateFormat(dateToFormat) {
-  return format(new Date(dateToFormat), 'dd/MM/yyyy', { timeZone: 'UTC' });
+  const utcDate = utcToZonedTime(dateToFormat, 'UTC'); // Keeps date in UTC
+  return format(utcDate, 'dd/MM/yyyy');
 }
 
 function MoneyFormat(valueToFormat) {
@@ -489,6 +490,9 @@ export default function MainView() {
   };
 
   useEffect(() => {
+    console.log(
+      selectedDate + '\n' + new Date(selectedDate) + '\n' + new Date()
+    );
     const dateToUse = selectedDate ? new Date(selectedDate) : new Date();
     fetchData({
       startDate: dateToUse.toISOString().substring(0, 10),

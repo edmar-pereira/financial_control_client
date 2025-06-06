@@ -29,15 +29,35 @@ const ImportModal = ({ open, onClose }) => {
   const [importLoading, setImportLoading] = useState(false);
   const [editedData, setEditedData] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [expenseValue, setExpenseValue] = useState(0); // cents
+  // const [expenseValue, setExpenseValue] = useState(0); // cents
 
   const isFormValid = importedData.every(
     (item) => item.description.trim() !== ''
   );
 
+  function parseBRLStringToCents(valueString) {
+    if (!valueString) return 0;
+    const floatVal = parseFloat(valueString);
+    if (isNaN(floatVal)) return 0;
+    return Math.round(floatVal * 100);
+  }
+
+  function formatCentsToBRL(cents) {
+    return (cents / 100).toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+    });
+  }
+
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
   };
+
+  function toCents(valueString) {
+    const parsed = parseFloat(valueString);
+    return isNaN(parsed) ? 0 : Math.round(parsed * 100);
+  }
 
   const handleImport = async () => {
     if (!file) {
@@ -239,10 +259,14 @@ const ImportModal = ({ open, onClose }) => {
                       <TableCell>
                         <ShiftedCurrencyInput
                           label='Valor'
-                          value={expenseValue}
-                          onChange={setExpenseValue}
-                          name='set-expense-value'
-                          id='expense-value'
+                          value={parseBRLStringToCents(row.value)}
+                          onChange={(newCents) => {
+                            const updatedData = [...importedData];
+                            updatedData[index].value = (newCents / 100).toFixed(
+                              2
+                            );
+                            setImportedData(updatedData);
+                          }}
                         />
                       </TableCell>
                       <TableCell>

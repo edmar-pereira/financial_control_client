@@ -32,7 +32,9 @@ export function APIContextProvider({ children }) {
     }).then((response) => {
       if (response.data.status === 200) {
         const { data } = response.data;
-        setArrCategories(data);
+        const sortedData = data.sort((a, b) => a.label.localeCompare(b.label));
+
+        setArrCategories(sortedData);
       }
     });
   };

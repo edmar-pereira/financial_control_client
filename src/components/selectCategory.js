@@ -4,9 +4,20 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import { useAPI } from '../context/mainContext';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function SelectCategory({ rowIndex = null, selectedType }) {
   const { arrCategories, handleChangeCategory } = useAPI();
+  const param = useParams();
+  let filteredCategories = [];
+
+  if (param.id !== undefined) {
+    filteredCategories = arrCategories.filter(
+      (expense) => !['all_categories'].includes(expense.id)
+    );
+  } else {
+    filteredCategories = arrCategories;
+  }
 
   return (
     <FormControl
@@ -29,7 +40,7 @@ export default function SelectCategory({ rowIndex = null, selectedType }) {
             : handleChangeCategory(e.target.value)
         }
       >
-        {(arrCategories || []).map((item) => (
+        {(filteredCategories || []).map((item) => (
           <MenuItem key={item.id} value={item.id}>
             {item.label}
           </MenuItem>
