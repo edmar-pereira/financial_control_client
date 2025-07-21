@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -23,12 +23,28 @@ import PropTypes from 'prop-types';
 
 export default function BarChart({ transactions, categories }) {
   const arrItems = [];
+  const [height, setHeight] = useState(getHeight());
+
+  useEffect(() => {
+    function handleResize() {
+      setHeight(getHeight());
+    }
+
+    console.log(getHeight());
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   function MoneyFormat(valueToFormat) {
     return valueToFormat.toLocaleString('pt-br', {
       style: 'currency',
       currency: 'BRL',
     });
+  }
+
+  function getHeight() {
+    return window.innerWidth >= 600 ? 500 : 300;
   }
 
   const chartData = useMemo(() => {
@@ -117,12 +133,7 @@ export default function BarChart({ transactions, categories }) {
   };
 
   return (
-    <div
-      style={{
-        width: '100%',
-        height: window.innerWidth >= 600 ? '500px' : '300px', // mobile vs web
-      }}
-    >
+    <div style={{ width: '100%', height: `${height}px` }}>
       <Bar data={chartData} options={options} />
     </div>
   );
