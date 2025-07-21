@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import { TextField, Grid } from '@mui/material';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Box from '@mui/material/Box';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import FormHelperText from '@mui/material/FormHelperText';
+import {
+  TextField,
+  Grid,
+  Autocomplete,
+  FormControl,
+  MenuItem,
+  FormHelperText,
+  Checkbox,
+  Box,
+  InputLabel,
+  Select,
+  FormControlLabel,
+  Button,
+  CircularProgress,
+} from '@mui/material';
+
 import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import Button from '@mui/material/Button';
 
 import { useAPI } from '../context/mainContext';
 // import { NumericFormatCustom } from '../components/ShiftedCurrencyInput';
@@ -45,6 +51,9 @@ export default function AddExpense() {
   const [searchedValue, setSearchedValue] = useState('');
   const arrTotalMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const [currentMonth, setCurrentMonth] = useState([]);
+  const [descriptionOptions, setDescriptionOptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [inputValue, setInputValue] = useState('');
 
   function parseBRLStringToCents(valueString) {
     if (!valueString) return 0;
@@ -82,14 +91,38 @@ export default function AddExpense() {
     }
   }
 
+  const filteredOptions =
+    inputValue.length > 1
+      ? descriptionOptions.filter((option) =>
+          option.toLowerCase().includes(inputValue.toLowerCase())
+        )
+      : [];
+
+  useEffect(() => {
+    setLoading(true); // start loading
+    axios
+      .get(`${process.env.REACT_APP_BACKEND_URL}/api/data/getUniqueCategory`)
+      .then((res) => {
+        const { data } = res.data; // data aqui é seu array esperado
+        console.log(data);
+        if (data && Array.isArray(data)) {
+          setDescriptionOptions(data); // <-- AQUI deve ser 'data', não 'res.data'
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch categories:', err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
   useEffect(() => {
     fetchData({
       startDate: new Date().toISOString().substring(0, 10),
       categoryIds: '',
     });
   }, [date]);
-
-
 
   const resetForm = () => {
     setExpenseValue(0);
@@ -291,16 +324,42 @@ export default function AddExpense() {
         {/* Descrição */}
         <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
           <FormControl sx={{ width: '100%' }} size='small'>
-            <TextField
-              id='description'
-              label='Descrição'
-              variant='outlined'
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              helperText={
-                description.length === 0 && validate ? 'Campo obrigatório' : ''
+            <Autocomplete
+              freeSolo
+              options={filteredOptions}
+              loading={loading}
+              inputValue={inputValue}
+              onInputChange={(event, newInputValue) => {
+                setInputValue(newInputValue);
+                setDescription(newInputValue);
+              }}
+              getOptionLabel={(option) =>
+                typeof option === 'string' ? option : option.label
               }
-              error={description.length === 0 && validate}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label='Descrição'
+                  variant='outlined'
+                  error={inputValue.length === 0 && validate}
+                  helperText={
+                    inputValue.length === 0 && validate
+                      ? 'Campo obrigatório'
+                      : ''
+                  }
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {loading ? (
+                          <CircularProgress color='inherit' size={20} />
+                        ) : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
             />
           </FormControl>
         </Grid>
