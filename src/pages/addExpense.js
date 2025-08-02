@@ -127,7 +127,8 @@ export default function AddExpense() {
   const resetForm = () => {
     setExpenseValue(0);
     setDescription('');
-    setDate(new Date().toISOString());
+    setInputValue('');
+    // setDate(new Date().toISOString());
     setIgnore(false);
     setValidate(false);
     setExtraFields(false);

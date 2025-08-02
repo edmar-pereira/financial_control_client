@@ -193,7 +193,7 @@ const ImportModal = ({ open, onClose }) => {
             Escolha seu arquivo
             <input
               type='file'
-              accept='.xlsx, .xls'
+              accept='.xlsx, .xls, .csv'
               hidden
               onChange={handleFileChange}
             />
