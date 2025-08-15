@@ -44,7 +44,8 @@ export default function BarChart({ transactions, categories }) {
   }
 
   function getHeight() {
-    return window.innerWidth >= 600 ? 500 : 300;
+    // return window.innerWidth >= 600 ? 500 : 300;
+    return window.innerWidth = 500;
   }
 
   const chartData = useMemo(() => {
