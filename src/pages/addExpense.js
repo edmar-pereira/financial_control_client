@@ -54,6 +54,7 @@ export default function AddExpense() {
   const [descriptionOptions, setDescriptionOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState('');
+  const [selectedOption, setSelectedOption] = useState(null);
 
   function parseBRLStringToCents(valueString) {
     if (!valueString) return 0;
@@ -216,8 +217,17 @@ export default function AddExpense() {
       handleChangeCategory(data.categoryId);
       setExpenseValue(data.value);
       setDescription(data.description);
+      setInputValue(data.description);
       setDate(data.date);
       setIgnore(data.ignore);
+
+      const matchedOption = filteredOptions.find((opt) =>
+        typeof opt === 'string'
+          ? opt === data.description
+          : opt.label === data.description
+      );
+      setSelectedOption(matchedOption || data.description);
+      setInputValue(data.description);
     } catch (error) {
       if (error.response) {
         setMessage({
@@ -330,9 +340,16 @@ export default function AddExpense() {
               options={filteredOptions}
               loading={loading}
               inputValue={inputValue}
+              value={selectedOption} // controlled selected value
               onInputChange={(event, newInputValue) => {
                 setInputValue(newInputValue);
                 setDescription(newInputValue);
+              }}
+              onChange={(event, newValue) => {
+                setSelectedOption(newValue);
+                setDescription(
+                  typeof newValue === 'string' ? newValue : newValue.label
+                );
               }}
               getOptionLabel={(option) =>
                 typeof option === 'string' ? option : option.label
