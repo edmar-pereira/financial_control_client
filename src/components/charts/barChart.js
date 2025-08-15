@@ -23,29 +23,12 @@ import PropTypes from 'prop-types';
 
 export default function BarChart({ transactions, categories }) {
   const arrItems = [];
-  const [height, setHeight] = useState(getHeight());
-
-  useEffect(() => {
-    function handleResize() {
-      setHeight(getHeight());
-    }
-
-    console.log(getHeight());
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   function MoneyFormat(valueToFormat) {
     return valueToFormat.toLocaleString('pt-br', {
       style: 'currency',
       currency: 'BRL',
     });
-  }
-
-  function getHeight() {
-    // return window.innerWidth >= 600 ? 500 : 300;
-    return window.innerWidth = 500;
   }
 
   const chartData = useMemo(() => {
@@ -134,9 +117,7 @@ export default function BarChart({ transactions, categories }) {
   };
 
   return (
-    <div style={{ width: '100%', height: `${height}px` }}>
       <Bar data={chartData} options={options} />
-    </div>
   );
 }
 
