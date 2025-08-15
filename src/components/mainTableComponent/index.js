@@ -459,7 +459,7 @@ export default function MainView() {
 
   const handleFilter = (searchParam) => {
     const normalizedSearchParam = searchParam
-      .replace(/\[\.,]/g, '')
+      .replace(/[.,]/g, '')
       .toLowerCase();
 
     if (normalizedSearchParam.length > 0) {
@@ -467,13 +467,13 @@ export default function MainView() {
         const filteredCategory = GetSelectedCategory(item.categoryId);
 
         const normalizedType = filteredCategory
-          ? filteredCategory.replace(/\[\.,]/g, '').toLowerCase()
+          ? filteredCategory.replace(/[.,]/g, '').toLowerCase()
           : '';
         const normalizedDescription = item.description
-          ? item.description.replace(/\[\.,]/g, '').toLowerCase()
+          ? item.description.replace(/[.,]/g, '').toLowerCase()
           : '';
         const normalizedValue = item.value
-          ? item.value.toString().replace(/\[\.,]/g, '')
+          ? item.value.toString().replace(/[.,]/g, '')
           : '';
 
         return (
