@@ -332,7 +332,6 @@ export default function MainView() {
 
             <TableBody>
               {visibleRows.map((row) => {
-                console.log(row);
                 const isItemSelected = selected.includes(row._id);
                 return (
                   <TableRow

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
   Box,
@@ -15,7 +15,14 @@ import {
   CircularProgress,
   Typography,
 } from '@mui/material';
-import { Delete as DeleteIcon } from '@mui/icons-material';
+
+import {
+  Delete as DeleteIcon,
+  UploadFile as UploadFileIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+} from '@mui/icons-material';
+
 import { useNavigate } from 'react-router-dom';
 
 import ShiftedCurrencyInput from '../components/ShiftedCurrencyInput';
@@ -25,6 +32,8 @@ import { useAPI } from '../context/mainContext';
 
 export default function ImportPage() {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+
   const { setMessage, triggerReload, setImportedData, importedData } = useAPI();
 
   const [file, setFile] = useState(null);
@@ -37,22 +46,20 @@ export default function ImportPage() {
     (item) => item.description?.trim() !== ''
   );
 
-  const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+  /* ================= FILE + IMPORT ================= */
+
+  const handleImportClick = () => {
+    fileInputRef.current.click();
   };
 
-  const handleImport = async () => {
-    if (!file) {
-      setMessage({
-        severity: 'info',
-        content: 'Favor escolher o arquivo a ser importado!',
-        show: true,
-      });
-      return;
-    }
+  const handleFileChange = async (event) => {
+    const selectedFile = event.target.files[0];
+    if (!selectedFile) return;
+
+    setFile(selectedFile);
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', selectedFile);
 
     try {
       setImportLoading(true);
@@ -71,7 +78,7 @@ export default function ImportPage() {
         content: 'Arquivo importado com sucesso',
         show: true,
       });
-    } catch (error) {
+    } catch {
       setMessage({
         severity: 'error',
         content: 'Erro ao importar o arquivo',
@@ -81,6 +88,8 @@ export default function ImportPage() {
       setImportLoading(false);
     }
   };
+
+  /* ================= EDIT ================= */
 
   const handleDescriptionChange = (e, index) => {
     const updated = [...editedData];
@@ -98,28 +107,26 @@ export default function ImportPage() {
     setImportedData(importedData.filter((_, i) => i !== index));
   };
 
+  /* ================= SAVE ================= */
+
   const handleSave = async () => {
     try {
       setSaving(true);
 
-      const response = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/data/insertmany`,
         importedData
       );
 
-      if (response.status === 200) {
-        setMessage({
-          severity: 'success',
-          content: 'Dados salvos com sucesso!',
-          show: true,
-        });
+      setMessage({
+        severity: 'success',
+        content: 'Dados salvos com sucesso!',
+        show: true,
+      });
 
-        triggerReload();
+      triggerReload();
 
-        setTimeout(() => {
-          handleCancel();
-        }, 1000);
-      }
+      setTimeout(handleCancel, 800);
     } catch {
       setMessage({
         severity: 'error',
@@ -135,7 +142,7 @@ export default function ImportPage() {
     setImportedData([]);
     setIsImported(false);
     setFile(null);
-    navigate(-1); // go back
+    navigate(-1);
   };
 
   useEffect(() => {
@@ -144,26 +151,23 @@ export default function ImportPage() {
     }
   }, [isImported, importedData]);
 
+  /* ================= RENDER ================= */
+
   return (
     <Box sx={{ p: 3 }}>
       <Paper sx={{ p: 3 }}>
         <Typography variant='h5' gutterBottom>
-          Importar extrato
+          Importar dados
         </Typography>
 
-        {/* FILE PICKER */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <Button variant='contained' component='label'>
-            Escolher arquivo
-            <input
-              type='file'
-              accept='.xlsx, .xls, .csv'
-              hidden
-              onChange={handleFileChange}
-            />
-          </Button>
-          {file && <span>{file.name}</span>}
-        </Box>
+        {/* INPUT FILE OCULTO */}
+        <input
+          ref={fileInputRef}
+          type='file'
+          accept='.xlsx,.xls,.csv'
+          hidden
+          onChange={handleFileChange}
+        />
 
         {importLoading && (
           <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -204,6 +208,7 @@ export default function ImportPage() {
                       <TableCell>
                         {new Date(row.date).toLocaleDateString('pt-BR')}
                       </TableCell>
+
                       <TableCell>{row.importedEntryType}</TableCell>
                       <TableCell>{row.fantasyName}</TableCell>
 
@@ -238,7 +243,10 @@ export default function ImportPage() {
                       </TableCell>
 
                       <TableCell>
-                        <IconButton onClick={() => handleRemoveRow(index)}>
+                        <IconButton
+                          size='small'
+                          onClick={() => handleRemoveRow(index)}
+                        >
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -250,34 +258,44 @@ export default function ImportPage() {
           </>
         )}
 
-        {/* ACTIONS */}
+        {/* RODAPÉ */}
         <Box
           sx={{
             display: 'flex',
             justifyContent: 'flex-end',
-            gap: 2,
+            gap: 1,
             mt: 3,
           }}
         >
-          <Button variant='contained' color='secondary' onClick={handleCancel}>
+          {!isImported && (
+            <Button
+              size='small'
+              variant='outlined'
+              startIcon={<UploadFileIcon />}
+              onClick={handleImportClick}
+            >
+              Importar
+            </Button>
+          )}
+
+          <Button
+            size='small'
+            variant='outlined'
+            startIcon={<CancelIcon />}
+            onClick={handleCancel}
+          >
             Cancelar
           </Button>
 
-          {isImported ? (
+          {isImported && (
             <Button
+              size='small'
               variant='contained'
+              startIcon={<SaveIcon />}
               onClick={handleSave}
               disabled={!isFormValid}
             >
               Salvar
-            </Button>
-          ) : (
-            <Button
-              variant='contained'
-              onClick={handleImport}
-              disabled={importLoading}
-            >
-              Importar
             </Button>
           )}
         </Box>

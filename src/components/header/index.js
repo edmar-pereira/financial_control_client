@@ -13,12 +13,10 @@ import {
   AppBar,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { useTheme } from '@mui/material/styles';
 
 const pages = ['Home', 'Adicionar', 'Grafico', 'Importar', 'Configurações'];
 
 function Header() {
-  const theme = useTheme();
   const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = useState(null);
   const headerRef = useRef(null);

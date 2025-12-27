@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import { useAPI } from '../context/mainContext';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 export default function SelectCategory({ rowIndex = null, selectedType }) {
   const { arrCategories, handleChangeCategory } = useAPI();
@@ -23,9 +23,12 @@ export default function SelectCategory({ rowIndex = null, selectedType }) {
     <FormControl
       size='small'
       sx={{
-        minWidth: 140,
-        // maxWidth: 200,
-        width: { xs: '100%', sm: 'auto' }, // 100% on mobile, auto on desktop
+        minWidth: 160,
+        maxWidth: 220,
+        width: {
+          xs: '100%', // mobile
+          sm: 220, // desktop/table
+        },
       }}
     >
       <InputLabel id='item-select-label'>Categoria</InputLabel>

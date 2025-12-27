@@ -105,7 +105,6 @@ export default function AddExpense() {
       .get(`${process.env.REACT_APP_BACKEND_URL}/api/data/getUniqueCategory`)
       .then((res) => {
         const { data } = res.data; // data aqui é seu array esperado
-        console.log(data);
         if (data && Array.isArray(data)) {
           setDescriptionOptions(data); // <-- AQUI deve ser 'data', não 'res.data'
         }

@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-// import Footer from './components/footer';
+import React from 'react';
 import Router from './router';
 import Header from './components/header';
 import Loader from './components/loading';
