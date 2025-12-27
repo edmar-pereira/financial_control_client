@@ -14,7 +14,6 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '@mui/material/styles';
-import { ImportModal } from '../modal/importModal';
 
 const pages = ['Home', 'Adicionar', 'Grafico', 'Importar', 'Configurações'];
 
@@ -23,8 +22,6 @@ function Header() {
   const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = useState(null);
   const headerRef = useRef(null);
-
-  const [openModal, setOpenModal] = useState(false);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -45,7 +42,7 @@ function Header() {
         navigate('/configs');
         break;
       case 'importar':
-        setOpenModal(true); // Open modal for import
+        navigate('/import');
         break;
 
       default:
@@ -140,7 +137,6 @@ function Header() {
           </Toolbar>
         </Container>
       </AppBar>
-      <ImportModal open={openModal} onClose={() => setOpenModal(false)} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import Main from './pages/main';
 import Graphic from './pages/graphic';
 import AddExpense from './pages/addExpense';
 import Config from './pages/config';
+import ImportPage from './pages/importPage';
 
 export default function Router() {
   return (
@@ -12,6 +13,7 @@ export default function Router() {
       <Route path='graphic' element={<Graphic />} />
       <Route path='add_expense/:id?' element={<AddExpense />} />
       <Route path='configs' element={<Config />} />
+      <Route path='import' element={<ImportPage />} />
       <Route path='*' element={<Navigate to='/' />} />
     </Routes>
   );

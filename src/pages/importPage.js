@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
+  Box,
+  Paper,
   Button,
   Table,
   TableBody,
@@ -15,49 +13,33 @@ import {
   TextField,
   IconButton,
   CircularProgress,
+  Typography,
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
-import ShiftedCurrencyInput from '../ShiftedCurrencyInput';
-import SelectCategory from '../selectCategory';
-import { useAPI } from '../../context/mainContext';
-import Loader from '../loading';
+import { useNavigate } from 'react-router-dom';
 
-const ImportModal = ({ open, onClose }) => {
+import ShiftedCurrencyInput from '../components/ShiftedCurrencyInput';
+import SelectCategory from '../components/selectCategory';
+import Loader from '../components/loading';
+import { useAPI } from '../context/mainContext';
+
+export default function ImportPage() {
+  const navigate = useNavigate();
   const { setMessage, triggerReload, setImportedData, importedData } = useAPI();
+
   const [file, setFile] = useState(null);
   const [isImported, setIsImported] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
   const [editedData, setEditedData] = useState([]);
   const [saving, setSaving] = useState(false);
-  // const [expenseValue, setExpenseValue] = useState(0); // cents
 
   const isFormValid = importedData.every(
-    (item) => item.description.trim() !== ''
+    (item) => item.description?.trim() !== ''
   );
-
-  function parseBRLStringToCents(valueString) {
-    if (!valueString) return 0;
-    const floatVal = parseFloat(valueString);
-    if (isNaN(floatVal)) return 0;
-    return Math.round(floatVal * 100);
-  }
-
-  function formatCentsToBRL(cents) {
-    return (cents / 100).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 2,
-    });
-  }
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
   };
-
-  function toCents(valueString) {
-    const parsed = parseFloat(valueString);
-    return isNaN(parsed) ? 0 : Math.round(parsed * 100);
-  }
 
   const handleImport = async () => {
     if (!file) {
@@ -74,18 +56,16 @@ const ImportModal = ({ open, onClose }) => {
 
     try {
       setImportLoading(true);
+
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/upload`,
         formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
+        { headers: { 'Content-Type': 'multipart/form-data' } }
       );
 
       setImportedData(response.data.data);
       setIsImported(true);
+
       setMessage({
         severity: 'success',
         content: 'Arquivo importado com sucesso',
@@ -94,19 +74,12 @@ const ImportModal = ({ open, onClose }) => {
     } catch (error) {
       setMessage({
         severity: 'error',
-        content: `Erro ao importar o arquivo:' ${error}`,
+        content: 'Erro ao importar o arquivo',
         show: true,
       });
-      console.error('Erro ao importar o arquivo:', error);
     } finally {
       setImportLoading(false);
     }
-  };
-
-  const handleValueChange = (e, index) => {
-    const updatedData = [...importedData];
-    updatedData[index].value = e.target.value;
-    setImportedData(updatedData);
   };
 
   const handleDescriptionChange = (e, index) => {
@@ -122,8 +95,7 @@ const ImportModal = ({ open, onClose }) => {
   };
 
   const handleRemoveRow = (index) => {
-    const updatedData = importedData.filter((_, i) => i !== index);
-    setImportedData(updatedData);
+    setImportedData(importedData.filter((_, i) => i !== index));
   };
 
   const handleSave = async () => {
@@ -144,18 +116,11 @@ const ImportModal = ({ open, onClose }) => {
 
         triggerReload();
 
-        // Delay modal close so user sees success + loader
         setTimeout(() => {
-          handleClose();
-        }, 1000); // 1 second delay
-      } else {
-        setMessage({
-          severity: 'error',
-          content: 'Erro ao salvar os dados',
-          show: true,
-        });
+          handleCancel();
+        }, 1000);
       }
-    } catch (error) {
+    } catch {
       setMessage({
         severity: 'error',
         content: 'Erro ao salvar os dados',
@@ -166,31 +131,30 @@ const ImportModal = ({ open, onClose }) => {
     }
   };
 
-  const handleClose = () => {
+  const handleCancel = () => {
     setImportedData([]);
     setIsImported(false);
     setFile(null);
-    onClose();
+    navigate(-1); // go back
   };
 
   useEffect(() => {
     if (isImported) {
-      setEditedData(importedData); // Initialize local copy on import
+      setEditedData(importedData);
     }
   }, [isImported, importedData]);
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth={isImported ? 'xl' : 'xl'}
-      fullWidth={isImported}
-    >
-      <DialogTitle>Importar extrato xlsx</DialogTitle>
-      <DialogContent>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <Box sx={{ p: 3 }}>
+      <Paper sx={{ p: 3 }}>
+        <Typography variant='h5' gutterBottom>
+          Importar extrato
+        </Typography>
+
+        {/* FILE PICKER */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
           <Button variant='contained' component='label'>
-            Escolha seu arquivo
+            Escolher arquivo
             <input
               type='file'
               accept='.xlsx, .xls, .csv'
@@ -199,39 +163,41 @@ const ImportModal = ({ open, onClose }) => {
             />
           </Button>
           {file && <span>{file.name}</span>}
-        </div>
+        </Box>
 
         {importLoading && (
-          <div style={{ padding: '20px', textAlign: 'center' }}>
+          <Box sx={{ textAlign: 'center', py: 4 }}>
             <CircularProgress />
-            <p>Importando arquivo...</p>
-          </div>
+            <Typography>Importando arquivo...</Typography>
+          </Box>
         )}
 
         {saving && (
-          <div style={{ padding: '40px 0', textAlign: 'center' }}>
+          <Box sx={{ py: 4 }}>
             <Loader label='Salvando dados...' />
-          </div>
+          </Box>
         )}
 
         {isImported && !importLoading && !saving && (
           <>
-            <h3>Revise os dados</h3>
-            <TableContainer style={{ maxHeight: '400px' }}>
-              <Table stickyHeader>
+            <Typography variant='h6' gutterBottom>
+              Revise os dados
+            </Typography>
+
+            <TableContainer sx={{ maxHeight: 500 }}>
+              <Table stickyHeader size='small'>
                 <TableHead>
                   <TableRow>
                     <TableCell>Data</TableCell>
                     <TableCell>Tipo</TableCell>
-                    <TableCell style={{ width: '25%' }}>
-                      Desc. Inicial
-                    </TableCell>
-                    <TableCell style={{ width: '25%' }}>Descrição</TableCell>
-                    <TableCell>Valor gasto</TableCell>
+                    <TableCell>Desc. Inicial</TableCell>
+                    <TableCell>Descrição</TableCell>
+                    <TableCell>Valor</TableCell>
                     <TableCell>Categoria</TableCell>
                     <TableCell>Ações</TableCell>
                   </TableRow>
                 </TableHead>
+
                 <TableBody>
                   {importedData.map((row, index) => (
                     <TableRow key={index}>
@@ -240,46 +206,39 @@ const ImportModal = ({ open, onClose }) => {
                       </TableCell>
                       <TableCell>{row.importedEntryType}</TableCell>
                       <TableCell>{row.fantasyName}</TableCell>
+
                       <TableCell>
                         <TextField
                           fullWidth
+                          size='small'
                           value={editedData[index]?.description || ''}
                           onChange={(e) => handleDescriptionChange(e, index)}
                           onBlur={() => handleDescriptionBlur(index)}
-                          variant='outlined'
-                          size='small'
-                          error={row.description.trim() === ''}
-                          helperText={
-                            row.description.trim() === ''
-                              ? 'Descrição não pode estar vazia.'
-                              : ''
-                          }
+                          error={!row.description?.trim()}
                         />
                       </TableCell>
+
                       <TableCell>
                         <ShiftedCurrencyInput
                           label='Valor'
-                          value={parseBRLStringToCents(row.value)}
+                          value={Number(row.value) * 100}
                           onChange={(newCents) => {
-                            const updatedData = [...importedData];
-                            updatedData[index].value = (newCents / 100).toFixed(
-                              2
-                            );
-                            setImportedData(updatedData);
+                            const updated = [...importedData];
+                            updated[index].value = (newCents / 100).toFixed(2);
+                            setImportedData(updated);
                           }}
                         />
                       </TableCell>
+
                       <TableCell>
                         <SelectCategory
                           rowIndex={index}
                           selectedType={row.type}
                         />
                       </TableCell>
+
                       <TableCell>
-                        <IconButton
-                          onClick={() => handleRemoveRow(index)}
-                          sx={{ '&:hover': { color: 'secondary' } }}
-                        >
+                        <IconButton onClick={() => handleRemoveRow(index)}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -290,39 +249,39 @@ const ImportModal = ({ open, onClose }) => {
             </TableContainer>
           </>
         )}
-      </DialogContent>
-      <DialogActions>
-        <Button
-          onClick={handleClose}
-          color='secondary'
-          variant='contained'
-          // sx={{ backgroundColor: 'red' }}
-        >
-          Cancelar
-        </Button>
-        {isImported ? (
-          <Button
-            onClick={handleSave}
-            color='primary'
-            variant='contained'
-            // sx={{ backgroundColor: 'green' }}
-            disabled={!isFormValid}
-          >
-            Salvar
-          </Button>
-        ) : (
-          <Button
-            onClick={handleImport}
-            color='primary'
-            variant='contained'
-            disabled={importLoading}
-          >
-            Importar
-          </Button>
-        )}
-      </DialogActions>
-    </Dialog>
-  );
-};
 
-export { ImportModal };
+        {/* ACTIONS */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 2,
+            mt: 3,
+          }}
+        >
+          <Button variant='contained' color='secondary' onClick={handleCancel}>
+            Cancelar
+          </Button>
+
+          {isImported ? (
+            <Button
+              variant='contained'
+              onClick={handleSave}
+              disabled={!isFormValid}
+            >
+              Salvar
+            </Button>
+          ) : (
+            <Button
+              variant='contained'
+              onClick={handleImport}
+              disabled={importLoading}
+            >
+              Importar
+            </Button>
+          )}
+        </Box>
+      </Paper>
+    </Box>
+  );
+}
