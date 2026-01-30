@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import {
   Box,
@@ -14,6 +14,7 @@ import {
   IconButton,
   CircularProgress,
   Typography,
+  Alert,
 } from '@mui/material';
 
 import {
@@ -27,6 +28,7 @@ import { useNavigate } from 'react-router-dom';
 
 import ShiftedCurrencyInput from '../components/ShiftedCurrencyInput';
 import SelectCategory from '../components/selectCategory';
+import DuplicatedRowsDialog from '../components/DuplicatedRowsDialog';
 import Loader from '../components/loading';
 import { useAPI } from '../context/mainContext';
 
@@ -39,12 +41,13 @@ export default function ImportPage() {
   const [file, setFile] = useState(null);
   const [isImported, setIsImported] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
-  const [editedData, setEditedData] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [duplicatedRows, setDuplicatedRows] = useState([]);
+  const [showDuplicatedDialog, setShowDuplicatedDialog] = useState(false);
+  /* ================= VALIDATION ================= */
 
-  const isFormValid = importedData.every(
-    (item) => item.description?.trim() !== ''
-  );
+  const isFormValid =
+    importedData.length > 0 && importedData.every((item) => item.name?.trim());
 
   /* ================= FILE + IMPORT ================= */
 
@@ -57,6 +60,7 @@ export default function ImportPage() {
     if (!selectedFile) return;
 
     setFile(selectedFile);
+    setDuplicatedRows([]);
 
     const formData = new FormData();
     formData.append('file', selectedFile);
@@ -67,10 +71,16 @@ export default function ImportPage() {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/upload`,
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       );
 
-      setImportedData(response.data.data);
+      const sorted = [...response.data.data].sort(
+        (a, b) => new Date(a.date) - new Date(b.date),
+      );
+
+      console.log(JSON.stringify(sorted, null, 2));
+
+      setImportedData(sorted);
       setIsImported(true);
 
       setMessage({
@@ -91,20 +101,16 @@ export default function ImportPage() {
 
   /* ================= EDIT ================= */
 
-  const handleDescriptionChange = (e, index) => {
-    const updated = [...editedData];
-    updated[index].description = e.target.value;
-    setEditedData(updated);
-  };
-
-  const handleDescriptionBlur = (index) => {
-    const updatedImported = [...importedData];
-    updatedImported[index].description = editedData[index].description;
-    setImportedData(updatedImported);
+  const updateRow = (index, field, value) => {
+    setImportedData((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
   };
 
   const handleRemoveRow = (index) => {
-    setImportedData(importedData.filter((_, i) => i !== index));
+    setImportedData((prev) => prev.filter((_, i) => i !== index));
   };
 
   /* ================= SAVE ================= */
@@ -113,21 +119,36 @@ export default function ImportPage() {
     try {
       setSaving(true);
 
-      await axios.post(
+      const res = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/data/insertmany`,
-        importedData
+        importedData,
       );
 
+      const { inserted, skipped, duplicated } = res.data.data;
+
+      // ✅ Everything imported → redirect
+      if (skipped === 0) {
+        setMessage({
+          severity: 'success',
+          content: `${inserted} registros importados com sucesso.`,
+          show: true,
+        });
+
+        triggerReload();
+        setTimeout(handleCancel, 800);
+        return;
+      }
+
+      // ⚠️ Duplicates → show modal
+      setDuplicatedRows(duplicated);
+      setShowDuplicatedDialog(true);
+
       setMessage({
-        severity: 'success',
-        content: 'Dados salvos com sucesso!',
+        severity: 'warning',
+        content: `${skipped} registros duplicados foram ignorados.`,
         show: true,
       });
-
-      triggerReload();
-
-      setTimeout(handleCancel, 800);
-    } catch {
+    } catch (err) {
       setMessage({
         severity: 'error',
         content: 'Erro ao salvar os dados',
@@ -140,16 +161,11 @@ export default function ImportPage() {
 
   const handleCancel = () => {
     setImportedData([]);
+    setDuplicatedRows([]);
     setIsImported(false);
     setFile(null);
     navigate(-1);
   };
-
-  useEffect(() => {
-    if (isImported) {
-      setEditedData(importedData);
-    }
-  }, [isImported, importedData]);
 
   /* ================= RENDER ================= */
 
@@ -160,7 +176,6 @@ export default function ImportPage() {
           Importar dados
         </Typography>
 
-        {/* INPUT FILE OCULTO */}
         <input
           ref={fileInputRef}
           type='file'
@@ -176,96 +191,112 @@ export default function ImportPage() {
           </Box>
         )}
 
-        {saving && (
-          <Box sx={{ py: 4 }}>
-            <Loader label='Salvando dados...' />
-          </Box>
+        {saving && <Loader label='Salvando dados...' />}
+
+        {duplicatedRows.length > 0 && (
+          <Alert severity='warning' sx={{ my: 2 }}>
+            {duplicatedRows.length} registros duplicados foram ignorados.
+          </Alert>
         )}
 
         {isImported && !importLoading && !saving && (
-          <>
-            <Typography variant='h6' gutterBottom>
-              Revise os dados
-            </Typography>
+          <TableContainer sx={{ maxHeight: 500 }}>
+            <Table stickyHeader size='small'>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Data</TableCell>
+                  <TableCell>Tipo</TableCell>
+                  <TableCell>Nome Fantasia</TableCell>
+                  <TableCell>Nome da Empresa</TableCell>
+                  <TableCell>Descrição</TableCell>
+                  <TableCell>Valor</TableCell>
+                  <TableCell>Parcela</TableCell>
+                  <TableCell>Categoria</TableCell>
+                  <TableCell>Ações</TableCell>
+                </TableRow>
+              </TableHead>
 
-            <TableContainer sx={{ maxHeight: 500 }}>
-              <Table stickyHeader size='small'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Data</TableCell>
-                    <TableCell>Tipo</TableCell>
-                    <TableCell>Desc. Inicial</TableCell>
-                    <TableCell>Descrição</TableCell>
-                    <TableCell>Valor</TableCell>
-                    <TableCell>Categoria</TableCell>
-                    <TableCell>Ações</TableCell>
+              <TableBody>
+                {importedData.map((row, index) => (
+                  <TableRow key={`${row.date}-${row.fantasyName}-${index}`}>
+                    <TableCell>
+                      {row.date.split('-').reverse().join('/')}
+                    </TableCell>
+
+                    <TableCell>{row.paymentType}</TableCell>
+
+                    <TableCell>{row.fantasyName}</TableCell>
+
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        size='small'
+                        value={row.name || ''}
+                        onChange={(e) =>
+                          updateRow(index, 'name', e.target.value)
+                        }
+                        error={!row.name?.trim()}
+                        helperText={
+                          !row.name?.trim() ? 'Campo obrigatório' : ''
+                        }
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        size='small'
+                        value={row.description || ''}
+                        onChange={(e) =>
+                          updateRow(index, 'description', e.target.value)
+                        }
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <ShiftedCurrencyInput
+                        value={Number(row.value) * 100}
+                        onChange={(cents) =>
+                          updateRow(index, 'value', (cents / 100).toFixed(2))
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {row.totalInstallment > 1 ? (
+                        <Typography variant='body2'>
+                          {row.currentInstallment} / {row.totalInstallment}
+                        </Typography>
+                      ) : (
+                        <Typography variant='body2' color='text.secondary'>
+                          À vista
+                        </Typography>
+                      )}
+                    </TableCell>
+
+                    <TableCell>
+                      <SelectCategory
+                        rowIndex={index}
+                        selectedType={row.categoryId}
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <IconButton
+                        size='small'
+                        onClick={() => handleRemoveRow(index)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-
-                <TableBody>
-                  {importedData.map((row, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        {new Date(row.date).toLocaleDateString('pt-BR')}
-                      </TableCell>
-
-                      <TableCell>{row.importedEntryType}</TableCell>
-                      <TableCell>{row.fantasyName}</TableCell>
-
-                      <TableCell>
-                        <TextField
-                          fullWidth
-                          size='small'
-                          value={editedData[index]?.description || ''}
-                          onChange={(e) => handleDescriptionChange(e, index)}
-                          onBlur={() => handleDescriptionBlur(index)}
-                          error={!row.description?.trim()}
-                        />
-                      </TableCell>
-
-                      <TableCell>
-                        <ShiftedCurrencyInput
-                          label='Valor'
-                          value={Number(row.value) * 100}
-                          onChange={(newCents) => {
-                            const updated = [...importedData];
-                            updated[index].value = (newCents / 100).toFixed(2);
-                            setImportedData(updated);
-                          }}
-                        />
-                      </TableCell>
-
-                      <TableCell>
-                        <SelectCategory
-                          rowIndex={index}
-                          selectedType={row.type}
-                        />
-                      </TableCell>
-
-                      <TableCell>
-                        <IconButton
-                          size='small'
-                          onClick={() => handleRemoveRow(index)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
 
-        {/* RODAPÉ */}
         <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: 1,
-            mt: 3,
-          }}
+          sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 3 }}
         >
           {!isImported && (
             <Button
@@ -299,6 +330,15 @@ export default function ImportPage() {
             </Button>
           )}
         </Box>
+        <DuplicatedRowsDialog
+          open={showDuplicatedDialog}
+          duplicatedRows={duplicatedRows}
+          onClose={() => {
+            setShowDuplicatedDialog(false);
+            triggerReload();
+            handleCancel();
+          }}
+        />
       </Paper>
     </Box>
   );

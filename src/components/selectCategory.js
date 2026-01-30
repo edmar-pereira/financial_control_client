@@ -13,29 +13,19 @@ export default function SelectCategory({ rowIndex = null, selectedType }) {
 
   if (param.id !== undefined) {
     filteredCategories = arrCategories.filter(
-      (expense) => !['all_categories'].includes(expense.id)
+      (expense) => !['all_categories'].includes(expense.id),
     );
   } else {
     filteredCategories = arrCategories;
   }
 
   return (
-    <FormControl
-      size='small'
-      sx={{
-        minWidth: 160,
-        maxWidth: 220,
-        width: {
-          xs: '100%', // mobile
-          sm: 220, // desktop/table
-        },
-      }}
-    >
+    <FormControl size='small' fullWidth>
       <InputLabel id='item-select-label'>Categoria</InputLabel>
       <Select
         labelId='item-select-label'
         id={`select-category-${rowIndex ?? 'default'}`}
-        value={selectedType || ''}
+        value={selectedType}
         label='Categoria'
         onChange={(e) =>
           rowIndex !== null
