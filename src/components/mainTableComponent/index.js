@@ -220,11 +220,16 @@ export default function MainView() {
       const category = GetSelectedCategory(item.categoryId).toLowerCase();
       const desc = item.description?.toLowerCase() || '';
       const val = String(item.value).replace(/[.,]/g, '');
+      const fantasyName = item.fantasyName?.toLowerCase() || '';
+      const name = item.name?.toLowerCase() || '';  
+
 
       return (
         category.includes(search) ||
         desc.includes(search) ||
-        val.includes(search)
+        val.includes(search) ||
+        fantasyName.includes(search) ||
+        name.includes(search)
       );
     });
 

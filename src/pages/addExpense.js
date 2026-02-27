@@ -7,7 +7,6 @@ import {
   Autocomplete,
   FormControl,
   MenuItem,
-  FormHelperText,
   Checkbox,
   Box,
   InputLabel,
@@ -45,7 +44,6 @@ export default function AddExpense() {
   const [validate, setValidate] = useState(false);
   const [disableAddBtn, setDisableAddBtn] = useState(true);
 
-  // ✅ Compra parcelada
   const [extraFields, setExtraFields] = useState(false);
   const [totalMonths, setTotalMonths] = useState(1);
   const arrTotalMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -54,37 +52,87 @@ export default function AddExpense() {
   const [name, setName] = useState('');
   const [paymentType, setPaymentType] = useState('');
 
+  // ✅ Company autocomplete
+  const [companyOptions, setCompanyOptions] = useState([]);
+  const [companyInput, setCompanyInput] = useState('');
+
+  // ✅ Description autocomplete
   const [descriptionOptions, setDescriptionOptions] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  const [selectedOption, setSelectedOption] = useState(null);
 
-  const filteredOptions =
-    inputValue.length > 1
-      ? descriptionOptions.filter((option) =>
-          option.toLowerCase().includes(inputValue.toLowerCase()),
-        )
-      : [];
-
+  /* =========================================
+     COMPANY AUTOCOMPLETE
+  ========================================= */
   useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_BACKEND_URL}/api/data/getUniqueCategory`)
-      .then((res) => {
+    if (!companyInput || companyInput.trim().length < 2) {
+      setCompanyOptions([]);
+      return;
+    }
+
+    const debounce = setTimeout(async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/data/getUniqueCompanyName`,
+          { params: { name: companyInput.trim() } },
+        );
+
+        // console.log('Resposta da API de empresas:', res.data.data);
+
+        if (Array.isArray(res.data.data)) {
+          setCompanyOptions(res.data.data);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar empresas', err);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounce);
+  }, [companyInput]);
+
+  /* =========================================
+     DESCRIPTION AUTOCOMPLETE
+  ========================================= */
+  useEffect(() => {
+    if (!inputValue || inputValue.trim().length < 2) {
+      setDescriptionOptions([]);
+      return;
+    }
+
+    const debounce = setTimeout(async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/data/getUniqueDescriptions`,
+          { params: { description: inputValue.trim() } },
+        );
+
+        // console.log(res.data.data);
+
         if (Array.isArray(res.data.data)) {
           setDescriptionOptions(res.data.data);
         }
-      });
-  }, []);
+      } catch (err) {
+        console.error('Erro ao buscar descriptions', err);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounce);
+  }, [inputValue]);
+
+  /* =========================================
+     FORM FUNCTIONS
+  ========================================= */
 
   const resetForm = () => {
     setExpenseValue(0);
     setDescription('');
     setInputValue('');
+    setCompanyInput('');
+    setName('');
     setIgnore(false);
     setValidate(false);
     setExtraFields(false);
     setTotalMonths(1);
     setFantasyName('');
-    setName('');
     setPaymentType('');
   };
 
@@ -115,6 +163,7 @@ export default function AddExpense() {
       content: 'Atualizado com sucesso!',
       show: true,
     });
+
     resetForm();
     navigate('/');
   };
@@ -126,7 +175,6 @@ export default function AddExpense() {
     }
 
     const payload = buildPayload();
-    console.log('Payload to send:', payload);
 
     await axios.post(
       `${process.env.REACT_APP_BACKEND_URL}/api/data/create`,
@@ -135,6 +183,7 @@ export default function AddExpense() {
 
     setSelectedCategory('');
     resetForm();
+
     setMessage({
       severity: 'success',
       content: 'Cadastrado com sucesso!',
@@ -146,7 +195,9 @@ export default function AddExpense() {
     const response = await axios.get(
       `${process.env.REACT_APP_BACKEND_URL}/api/data/getById/${id}`,
     );
+
     const { data } = response.data;
+
     handleChangeCategory(data.categoryId);
     setExpenseValue(data.value);
     setDescription(data.description);
@@ -155,8 +206,8 @@ export default function AddExpense() {
     setIgnore(data.ignore);
     setFantasyName(data.fantasyName || '');
     setName(data.name || '');
+    setCompanyInput(data.name || '');
     setPaymentType(data.paymentType || '');
-    setSelectedOption(data.description);
 
     if (data.totalInstallment > 1) {
       setExtraFields(true);
@@ -178,6 +229,10 @@ export default function AddExpense() {
     }
   }, [selectedCategory, description, expenseValue]);
 
+  /* =========================================
+     UI
+  ========================================= */
+
   return (
     <Box display='flex' justifyContent='center' sx={{ py: 4 }}>
       <Grid container spacing={2} sx={{ maxWidth: 650 }}>
@@ -190,28 +245,43 @@ export default function AddExpense() {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label='Nome da Empresa'
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </Grid>
-
+        {/* COMPANY AUTOCOMPLETE */}
         <Grid item xs={12} sm={6}>
           <Autocomplete
             freeSolo
-            options={filteredOptions}
+            options={companyOptions}
+            inputValue={companyInput}
+            onInputChange={(e, value) => {
+              setCompanyInput(value);
+              setName(value);
+            }}
+            onChange={(e, value) => {
+              if (value) {
+                setCompanyInput(value);
+                setName(value);
+              }
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label='Nome da Empresa' fullWidth />
+            )}
+          />
+        </Grid>
+
+        {/* DESCRIPTION AUTOCOMPLETE */}
+        <Grid item xs={12} sm={6}>
+          <Autocomplete
+            freeSolo
+            options={descriptionOptions}
             inputValue={inputValue}
-            value={selectedOption}
             onInputChange={(e, v) => {
               setInputValue(v);
               setDescription(v);
             }}
             onChange={(e, v) => {
-              setSelectedOption(v);
-              setDescription(v || '');
+              if (v) {
+                setInputValue(v);
+                setDescription(v);
+              }
             }}
             renderInput={(params) => (
               <TextField {...params} label='Descrição' />
@@ -249,16 +319,12 @@ export default function AddExpense() {
               value={dayjs(date)}
               onChange={(v) => setDate(new Date(v).toISOString())}
               slotProps={{
-                textField: {
-                  fullWidth: true,
-                  size: 'small',
-                },
+                textField: { fullWidth: true, size: 'small' },
               }}
             />
           </LocalizationProvider>
         </Grid>
 
-        {/* ✅ Compra parcelada */}
         {param.id?.length !== 24 && (
           <>
             <Grid item xs={12} sm={6}>

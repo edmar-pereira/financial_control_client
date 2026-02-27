@@ -6,34 +6,31 @@ import Select from '@mui/material/Select';
 import { useAPI } from '../context/mainContext';
 import { useParams } from 'react-router-dom';
 
-export default function SelectCategory({ rowIndex = null, selectedType }) {
-  const { arrCategories, handleChangeCategory } = useAPI();
+export default function SelectCategory({ rowIndex, selectedType, onChange }) {
+  const { arrCategories } = useAPI();
   const param = useParams();
-  let filteredCategories = [];
 
-  if (param.id !== undefined) {
-    filteredCategories = arrCategories.filter(
-      (expense) => !['all_categories'].includes(expense.id),
-    );
-  } else {
-    filteredCategories = arrCategories;
-  }
+  const filteredCategories =
+    param.id !== undefined
+      ? arrCategories.filter(
+          (expense) => !['all_categories'].includes(expense.id),
+        )
+      : arrCategories;
 
   return (
     <FormControl size='small' fullWidth>
-      <InputLabel id='item-select-label'>Categoria</InputLabel>
+      <InputLabel id={`item-select-label-${rowIndex ?? 'default'}`}>
+        Categoria
+      </InputLabel>
+
       <Select
-        labelId='item-select-label'
+        labelId={`item-select-label-${rowIndex ?? 'default'}`}
         id={`select-category-${rowIndex ?? 'default'}`}
-        value={selectedType}
+        value={selectedType ?? ''}
         label='Categoria'
-        onChange={(e) =>
-          rowIndex !== null
-            ? handleChangeCategory(e.target.value, rowIndex)
-            : handleChangeCategory(e.target.value)
-        }
+        onChange={(e) => onChange?.(e.target.value)}
       >
-        {(filteredCategories || []).map((item) => (
+        {filteredCategories.map((item) => (
           <MenuItem key={item.id} value={item.id}>
             {item.label}
           </MenuItem>

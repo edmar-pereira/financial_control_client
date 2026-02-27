@@ -44,6 +44,12 @@ export default function ImportPage() {
   const [saving, setSaving] = useState(false);
   const [duplicatedRows, setDuplicatedRows] = useState([]);
   const [showDuplicatedDialog, setShowDuplicatedDialog] = useState(false);
+
+  const formatDate = (dateStr) => {
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
   /* ================= VALIDATION ================= */
 
   const isFormValid =
@@ -78,7 +84,7 @@ export default function ImportPage() {
         (a, b) => new Date(a.date) - new Date(b.date),
       );
 
-      console.log(JSON.stringify(sorted, null, 2));
+      // console.log(JSON.stringify(sorted, null, 2));
 
       setImportedData(sorted);
       setIsImported(true);
@@ -124,31 +130,23 @@ export default function ImportPage() {
         importedData,
       );
 
-      const { inserted, skipped, duplicated } = res.data.data;
-
-      // ✅ Everything imported → redirect
-      if (skipped === 0) {
-        setMessage({
-          severity: 'success',
-          content: `${inserted} registros importados com sucesso.`,
-          show: true,
-        });
-
-        triggerReload();
-        setTimeout(handleCancel, 800);
-        return;
-      }
-
-      // ⚠️ Duplicates → show modal
-      setDuplicatedRows(duplicated);
-      setShowDuplicatedDialog(true);
+      // console.log(res.data.data);
+      const { inserted, updated } = res.data.data;
 
       setMessage({
-        severity: 'warning',
-        content: `${skipped} registros duplicados foram ignorados.`,
+        severity: 'success',
+        content: `
+        Importação concluída:
+        ${inserted} inseridos
+        ${updated} atualizados
+      `,
         show: true,
       });
+
+      triggerReload();
+      setTimeout(handleCancel, 800);
     } catch (err) {
+      console.error(err);
       setMessage({
         severity: 'error',
         content: 'Erro ao salvar os dados',
@@ -219,9 +217,7 @@ export default function ImportPage() {
               <TableBody>
                 {importedData.map((row, index) => (
                   <TableRow key={`${row.date}-${row.fantasyName}-${index}`}>
-                    <TableCell>
-                      {row.date.split('-').reverse().join('/')}
-                    </TableCell>
+                    <TableCell>{formatDate(row.date)}</TableCell>
 
                     <TableCell>{row.paymentType}</TableCell>
 
@@ -277,6 +273,9 @@ export default function ImportPage() {
                       <SelectCategory
                         rowIndex={index}
                         selectedType={row.categoryId}
+                        onChange={(value) =>
+                          updateRow(index, 'categoryId', value)
+                        }
                       />
                     </TableCell>
 
