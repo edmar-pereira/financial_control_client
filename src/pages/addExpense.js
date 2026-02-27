@@ -7,14 +7,12 @@ import {
   Autocomplete,
   FormControl,
   MenuItem,
-  FormHelperText,
   Checkbox,
   Box,
   InputLabel,
   Select,
   FormControlLabel,
   Button,
-  CircularProgress,
 } from '@mui/material';
 
 import dayjs from 'dayjs';
@@ -23,10 +21,9 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useAPI } from '../context/mainContext';
-// import { NumericFormatCustom } from '../components/ShiftedCurrencyInput';
 import ShiftedCurrencyInput from '../components/ShiftedCurrencyInput';
-
 import SelectCategory from '../components/selectCategory';
+import PaymentTypeSelect from '../components/PaymentTypeSelect';
 
 export default function AddExpense() {
   const {
@@ -46,434 +43,291 @@ export default function AddExpense() {
   const [ignore, setIgnore] = useState(false);
   const [validate, setValidate] = useState(false);
   const [disableAddBtn, setDisableAddBtn] = useState(true);
+
   const [extraFields, setExtraFields] = useState(false);
   const [totalMonths, setTotalMonths] = useState(1);
-  const [searchedValue, setSearchedValue] = useState('');
   const arrTotalMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  const [currentMonth, setCurrentMonth] = useState([]);
+
+  const [fantasyName, setFantasyName] = useState('');
+  const [name, setName] = useState('');
+  const [paymentType, setPaymentType] = useState('');
+
+  // ✅ Company autocomplete
+  const [companyOptions, setCompanyOptions] = useState([]);
+  const [companyInput, setCompanyInput] = useState('');
+
+  // ✅ Description autocomplete
   const [descriptionOptions, setDescriptionOptions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState('');
-  const [selectedOption, setSelectedOption] = useState(null);
 
-  function parseBRLStringToCents(valueString) {
-    if (!valueString) return 0;
-    const floatVal = parseFloat(valueString);
-    if (isNaN(floatVal)) return 0;
-    return Math.round(floatVal * 100);
-  }
-
-  async function fetchData(params) {
-    // console.log(params);
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/data/getData`,
-        params, // 🔹 Send as POST body
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      const { data } = response.data;
-      setCurrentMonth(data.expenses);
-      // return data.expenses;
-    } catch (error) {
-      console.log(error.response.data.error);
-      if (error.response) {
-        setMessage({
-          severity: 'error',
-          content: error.response.data.error,
-          show: true,
-        });
-      }
-      return null; // optional: return null if error happens
+  /* =========================================
+     COMPANY AUTOCOMPLETE
+  ========================================= */
+  useEffect(() => {
+    if (!companyInput || companyInput.trim().length < 2) {
+      setCompanyOptions([]);
+      return;
     }
-  }
 
-  const filteredOptions =
-    inputValue.length > 1
-      ? descriptionOptions.filter((option) =>
-          option.toLowerCase().includes(inputValue.toLowerCase())
-        )
-      : [];
+    const debounce = setTimeout(async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/data/getUniqueCompanyName`,
+          { params: { name: companyInput.trim() } },
+        );
 
-  useEffect(() => {
-    setLoading(true); // start loading
-    axios
-      .get(`${process.env.REACT_APP_BACKEND_URL}/api/data/getUniqueCategory`)
-      .then((res) => {
-        const { data } = res.data; // data aqui é seu array esperado
-        if (data && Array.isArray(data)) {
-          setDescriptionOptions(data); // <-- AQUI deve ser 'data', não 'res.data'
+        // console.log('Resposta da API de empresas:', res.data.data);
+
+        if (Array.isArray(res.data.data)) {
+          setCompanyOptions(res.data.data);
         }
-      })
-      .catch((err) => {
-        console.error('Failed to fetch categories:', err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+      } catch (err) {
+        console.error('Erro ao buscar empresas', err);
+      }
+    }, 500);
 
+    return () => clearTimeout(debounce);
+  }, [companyInput]);
+
+  /* =========================================
+     DESCRIPTION AUTOCOMPLETE
+  ========================================= */
   useEffect(() => {
-    fetchData({
-      startDate: new Date().toISOString().substring(0, 10),
-      categoryIds: '',
-    });
-  }, [date]);
+    if (!inputValue || inputValue.trim().length < 2) {
+      setDescriptionOptions([]);
+      return;
+    }
+
+    const debounce = setTimeout(async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/data/getUniqueDescriptions`,
+          { params: { description: inputValue.trim() } },
+        );
+
+        // console.log(res.data.data);
+
+        if (Array.isArray(res.data.data)) {
+          setDescriptionOptions(res.data.data);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar descriptions', err);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounce);
+  }, [inputValue]);
+
+  /* =========================================
+     FORM FUNCTIONS
+  ========================================= */
 
   const resetForm = () => {
     setExpenseValue(0);
     setDescription('');
     setInputValue('');
-    // setDate(new Date().toISOString());
+    setCompanyInput('');
+    setName('');
     setIgnore(false);
     setValidate(false);
     setExtraFields(false);
     setTotalMonths(1);
+    setFantasyName('');
+    setPaymentType('');
   };
 
-  const handleUpdateExpense = async () => {
-    const obj = {
-      date: date,
-      description: description,
-      ignore: ignore,
-      categoryId: selectedCategory,
-      value: expenseValue,
-      currentInstallment: 1,
-      totalInstallment: totalMonths,
-    };
+  const buildPayload = () => ({
+    date,
+    description,
+    ignore: ignore !== undefined ? ignore : false,
+    categoryId: selectedCategory,
+    value: expenseValue,
+    currentInstallment: 1,
+    totalInstallment: extraFields ? totalMonths : 1,
+    fantasyName,
+    name,
+    paymentType,
+    updatedAt: new Date().toISOString(),
+  });
 
-    await axios
-      .put(
-        `${process.env.REACT_APP_BACKEND_URL}/api/data/update/${param.id}`,
-        obj
-      )
-      .then((response) => {
-        if (response.status === 200) {
-          setMessage({
-            severity: 'success',
-            content: 'Atualizado com sucesso!',
-            show: true,
-          });
-          resetForm();
-          navigate('/');
-        } else {
-          setMessage({
-            severity: 'error',
-            content: 'Erro ao atualizar despesa',
-            show: true,
-          });
-        }
-      });
+  const handleUpdateExpense = async () => {
+    const payload = buildPayload();
+
+    await axios.put(
+      `${process.env.REACT_APP_BACKEND_URL}/api/data/update/${param.id}`,
+      payload,
+    );
+
+    setMessage({
+      severity: 'success',
+      content: 'Atualizado com sucesso!',
+      show: true,
+    });
+
+    resetForm();
+    navigate('/');
   };
 
   const handleAddNewExpense = async () => {
-    const obj = {
-      date: date,
-      description: description,
-      ignore: ignore,
-      categoryId: selectedCategory,
-      value: expenseValue,
-      currentInstallment: 1,
-      totalInstallment: totalMonths,
-    };
+    if (!paymentType) {
+      setValidate(true);
+      return;
+    }
 
-    await axios
-      .post(`${process.env.REACT_APP_BACKEND_URL}/api/data/create`, obj)
-      .then((response) => {
-        if (response.status === 200) {
-          setSelectedCategory('');
-          resetForm();
-          setMessage({
-            severity: 'success',
-            content: 'Cadastrado com sucesso!',
-            show: true,
-          });
-        } else {
-          setMessage({
-            severity: 'error',
-            content: 'Erro ao cadastrar despesa',
-            show: true,
-          });
-        }
-      });
+    const payload = buildPayload();
+
+    await axios.post(
+      `${process.env.REACT_APP_BACKEND_URL}/api/data/create`,
+      payload,
+    );
+
+    setSelectedCategory('');
+    resetForm();
+
+    setMessage({
+      severity: 'success',
+      content: 'Cadastrado com sucesso!',
+      show: true,
+    });
   };
 
-  const getExtpenses = async (id) => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/data/getById/${id}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      const { data } = response.data;
-      handleChangeCategory(data.categoryId);
-      setExpenseValue(data.value);
-      setDescription(data.description);
-      setInputValue(data.description);
-      setDate(data.date);
-      setIgnore(data.ignore);
+  const getExpenses = async (id) => {
+    const response = await axios.get(
+      `${process.env.REACT_APP_BACKEND_URL}/api/data/getById/${id}`,
+    );
 
-      const matchedOption = filteredOptions.find((opt) =>
-        typeof opt === 'string'
-          ? opt === data.description
-          : opt.label === data.description
-      );
-      setSelectedOption(matchedOption || data.description);
-      setInputValue(data.description);
-    } catch (error) {
-      if (error.response) {
-        setMessage({
-          severity: 'error',
-          content: error.response.statusText,
-          show: true,
-        });
-      }
-      return null;
+    const { data } = response.data;
+
+    handleChangeCategory(data.categoryId);
+    setExpenseValue(data.value);
+    setDescription(data.description);
+    setInputValue(data.description);
+    setDate(data.date);
+    setIgnore(data.ignore);
+    setFantasyName(data.fantasyName || '');
+    setName(data.name || '');
+    setCompanyInput(data.name || '');
+    setPaymentType(data.paymentType || '');
+
+    if (data.totalInstallment > 1) {
+      setExtraFields(true);
+      setTotalMonths(data.totalInstallment);
     }
   };
 
   useEffect(() => {
-    if (param.id !== ':id') {
-      getExtpenses(param.id);
+    if (param.id && param.id.length === 24) {
+      getExpenses(param.id);
     }
   }, [param.id]);
 
   useEffect(() => {
-    if (
-      selectedCategory.length > 0 &&
-      description.length > 0 &&
-      expenseValue > 0
-    ) {
+    if (selectedCategory && description && expenseValue > 0) {
       setDisableAddBtn(false);
-      if (expenseValue && currentMonth) {
-        const fileteredValue = currentMonth.filter(
-          (item) =>
-            parseFloat(item.value).toFixed(2) ===
-            parseFloat(expenseValue).toFixed(2)
-        );
-        const grouped = fileteredValue.reduce((acc, entry) => {
-          if (!acc[entry.value]) {
-            acc[entry.value] = [];
-          }
-          acc[entry.value].push(entry);
-          return acc;
-        }, {});
-
-        // Generate the message dynamically
-        let message = '';
-        const totalMatches = Object.values(grouped).flat().length;
-
-        if (totalMatches === 0) {
-          message = ''; // No matches
-        } else if (totalMatches === 1) {
-          const entry = fileteredValue[0];
-          message = `Uma entrada foi encontrada:\n- Valor: R$ ${parseFloat(
-            entry.value
-          ).toFixed(2)}, Descrição: ${entry.description}, Data: ${new Date(
-            entry.date
-          ).toLocaleDateString('pt-BR')}`;
-        } else {
-          message = 'Foram encontradas entradas repetidas:\n';
-          Object.entries(grouped).forEach(([value, entries]) => {
-            entries.forEach((entry) => {
-              message += `- Valor: R$ ${parseFloat(value).toFixed(
-                2
-              )}, Descrição: ${entry.description}, Data: ${new Date(
-                entry.date
-              ).toLocaleDateString('pt-BR')}\n`;
-            });
-          });
-        }
-
-        setSearchedValue(message);
-      }
     } else {
       setDisableAddBtn(true);
     }
-  }, [description, expenseValue]);
+  }, [selectedCategory, description, expenseValue]);
+
+  /* =========================================
+     UI
+  ========================================= */
 
   return (
     <Box display='flex' justifyContent='center' sx={{ py: 4 }}>
-      <Grid
-        container
-        spacing={2}
-        sx={{
-          maxWidth: '650px', // Adjust to fit two items per row (2 * 300px + spacing)
-          justifyContent: 'center',
-        }}
-      >
-        {/* Tipo de gasto */}
-        <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
-          <FormControl
-            size='small'
+      <Grid container spacing={2} sx={{ maxWidth: 650 }}>
+        <Grid item xs={12} sm={6}>
+          <TextField
             fullWidth
-            sx={{
-              '& .MuiInputBase-root': {
-                height: '56px', // Matches TextField height
-              },
+            label='Nome Fantasia'
+            value={fantasyName}
+            onChange={(e) => setFantasyName(e.target.value)}
+          />
+        </Grid>
+
+        {/* COMPANY AUTOCOMPLETE */}
+        <Grid item xs={12} sm={6}>
+          <Autocomplete
+            freeSolo
+            options={companyOptions}
+            inputValue={companyInput}
+            onInputChange={(e, value) => {
+              setCompanyInput(value);
+              setName(value);
             }}
-          >
-            {arrCategories && selectedCategory !== undefined && (
-              <SelectCategory selectedType={selectedCategory} />
+            onChange={(e, value) => {
+              if (value) {
+                setCompanyInput(value);
+                setName(value);
+              }
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label='Nome da Empresa' fullWidth />
             )}
-            <FormHelperText>
-              {selectedCategory.length === 0 && validate
-                ? 'Campo obrigatório'
-                : ''}
-            </FormHelperText>
-          </FormControl>
+          />
         </Grid>
 
-        {/* Descrição */}
-        <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
-          <FormControl sx={{ width: '100%' }} size='small'>
-            <Autocomplete
-              freeSolo
-              options={filteredOptions}
-              loading={loading}
-              inputValue={inputValue}
-              value={selectedOption} // controlled selected value
-              onInputChange={(event, newInputValue) => {
-                setInputValue(newInputValue);
-                setDescription(newInputValue);
-              }}
-              onChange={(event, newValue) => {
-                setSelectedOption(newValue);
-                setDescription(
-                  typeof newValue === 'string' ? newValue : newValue.label
-                );
-              }}
-              getOptionLabel={(option) =>
-                typeof option === 'string' ? option : option.label
+        {/* DESCRIPTION AUTOCOMPLETE */}
+        <Grid item xs={12} sm={6}>
+          <Autocomplete
+            freeSolo
+            options={descriptionOptions}
+            inputValue={inputValue}
+            onInputChange={(e, v) => {
+              setInputValue(v);
+              setDescription(v);
+            }}
+            onChange={(e, v) => {
+              if (v) {
+                setInputValue(v);
+                setDescription(v);
               }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label='Descrição'
-                  variant='outlined'
-                  error={inputValue.length === 0 && validate}
-                  helperText={
-                    inputValue.length === 0 && validate
-                      ? 'Campo obrigatório'
-                      : ''
-                  }
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {loading ? (
-                          <CircularProgress color='inherit' size={20} />
-                        ) : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-            />
-          </FormControl>
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label='Descrição' />
+            )}
+          />
         </Grid>
 
-        {/* Valor */}
-        <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
-          <FormControl sx={{ width: '100%', paddingTop: '8px' }} size='small'>
-            <ShiftedCurrencyInput
-              label='Valor'
-              value={parseBRLStringToCents(expenseValue)} // convert "13.00" → 1300
-              onChange={(newCents) => {
-                setExpenseValue((newCents / 100).toFixed(2)); // convert 1303 → "13.03"
-              }}
-              name='set-expense-value'
-              id='expense-value'
-            />
-          </FormControl>
-        </Grid>
-
-        {/* Data da despesa */}
-        <Grid item xs={12} sm={6} sx={{ maxWidth: '309px', width: '100%' }}>
-          <FormControl
+        <Grid item xs={12} sm={6}>
+          <ShiftedCurrencyInput
             fullWidth
-            sx={{ width: { xs: '284px', sm: '309px', paddingTop: '8px' } }}
-          >
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <Box sx={{ width: { xs: '284px', sm: '309px' }, height: '56px' }}>
-                <DatePicker
-                  label={
-                    !extraFields ? 'Data da despesa' : 'Primeiro mês debitado'
-                  }
-                  format='DD/MM/YYYY'
-                  value={dayjs(date)}
-                  onChange={(newValue) =>
-                    setDate(new Date(newValue).toISOString())
-                  }
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      sx: {
-                        width: { xs: '284px', sm: '309px' }, // Responsive width
-                        height: '56px', // Fixed height
-                      },
-                    },
-                  }}
-                />
-              </Box>
-            </LocalizationProvider>
-          </FormControl>
+            label='Valor'
+            value={expenseValue * 100}
+            onChange={(cents) => setExpenseValue((cents / 100).toFixed(2))}
+          />
         </Grid>
 
-        {/* Total de meses (conditionally displayed) */}
-        {extraFields && (
-          <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
-            <FormControl sx={{ width: '100%' }} size='small'>
-              <InputLabel htmlFor='total-months-html'>
-                Total de meses
-              </InputLabel>
-              <Select
-                value={totalMonths}
-                onChange={(e) => setTotalMonths(e.target.value)}
-                label='Total de meses'
-                labelId='total-months-id'
-              >
-                {arrTotalMonths.map((item) => (
-                  <MenuItem key={`item-options-months=${item}`} value={item}>
-                    {item}
-                  </MenuItem>
-                ))}
-              </Select>
-              <FormHelperText>
-                {/* {type.length === 0 && validate ? 'Campo obrigatório' : ''}
-                 */}{' '}
-              </FormHelperText>
-            </FormControl>
-          </Grid>
-        )}
+        <Grid item xs={12} sm={6}>
+          {arrCategories && <SelectCategory selectedType={selectedCategory} />}
+        </Grid>
 
-        {/* Ignorar transação */}
-        <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
-          <FormControl sx={{ width: '100%' }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={ignore}
-                  onChange={() => setIgnore(!ignore)}
-                />
-              }
-              label='Ignorar transação'
+        <Grid item xs={12} sm={6}>
+          <PaymentTypeSelect
+            value={paymentType}
+            onChange={setPaymentType}
+            error={validate && !paymentType}
+            helperText={validate && !paymentType ? 'Campo obrigatório' : ''}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label='Data da despesa'
+              format='DD/MM/YYYY'
+              value={dayjs(date)}
+              onChange={(v) => setDate(new Date(v).toISOString())}
+              slotProps={{
+                textField: { fullWidth: true, size: 'small' },
+              }}
             />
-          </FormControl>
+          </LocalizationProvider>
         </Grid>
 
-        {/* Compra parcelada */}
-        {param.id.length !== 24 && (
-          <Grid item xs={12} sm={6} sx={{ maxWidth: '300px' }}>
-            <FormControl sx={{ width: '100%' }}>
+        {param.id?.length !== 24 && (
+          <>
+            <Grid item xs={12} sm={6}>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -483,35 +337,43 @@ export default function AddExpense() {
                 }
                 label='Compra parcelada'
               />
-            </FormControl>
-          </Grid>
+            </Grid>
+
+            {extraFields && (
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Parcelas</InputLabel>
+                  <Select
+                    value={totalMonths}
+                    label='Parcelas'
+                    onChange={(e) => setTotalMonths(e.target.value)}
+                  >
+                    {arrTotalMonths.map((m) => (
+                      <MenuItem key={m} value={m}>
+                        {m}x
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
+          </>
         )}
 
-        <Grid item xs={12} sm={12}>
-          {searchedValue.length > 0 && (
-            <div style={{ color: 'red', marginBottom: '16px' }}>
-              <strong>Foram encontradas entradas repetidas:</strong>
-              <pre>{searchedValue}</pre>
-            </div>
-          )}
-        </Grid>
-
-        {/* Save/Update Button */}
-        <Grid item xs={12} sx={{ maxWidth: '300px' }}>
-          <FormControl sx={{ width: '100%' }}>
-            <Button
-              disabled={disableAddBtn}
-              variant='contained'
-              color='success'
-              onClick={() =>
-                param.id.length === 24
-                  ? handleUpdateExpense()
-                  : handleAddNewExpense()
-              }
-            >
-              {param.id.length === 24 ? 'Atualizar despesa' : 'Salvar despesa'}
-            </Button>
-          </FormControl>
+        <Grid item xs={12}>
+          <Button
+            fullWidth
+            disabled={disableAddBtn}
+            variant='contained'
+            color='success'
+            onClick={() =>
+              param.id?.length === 24
+                ? handleUpdateExpense()
+                : handleAddNewExpense()
+            }
+          >
+            {param.id?.length === 24 ? 'Atualizar despesa' : 'Salvar despesa'}
+          </Button>
         </Grid>
       </Grid>
     </Box>

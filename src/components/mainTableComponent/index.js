@@ -76,6 +76,8 @@ function stableSort(array, comparator) {
 /* ================= TABLE HEAD ================= */
 
 const headCells = [
+  { id: 'fantasyName', label: 'Nome Fantasia' },
+  { id: 'name', label: 'Nome Empresa' },
   { id: 'description', label: 'Descrição' },
   { id: 'value', label: 'Valor' },
   { id: 'installments', label: 'Parcelamento' },
@@ -151,7 +153,7 @@ export default function MainView() {
   const [rows, setRows] = useState([]);
   const [originalData, setOriginalData] = useState({});
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(15);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
 
   const [totalRev, setTotalRev] = useState(0);
   const [totalExp, setTotalExp] = useState(0);
@@ -163,8 +165,10 @@ export default function MainView() {
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/data/getData`,
-        params
+        params,
       );
+
+      console.log(response.data.data.expenses);
 
       const { data } = response.data;
       setOriginalData(data);
@@ -216,11 +220,16 @@ export default function MainView() {
       const category = GetSelectedCategory(item.categoryId).toLowerCase();
       const desc = item.description?.toLowerCase() || '';
       const val = String(item.value).replace(/[.,]/g, '');
+      const fantasyName = item.fantasyName?.toLowerCase() || '';
+      const name = item.name?.toLowerCase() || '';  
+
 
       return (
         category.includes(search) ||
         desc.includes(search) ||
-        val.includes(search)
+        val.includes(search) ||
+        fantasyName.includes(search) ||
+        name.includes(search)
       );
     });
 
@@ -232,7 +241,7 @@ export default function MainView() {
   const visibleRows = useMemo(() => {
     return stableSort(rows, getComparator(order, orderBy)).slice(
       page * rowsPerPage,
-      page * rowsPerPage + rowsPerPage
+      page * rowsPerPage + rowsPerPage,
     );
   }, [rows, order, orderBy, page, rowsPerPage]);
 
@@ -257,7 +266,14 @@ export default function MainView() {
             handleChangeDate={setSelectedDate}
           />
 
-          <SelectCategory selectedType={selectedCategory} />
+          <Box
+            sx={{
+              width: { xs: '100%', sm: 220 },
+              flexShrink: 0,
+            }}
+          >
+            <SelectCategory selectedType={selectedCategory} />
+          </Box>
 
           <Box sx={{ flexGrow: 1 }} />
 
@@ -298,8 +314,8 @@ export default function MainView() {
                   onClick={() => {
                     selected.forEach((id) =>
                       axios.delete(
-                        `${process.env.REACT_APP_BACKEND_URL}/api/data/delete/${id}`
-                      )
+                        `${process.env.REACT_APP_BACKEND_URL}/api/data/delete/${id}`,
+                      ),
                     );
                     setSelected([]);
                     triggerReload();
@@ -342,13 +358,15 @@ export default function MainView() {
                       setSelected((prev) =>
                         prev.includes(row._id)
                           ? prev.filter((i) => i !== row._id)
-                          : [...prev, row._id]
+                          : [...prev, row._id],
                       )
                     }
                   >
                     <TableCell padding='checkbox'>
                       <Checkbox checked={isItemSelected} />
                     </TableCell>
+                    <TableCell>{row.fantasyName}</TableCell>
+                    <TableCell>{row.name}</TableCell>
                     <TableCell>{row.description}</TableCell>
                     <TableCell>{MoneyFormat(row.value)}</TableCell>
                     <TableCell>
