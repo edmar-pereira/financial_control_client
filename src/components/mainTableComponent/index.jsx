@@ -28,20 +28,20 @@ import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
 
 import { visuallyHidden } from '@mui/utils';
-import { utcToZonedTime, format } from 'date-fns-tz';
+import { toZonedTime, format } from 'date-fns-tz';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 import { useAPI } from '../../context/mainContext';
-import SelectMonth from '../../components/selectMonth';
-import SelectCategory from '../../components/selectCategory';
-import Footer from '../../components/footer';
+import SelectMonth from '../selectMonth';
+import SelectCategory from '../selectCategory';
+import Footer from '../footer';
 import BarChart from '../charts/barChart';
 
 /* ================= HELPERS ================= */
 
 function DateFormat(date) {
-  const utcDate = utcToZonedTime(date, 'UTC');
+  const utcDate = toZonedTime(date, 'UTC');
   return format(utcDate, 'dd/MM/yyyy');
 }
 
@@ -164,7 +164,7 @@ export default function MainView() {
   async function fetchData(params) {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/data/getData`,
+        `${import.meta.env.VITE_API_URL}/api/data/getData`,
         params,
       );
 
@@ -221,8 +221,7 @@ export default function MainView() {
       const desc = item.description?.toLowerCase() || '';
       const val = String(item.value).replace(/[.,]/g, '');
       const fantasyName = item.fantasyName?.toLowerCase() || '';
-      const name = item.name?.toLowerCase() || '';  
-
+      const name = item.name?.toLowerCase() || '';
 
       return (
         category.includes(search) ||
@@ -314,7 +313,7 @@ export default function MainView() {
                   onClick={() => {
                     selected.forEach((id) =>
                       axios.delete(
-                        `${process.env.REACT_APP_BACKEND_URL}/api/data/delete/${id}`,
+                        `${import.meta.env.VITE_API_URL}/api/data/delete/${id}`,
                       ),
                     );
                     setSelected([]);

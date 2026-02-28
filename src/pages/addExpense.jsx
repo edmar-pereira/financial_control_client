@@ -72,7 +72,7 @@ export default function AddExpense() {
     const debounce = setTimeout(async () => {
       try {
         const res = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/data/getUniqueCompanyName`,
+          `${import.meta.env.VITE_API_URL}/api/data/getUniqueCompanyName`,
           { params: { name: companyInput.trim() } },
         );
 
@@ -101,7 +101,7 @@ export default function AddExpense() {
     const debounce = setTimeout(async () => {
       try {
         const res = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/data/getUniqueDescriptions`,
+          `${import.meta.env.VITE_API_URL}/api/data/getUniqueDescriptions`,
           { params: { description: inputValue.trim() } },
         );
 
@@ -154,7 +154,7 @@ export default function AddExpense() {
     const payload = buildPayload();
 
     await axios.put(
-      `${process.env.REACT_APP_BACKEND_URL}/api/data/update/${param.id}`,
+      `${import.meta.env.VITE_API_URL}/api/data/update/${param.id}`,
       payload,
     );
 
@@ -177,7 +177,7 @@ export default function AddExpense() {
     const payload = buildPayload();
 
     await axios.post(
-      `${process.env.REACT_APP_BACKEND_URL}/api/data/create`,
+      `${import.meta.env.VITE_API_URL}/api/data/create`,
       payload,
     );
 
@@ -193,7 +193,7 @@ export default function AddExpense() {
 
   const getExpenses = async (id) => {
     const response = await axios.get(
-      `${process.env.REACT_APP_BACKEND_URL}/api/data/getById/${id}`,
+      `${import.meta.env.VITE_API_URL}/api/data/getById/${id}`,
     );
 
     const { data } = response.data;
