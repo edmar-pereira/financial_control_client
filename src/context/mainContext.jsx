@@ -28,7 +28,7 @@ export function APIContextProvider({ children }) {
   const handleLoadCategory = async () => {
     await axios({
       method: 'get',
-      url: `${process.env.REACT_APP_BACKEND_URL}/api/data/getCategory/`,
+      url: `${import.meta.env.VITE_API_URL}/api/data/getCategory/`,
     }).then((response) => {
       if (response.data.status === 200) {
         const { data } = response.data;
@@ -42,7 +42,7 @@ export function APIContextProvider({ children }) {
   const handleSaveCategoryChanges = async (changes) => {
     await axios({
       method: 'put',
-      url: `${process.env.REACT_APP_BACKEND_URL}/api/data/updateCategory/`,
+      url: `${import.meta.env.VITE_API_URL}/api/data/updateCategory/`,
       data: changes,
     }).then((response) => {
       if (response.data.status === 200) {
@@ -76,8 +76,8 @@ export function APIContextProvider({ children }) {
     if (rowIndex !== null) {
       setImportedData((prevData) =>
         prevData.map((item, i) =>
-          i === rowIndex ? { ...item, type: newCategoryId } : item
-        )
+          i === rowIndex ? { ...item, type: newCategoryId } : item,
+        ),
       );
     } else {
       // Optional: update selectedCategory globally if needed
@@ -99,7 +99,7 @@ export function APIContextProvider({ children }) {
 
     const savedTableView = localStorage.getItem('tableView');
     setShowTableView(
-      savedTableView === null || savedTableView === 'true' ? true : false
+      savedTableView === null || savedTableView === 'true' ? true : false,
     );
     handleLoadCategory();
   }, []);
@@ -110,7 +110,6 @@ export function APIContextProvider({ children }) {
         arrCategories,
         handleChangeCategory,
         selectedCategory,
-        loading,
         message,
         setMessage,
         importedData,
@@ -122,7 +121,6 @@ export function APIContextProvider({ children }) {
         handleSaveCategoryChanges,
         reloadKey,
         triggerReload,
-        selectedCategory,
         setSelectedCategory,
         selectedDate,
         setSelectedDate,

@@ -21,7 +21,6 @@ export default function Footer({ totalRev, totalExp, difference }) {
       sx={{
         width: '100%',
         height: 'auto',
-        backgroundColor: '#1976d2',
         backgroundColor: isDarkMode ? '#1d1d1d' : '#1976d2',
         color: '#fff',
         paddingTop: '1rem',

@@ -75,7 +75,7 @@ export default function ImportPage() {
       setImportLoading(true);
 
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/upload`,
+        `${import.meta.env.VITE_API_URL}/api/upload`,
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } },
       );
@@ -126,7 +126,7 @@ export default function ImportPage() {
       setSaving(true);
 
       const res = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/data/insertmany`,
+        `${import.meta.env.VITE_API_URL}/api/data/insertmany`,
         importedData,
       );
 

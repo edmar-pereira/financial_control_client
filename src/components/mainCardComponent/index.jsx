@@ -12,7 +12,7 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import AvatarComponent from '../avatarComponent';
-import Footer from '../../components/footer';
+import Footer from '../footer';
 
 import { useAPI } from '../../context/mainContext';
 
@@ -28,13 +28,13 @@ export default function MainCardComponent() {
   async function fetchData(params) {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/data/getData`,
+        `${import.meta.env.VITE_API_URL}/api/data/getData`,
         params, // 🔹 Send as POST body
         {
           headers: {
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       const { data } = response.data;
@@ -73,7 +73,7 @@ export default function MainCardComponent() {
 
     return arrCategories.find(
       (item) =>
-        item.id === categoryIdOrLabel || item.label === categoryIdOrLabel
+        item.id === categoryIdOrLabel || item.label === categoryIdOrLabel,
     );
   }
 
