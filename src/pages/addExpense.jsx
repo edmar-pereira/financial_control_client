@@ -299,7 +299,12 @@ export default function AddExpense() {
         </Grid>
 
         <Grid item xs={12} sm={6}>
-          {arrCategories && <SelectCategory selectedType={selectedCategory} />}
+          {arrCategories && (
+            <SelectCategory
+              selectedType={selectedCategory}
+              onChange={handleChangeCategory}
+            />
+          )}
         </Grid>
 
         <Grid item xs={12} sm={6}>
