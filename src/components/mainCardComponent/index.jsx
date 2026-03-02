@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns-tz';
 import axios from 'axios';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -17,7 +16,7 @@ import Footer from '../footer';
 import { useAPI } from '../../context/mainContext';
 
 export default function MainCardComponent() {
-  const { deleteExpense, expensesType, arrCategories } = useAPI();
+  const { deleteExpense, arrCategories, setMessage } = useAPI();
   const navigate = useNavigate();
 
   const [expenses, setExpenses] = useState([]);
@@ -57,9 +56,11 @@ export default function MainCardComponent() {
     }
   }
 
-  function DateFormat(dateToFormat) {
-    return format(new Date(dateToFormat), 'dd/MM/yyyy', { timeZone: 'UTC' });
-  }
+function DateFormat(dateToFormat) {
+  return new Date(dateToFormat).toLocaleDateString('pt-BR', {
+    timeZone: 'UTC',
+  });
+}
 
   function MoneyFormat(valueToFormat) {
     return valueToFormat.toLocaleString('pt-br', {

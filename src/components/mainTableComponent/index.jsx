@@ -1,6 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import PropTypes from 'prop-types';
-import { alpha } from '@mui/material/styles';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Box,
   Table,
@@ -10,8 +8,6 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
-  Toolbar,
-  Typography,
   Paper,
   Checkbox,
   IconButton,
@@ -28,7 +24,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
 
 import { visuallyHidden } from '@mui/utils';
-import { toZonedTime, format } from 'date-fns-tz';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -41,8 +36,7 @@ import BarChart from '../charts/barChart';
 /* ================= HELPERS ================= */
 
 function DateFormat(date) {
-  const utcDate = toZonedTime(date, 'UTC');
-  return format(utcDate, 'dd/MM/yyyy');
+  return new Date(date).toLocaleDateString('pt-BR');
 }
 
 function MoneyFormat(value) {
