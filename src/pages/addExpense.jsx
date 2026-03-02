@@ -216,6 +216,10 @@ export default function AddExpense() {
   };
 
   useEffect(() => {
+    console.log('Categoria mudou:', selectedCategory);
+  }, [selectedCategory]);
+
+  useEffect(() => {
     if (param.id && param.id.length === 24) {
       getExpenses(param.id);
     }
