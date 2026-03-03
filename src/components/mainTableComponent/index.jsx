@@ -36,7 +36,17 @@ import BarChart from '../charts/barChart';
 /* ================= HELPERS ================= */
 
 function DateFormat(date) {
-  return new Date(date).toLocaleDateString('pt-BR');
+  if (!date) return '';
+
+  // If it's ISO string
+  const dateStr =
+    typeof date === 'string'
+      ? date.slice(0, 10)
+      : date.toISOString().slice(0, 10);
+
+  const [year, month, day] = dateStr.split('-');
+
+  return `${day}/${month}/${year}`;
 }
 
 function MoneyFormat(value) {
@@ -161,8 +171,6 @@ export default function MainView() {
         `${import.meta.env.VITE_API_URL}/api/data/getData`,
         params,
       );
-
-      console.log(response.data.data.expenses);
 
       const { data } = response.data;
       setOriginalData(data);

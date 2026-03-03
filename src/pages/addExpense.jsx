@@ -137,7 +137,7 @@ export default function AddExpense() {
   };
 
   const buildPayload = () => ({
-    date,
+    date: date ? date.slice(0, 10) : null,
     description,
     ignore: ignore !== undefined ? ignore : false,
     categoryId: selectedCategory,
@@ -171,24 +171,57 @@ export default function AddExpense() {
   const handleAddNewExpense = async () => {
     if (!paymentType) {
       setValidate(true);
+
+      setMessage({
+        severity: 'warning',
+        content: 'Selecione a forma de pagamento.',
+        show: true,
+      });
+
       return;
     }
 
     const payload = buildPayload();
 
-    await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/data/create`,
-      payload,
-    );
+    // console.log('Payload a ser enviado:', JSON.stringify(payload, null, 2));
 
-    setSelectedCategory('');
-    resetForm();
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/data/create`,
+        payload,
+      );
 
-    setMessage({
-      severity: 'success',
-      content: 'Cadastrado com sucesso!',
-      show: true,
-    });
+      // ✅ SUCCESS
+      setSelectedCategory('');
+      resetForm();
+
+      setMessage({
+        severity: 'success',
+        content: 'Cadastrado com sucesso!',
+        show: true,
+      });
+
+      console.log('Success:', response.data);
+    } catch (error) {
+      console.error('Axios error:', error);
+
+      let errorMessage = 'Erro inesperado.';
+
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.request) {
+        errorMessage = 'Servidor não respondeu.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      // ❌ ERROR MESSAGE
+      setMessage({
+        severity: 'error',
+        content: errorMessage,
+        show: true,
+      });
+    }
   };
 
   const getExpenses = async (id) => {
@@ -215,9 +248,9 @@ export default function AddExpense() {
     }
   };
 
-  useEffect(() => {
-    console.log('Categoria mudou:', selectedCategory);
-  }, [selectedCategory]);
+  // useEffect(() => {
+  //   console.log('Categoria mudou:', selectedCategory);
+  // }, [selectedCategory]);
 
   useEffect(() => {
     if (param.id && param.id.length === 24) {
