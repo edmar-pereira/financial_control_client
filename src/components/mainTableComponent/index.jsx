@@ -87,6 +87,7 @@ const headCells = [
   { id: 'installments', label: 'Parcelamento' },
   { id: 'date', label: 'Data' },
   { id: 'type', label: 'Tipo de despesa' },
+  { id: 'paymentType', label: 'Tipo de Pagamento' },
 ];
 
 function EnhancedTableHead({
@@ -171,6 +172,8 @@ export default function MainView() {
         `${import.meta.env.VITE_API_URL}/api/data/getData`,
         params,
       );
+
+      console.log(response.data);
 
       const { data } = response.data;
       setOriginalData(data);
@@ -273,7 +276,10 @@ export default function MainView() {
               flexShrink: 0,
             }}
           >
-            <SelectCategory selectedType={selectedCategory} />
+            <SelectCategory
+              selectedType={selectedCategory}
+              onChange={setSelectedCategory}
+            />
           </Box>
 
           <Box sx={{ flexGrow: 1 }} />
@@ -377,6 +383,7 @@ export default function MainView() {
                     </TableCell>
                     <TableCell>{DateFormat(row.date)}</TableCell>
                     <TableCell>{GetSelectedCategory(row.categoryId)}</TableCell>
+                    <TableCell>{row.paymentType}</TableCell>
                   </TableRow>
                 );
               })}
