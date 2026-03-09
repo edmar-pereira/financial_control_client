@@ -201,7 +201,7 @@ export default function AddExpense() {
         show: true,
       });
 
-      console.log('Success:', response.data);
+      // console.log('Success:', response.data);
     } catch (error) {
       console.error('Axios error:', error);
 

@@ -84,7 +84,7 @@ export default function ImportPage() {
         (a, b) => new Date(a.date) - new Date(b.date),
       );
 
-      // console.log(JSON.stringify(sorted, null, 2));
+      // console.log(JSON.stringify(sorted));
 
       setImportedData(sorted);
       setIsImported(true);
@@ -215,80 +215,85 @@ export default function ImportPage() {
               </TableHead>
 
               <TableBody>
-                {importedData.map((row, index) => (
-                  <TableRow key={`${row.date}-${row.fantasyName}-${index}`}>
-                    <TableCell>{formatDate(row.date)}</TableCell>
+                {importedData.map((row, index) => {
+                  // console.log('ROW:', index, row);
 
-                    <TableCell>{row.paymentType}</TableCell>
+                  return (
+                    <TableRow key={`${row.date}-${row.fantasyName}-${index}`}>
+                      <TableCell>{formatDate(row.date)}</TableCell>
 
-                    <TableCell>{row.fantasyName}</TableCell>
+                      <TableCell>{row.paymentType}</TableCell>
 
-                    <TableCell>
-                      <TextField
-                        fullWidth
-                        size='small'
-                        value={row.name || ''}
-                        onChange={(e) =>
-                          updateRow(index, 'name', e.target.value)
-                        }
-                        error={!row.name?.trim()}
-                        helperText={
-                          !row.name?.trim() ? 'Campo obrigatório' : ''
-                        }
-                      />
-                    </TableCell>
+                      <TableCell>{row.fantasyName}</TableCell>
 
-                    <TableCell>
-                      <TextField
-                        fullWidth
-                        size='small'
-                        value={row.description || ''}
-                        onChange={(e) =>
-                          updateRow(index, 'description', e.target.value)
-                        }
-                      />
-                    </TableCell>
+                      <TableCell>
+                        <TextField
+                          fullWidth
+                          size='small'
+                          value={row.name || ''}
+                          onChange={(e) =>
+                            updateRow(index, 'name', e.target.value)
+                          }
+                          error={!row.name?.trim()}
+                          helperText={
+                            !row.name?.trim() ? 'Campo obrigatório' : ''
+                          }
+                        />
+                      </TableCell>
 
-                    <TableCell>
-                      <ShiftedCurrencyInput
-                        value={Number(row.value) * 100}
-                        onChange={(cents) =>
-                          updateRow(index, 'value', (cents / 100).toFixed(2))
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {row.totalInstallment > 1 ? (
-                        <Typography variant='body2'>
-                          {row.currentInstallment} / {row.totalInstallment}
-                        </Typography>
-                      ) : (
-                        <Typography variant='body2' color='text.secondary'>
-                          À vista
-                        </Typography>
-                      )}
-                    </TableCell>
+                      <TableCell>
+                        <TextField
+                          fullWidth
+                          size='small'
+                          value={row.description || ''}
+                          onChange={(e) =>
+                            updateRow(index, 'description', e.target.value)
+                          }
+                        />
+                      </TableCell>
 
-                    <TableCell>
-                      <SelectCategory
-                        rowIndex={index}
-                        selectedType={row.categoryId}
-                        onChange={(value) =>
-                          updateRow(index, 'categoryId', value)
-                        }
-                      />
-                    </TableCell>
+                      <TableCell>
+                        <ShiftedCurrencyInput
+                          value={Number(row.value) * 100}
+                          onChange={(cents) =>
+                            updateRow(index, 'value', (cents / 100).toFixed(2))
+                          }
+                        />
+                      </TableCell>
 
-                    <TableCell>
-                      <IconButton
-                        size='small'
-                        onClick={() => handleRemoveRow(index)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      <TableCell>
+                        {row.totalInstallment > 1 ? (
+                          <Typography variant='body2'>
+                            {row.currentInstallment} / {row.totalInstallment}
+                          </Typography>
+                        ) : (
+                          <Typography variant='body2' color='text.secondary'>
+                            À vista
+                          </Typography>
+                        )}
+                      </TableCell>
+
+                      <TableCell>
+                        <SelectCategory
+                          rowIndex={index}
+                          selectedType={row.categoryId}
+                          onChange={(value) =>
+                            updateRow(index, 'categoryId', value)
+                          }
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <IconButton
+                          size='small'
+                          onClick={() => handleRemoveRow(index)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>

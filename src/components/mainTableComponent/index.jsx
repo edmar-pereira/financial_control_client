@@ -173,7 +173,7 @@ export default function MainView() {
         params,
       );
 
-      console.log(response.data);
+      // console.log(response.data);
 
       const { data } = response.data;
       setOriginalData(data);
