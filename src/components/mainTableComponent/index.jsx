@@ -266,7 +266,7 @@ export default function MainView() {
           }}
         >
           <SelectMonth
-            currentDate={new Date()}
+            currentDate={selectedDate}
             handleChangeDate={setSelectedDate}
           />
 

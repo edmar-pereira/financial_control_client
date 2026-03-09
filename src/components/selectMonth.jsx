@@ -1,5 +1,4 @@
 import { Box, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
-import { useState, useEffect } from 'react';
 
 const monthsBR = [
   'Janeiro',
@@ -17,19 +16,19 @@ const monthsBR = [
 ];
 
 export default function SelectMonth({ currentDate, handleChangeDate }) {
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(
-    currentDate.getMonth() + 1
-  ); // getMonth is 0-indexed
+  // Always normalize to Date
+  const parsedDate = currentDate ? new Date(currentDate) : new Date();
 
-  const years = [2026,2025, 2024, 2023];
+  const selectedYear = parsedDate.getFullYear();
+  const selectedMonth = parsedDate.getMonth() + 1;
 
-  useEffect(() => {
-    const formattedDate = new Date(
-      Date.UTC(selectedYear, selectedMonth - 1, 1)
-    ).toISOString();
-    handleChangeDate(formattedDate);
-  }, [selectedYear, selectedMonth]);
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 4 }, (_, i) => currentYear - i);
+
+  const updateDate = (year, month) => {
+    const newDate = new Date(Date.UTC(year, month - 1, 1)).toISOString();
+    handleChangeDate(newDate);
+  };
 
   return (
     <Box
@@ -40,14 +39,13 @@ export default function SelectMonth({ currentDate, handleChangeDate }) {
         width: { xs: '100%', sm: 'auto' },
       }}
     >
-      <FormControl size='small' sx={{ minWidth: 120, flex: 1, maxWidth: 160 }}>
-        <InputLabel id='select-year-label'>Ano</InputLabel>
+      {/* YEAR */}
+      <FormControl size='small' sx={{ minWidth: 120 }}>
+        <InputLabel>Ano</InputLabel>
         <Select
-          labelId='select-year-label'
-          id='select-year'
-          value={selectedYear}
+          value={years.includes(selectedYear) ? selectedYear : ''}
           label='Ano'
-          onChange={(e) => setSelectedYear(e.target.value)}
+          onChange={(e) => updateDate(Number(e.target.value), selectedMonth)}
         >
           {years.map((yr) => (
             <MenuItem key={yr} value={yr}>
@@ -57,20 +55,16 @@ export default function SelectMonth({ currentDate, handleChangeDate }) {
         </Select>
       </FormControl>
 
-      <FormControl size='small' sx={{ minWidth: 140, flex: 1, maxWidth: 180 }}>
-        <InputLabel id='select-month-label'>Mês</InputLabel>
+      {/* MONTH */}
+      <FormControl size='small' sx={{ minWidth: 140 }}>
+        <InputLabel>Mês</InputLabel>
         <Select
-          labelId='select-month-label'
-          id='select-month'
-          value={monthsBR[selectedMonth - 1]}
+          value={selectedMonth}
           label='Mês'
-          onChange={(e) => {
-            const monthIndex = monthsBR.indexOf(e.target.value) + 1;
-            setSelectedMonth(monthIndex);
-          }}
+          onChange={(e) => updateDate(selectedYear, Number(e.target.value))}
         >
-          {monthsBR.map((mes) => (
-            <MenuItem key={mes} value={mes}>
+          {monthsBR.map((mes, index) => (
+            <MenuItem key={mes} value={index + 1}>
               {mes}
             </MenuItem>
           ))}

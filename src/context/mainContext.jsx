@@ -5,7 +5,10 @@ import PropTypes from 'prop-types';
 const MainContext = createContext();
 
 export function APIContextProvider({ children }) {
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const stored = localStorage.getItem('selectedDate');
+    return stored ? new Date(stored) : new Date();
+  });
   const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(false);
   const [arrCategories, setArrCategories] = useState([]);
@@ -20,6 +23,12 @@ export function APIContextProvider({ children }) {
   const [importedData, setImportedData] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
   const [currentMonth, setCurrentMonth] = useState([]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      localStorage.setItem('selectedDate', selectedDate);
+    }
+  }, [selectedDate]);
 
   const triggerReload = () => {
     setReloadKey((prev) => prev + 1);

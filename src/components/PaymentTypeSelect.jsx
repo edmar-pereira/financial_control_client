@@ -10,9 +10,9 @@ import {
 const PAYMENT_TYPES = [
   'DEBITO VISA ELECTRON BRASIL',
   'PIX ENVIADO',
-  'SAQUE DINHEIRO',
   'PIX RECEBIDO',
-  'PAGAMENTO DE BOLETO',
+  'SAQUE DINHEIRO',
+  'BOLETO',
 ];
 
 export default function PaymentTypeSelect({
