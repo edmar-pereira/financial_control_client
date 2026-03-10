@@ -16,8 +16,11 @@ const monthsBR = [
 ];
 
 export default function SelectMonth({ currentDate, handleChangeDate }) {
-  // Always normalize to Date
+  // Normaliza a data
   const parsedDate = currentDate ? new Date(currentDate) : new Date();
+
+  // Evita problemas de timezone
+  parsedDate.setHours(12, 0, 0, 0);
 
   const selectedYear = parsedDate.getFullYear();
   const selectedMonth = parsedDate.getMonth() + 1;
@@ -26,7 +29,8 @@ export default function SelectMonth({ currentDate, handleChangeDate }) {
   const years = Array.from({ length: 4 }, (_, i) => currentYear - i);
 
   const updateDate = (year, month) => {
-    const newDate = new Date(Date.UTC(year, month - 1, 1)).toISOString();
+    const newDate = new Date(year, month - 1, 1);
+    newDate.setHours(12, 0, 0, 0); // evita mudança de mês por timezone
     handleChangeDate(newDate);
   };
 
