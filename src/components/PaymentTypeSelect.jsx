@@ -8,12 +8,16 @@ import {
 } from '@mui/material';
 
 const PAYMENT_TYPES = [
-  'DEBITO VISA ELECTRON BRASIL',
+  'DEBITO',
+  'CREDITO',
   'PIX ENVIADO',
   'PIX RECEBIDO',
   'SAQUE DINHEIRO',
   'BOLETO',
-  'CREDITO'
+  'INVESTIMENTO',
+  'RECEITA',
+  'SAQUE',
+  'OUTROS',
 ];
 
 export default function PaymentTypeSelect({
@@ -24,14 +28,12 @@ export default function PaymentTypeSelect({
   disabled = false,
 }) {
   return (
-    <FormControl fullWidth size="small" error={error} disabled={disabled}>
-      <InputLabel id="payment-type-label">
-        Tipo de pagamento
-      </InputLabel>
+    <FormControl fullWidth size='small' error={error} disabled={disabled}>
+      <InputLabel id='payment-type-label'>Tipo de pagamento</InputLabel>
 
       <Select
-        labelId="payment-type-label"
-        label="Tipo de pagamento"
+        labelId='payment-type-label'
+        label='Tipo de pagamento'
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
       >
