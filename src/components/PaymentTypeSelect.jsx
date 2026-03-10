@@ -13,6 +13,7 @@ const PAYMENT_TYPES = [
   'PIX RECEBIDO',
   'SAQUE DINHEIRO',
   'BOLETO',
+  'CREDITO'
 ];
 
 export default function PaymentTypeSelect({
