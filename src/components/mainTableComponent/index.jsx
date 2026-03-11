@@ -202,9 +202,9 @@ export default function MainView() {
     });
   }, [selectedDate, selectedCategory, reloadKey]);
 
-  useEffect(() => {
-    setSelectedCategory('all_categories');
-  }, []);
+  // useEffect(() => {
+  //   setSelectedCategory('all_categories');
+  // }, []);
 
   /* ================= FILTER ================= */
 

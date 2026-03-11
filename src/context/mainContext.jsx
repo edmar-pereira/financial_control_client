@@ -9,7 +9,12 @@ export function APIContextProvider({ children }) {
     const stored = localStorage.getItem('selectedDate');
     return stored ? new Date(stored) : new Date();
   });
-  const [selectedCategory, setSelectedCategory] = useState('');
+
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+  const storedCategory = localStorage.getItem('selectedCategory');
+  return storedCategory ?? 'all_categories';
+});
+
   const [loading, setLoading] = useState(false);
   const [arrCategories, setArrCategories] = useState([]);
   const [message, setMessage] = useState({
@@ -29,6 +34,12 @@ export function APIContextProvider({ children }) {
       localStorage.setItem('selectedDate', selectedDate);
     }
   }, [selectedDate]);
+
+    useEffect(() => {
+    if (selectedCategory) {
+      localStorage.setItem('selectedCategory', selectedCategory);
+    }
+  }, [selectedCategory]);
 
   const triggerReload = () => {
     setReloadKey((prev) => prev + 1);
