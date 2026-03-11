@@ -24,8 +24,6 @@ import PropTypes from 'prop-types';
 export default function BarChart({ transactions, categories }) {
   const arrItems = [];
 
-  console.log('Transactions:', transactions);
-
   function MoneyFormat(valueToFormat) {
     return valueToFormat.toLocaleString('pt-br', {
       style: 'currency',
@@ -44,15 +42,12 @@ export default function BarChart({ transactions, categories }) {
         ].includes(cat.id),
     );
 
-    console.log(filteredCategories);
-
     const labels = [];
     const data = [];
     const backgroundColor = [];
     const extraData = [];
 
     function getColor(percentage, categoryId) {
-      console.log(categoryId.id);
       if (categoryId.id === 'stocks' || categoryId.id === 'revenue') {
         return '#2196f3'; // azul
       }
@@ -105,8 +100,6 @@ export default function BarChart({ transactions, categories }) {
             const index = tooltipItem.dataIndex;
             const expenseEst = chartData.datasets[0].arrExtraData[index];
             const items = chartData.datasets[0].arrItems[index];
-
-            console.log(items);
 
             const itemDescriptions = items.map((t) => {
               const company =
