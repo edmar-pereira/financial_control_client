@@ -16,13 +16,15 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 import PropTypes from 'prop-types';
 
 export default function BarChart({ transactions, categories }) {
   const arrItems = [];
+
+  console.log('Transactions:', transactions);
 
   function MoneyFormat(valueToFormat) {
     return valueToFormat.toLocaleString('pt-br', {
@@ -36,20 +38,25 @@ export default function BarChart({ transactions, categories }) {
       (cat) =>
         ![
           'credit_card',
-          'revenue',
           'all_categories',
           'uncategorized',
-          'stocks',
           'children',
-        ].includes(cat.id)
+        ].includes(cat.id),
     );
+
+    console.log(filteredCategories);
 
     const labels = [];
     const data = [];
     const backgroundColor = [];
     const extraData = [];
 
-    function getColor(percentage) {
+    function getColor(percentage, categoryId) {
+      console.log(categoryId.id);
+      if (categoryId.id === 'stocks' || categoryId.id === 'revenue') {
+        return '#2196f3'; // azul
+      }
+
       if (percentage <= 0) return '#f44336';
       if (percentage <= 50) return '#4caf50';
       if (percentage <= 100) return '#ffc107';
@@ -58,7 +65,7 @@ export default function BarChart({ transactions, categories }) {
 
     filteredCategories.forEach((category) => {
       const transInCategory = transactions.filter(
-        (t) => t.categoryId === category.id
+        (t) => t.categoryId === category.id,
       );
       const total = transInCategory.reduce((sum, t) => sum + t.value, 0);
       const percentage = category.maxValue
@@ -66,7 +73,7 @@ export default function BarChart({ transactions, categories }) {
         : 0;
       labels.push(`${category.label} ${percentage}%`);
       data.push(total);
-      backgroundColor.push(getColor(percentage));
+      backgroundColor.push(getColor(percentage, category));
       extraData.push(category.maxValue || 0);
       arrItems.push(transInCategory); // ← armazenando as transações
     });
@@ -99,10 +106,15 @@ export default function BarChart({ transactions, categories }) {
             const expenseEst = chartData.datasets[0].arrExtraData[index];
             const items = chartData.datasets[0].arrItems[index];
 
-            const itemDescriptions = items.map(
-              (t) =>
-                `- ${t.description || 'Sem descrição'}: ${MoneyFormat(t.value)}`
-            );
+            console.log(items);
+
+            const itemDescriptions = items.map((t) => {
+              const company =
+                t.name || t.fantasyName || 'Empresa não informada';
+              const desc = t.description || 'Sem descrição';
+
+              return `- ${company} | ${desc}: ${MoneyFormat(t.value)}`;
+            });
 
             return [
               `Gasto total: ${MoneyFormat(expense)}`,
@@ -116,9 +128,7 @@ export default function BarChart({ transactions, categories }) {
     },
   };
 
-  return (
-      <Bar data={chartData} options={options} />
-  );
+  return <Bar data={chartData} options={options} />;
 }
 
 BarChart.propTypes = {
