@@ -222,18 +222,21 @@ export default function MainView() {
     }
 
     const filtered = originalData.expenses.filter((item) => {
+      console.log(item);
       const category = GetSelectedCategory(item.categoryId).toLowerCase();
       const desc = item.description?.toLowerCase() || '';
       const val = String(item.value).replace(/[.,]/g, '');
       const fantasyName = item.fantasyName?.toLowerCase() || '';
       const name = item.name?.toLowerCase() || '';
+      const paymentType = item.paymentType?.toLowerCase() || '';
 
       return (
         category.includes(search) ||
         desc.includes(search) ||
         val.includes(search) ||
         fantasyName.includes(search) ||
-        name.includes(search)
+        name.includes(search) ||
+        paymentType.includes(search)
       );
     });
 
