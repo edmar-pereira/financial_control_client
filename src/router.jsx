@@ -10,12 +10,21 @@ import Login from './pages/login';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function Router() {
+  const isLoggedIn = !!localStorage.getItem('accessToken'); // verifica token
+
   return (
     <Routes>
-      <Route path='/login' element={<Login />} />
-
+      {/* Página de login */}
       <Route
-        path='/'
+        path="/login"
+        element={
+          isLoggedIn ? <Navigate to="/" replace /> : <Login />
+        }
+      />
+
+      {/* Rotas protegidas */}
+      <Route
+        path="/"
         element={
           <ProtectedRoute>
             <Main />
@@ -24,7 +33,7 @@ export default function Router() {
       />
 
       <Route
-        path='graphic'
+        path="/graphic"
         element={
           <ProtectedRoute>
             <Graphic />
@@ -33,7 +42,7 @@ export default function Router() {
       />
 
       <Route
-        path='add_expense/:id?'
+        path="/add_expense/:id?"
         element={
           <ProtectedRoute>
             <AddExpense />
@@ -42,7 +51,7 @@ export default function Router() {
       />
 
       <Route
-        path='configs'
+        path="/configs"
         element={
           <ProtectedRoute>
             <Config />
@@ -51,7 +60,7 @@ export default function Router() {
       />
 
       <Route
-        path='import'
+        path="/import"
         element={
           <ProtectedRoute>
             <ImportPage />
@@ -59,7 +68,17 @@ export default function Router() {
         }
       />
 
-      <Route path='*' element={<Navigate to='/' />} />
+      {/* Fallback condicional para qualquer rota inválida */}
+      <Route
+        path="*"
+        element={
+          isLoggedIn ? (
+            <Navigate to="/" replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
     </Routes>
   );
 }
