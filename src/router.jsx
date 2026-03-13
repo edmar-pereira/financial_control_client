@@ -1,6 +1,9 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
+import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+
 import Main from './pages/main';
 import Graphic from './pages/graphic';
 import AddExpense from './pages/addExpense';
@@ -12,19 +15,23 @@ import ProtectedRoute from './components/ProtectedRoute';
 export default function Router() {
   const isLoggedIn = !!localStorage.getItem('accessToken'); // verifica token
 
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log('Path atual:', location.pathname);
+  }, [location]);
+
   return (
     <Routes>
       {/* Página de login */}
       <Route
-        path="/login"
-        element={
-          isLoggedIn ? <Navigate to="/" replace /> : <Login />
-        }
+        path='/login'
+        element={isLoggedIn ? <Navigate to='/' replace /> : <Login />}
       />
 
       {/* Rotas protegidas */}
       <Route
-        path="/"
+        path='/'
         element={
           <ProtectedRoute>
             <Main />
@@ -33,7 +40,7 @@ export default function Router() {
       />
 
       <Route
-        path="/graphic"
+        path='/graphic'
         element={
           <ProtectedRoute>
             <Graphic />
@@ -42,7 +49,7 @@ export default function Router() {
       />
 
       <Route
-        path="/add_expense/:id?"
+        path='/add_expense/:id?'
         element={
           <ProtectedRoute>
             <AddExpense />
@@ -51,7 +58,7 @@ export default function Router() {
       />
 
       <Route
-        path="/configs"
+        path='/configs'
         element={
           <ProtectedRoute>
             <Config />
@@ -60,7 +67,7 @@ export default function Router() {
       />
 
       <Route
-        path="/import"
+        path='/import'
         element={
           <ProtectedRoute>
             <ImportPage />
@@ -70,12 +77,12 @@ export default function Router() {
 
       {/* Fallback condicional para qualquer rota inválida */}
       <Route
-        path="*"
+        path='*'
         element={
           isLoggedIn ? (
-            <Navigate to="/" replace />
+            <Navigate to='/' replace />
           ) : (
-            <Navigate to="/login" replace />
+            <Navigate to='/login' replace />
           )
         }
       />

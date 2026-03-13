@@ -46,17 +46,17 @@ export function APIContextProvider({ children }) {
     setReloadKey((prev) => prev + 1);
   };
 
-  const handleLoadCategory = async () => {
+  // const handleLoadCategory = async () => {
 
-    await api.get('/api/data/getCategory/').then((response) => {
-      if (response.data.status === 200) {
-        const { data } = response.data;
-        const sortedData = data.sort((a, b) => a.label.localeCompare(b.label));
+  //   await api.get('/api/data/getCategory/').then((response) => {
+  //     if (response.data.status === 200) {
+  //       const { data } = response.data;
+  //       const sortedData = data.sort((a, b) => a.label.localeCompare(b.label));
 
-        setArrCategories(sortedData);
-      }
-    });
-  };
+  //       setArrCategories(sortedData);
+  //     }
+  //   });
+  // };
 
   const handleSaveCategoryChanges = async (changes) => {
 
@@ -67,7 +67,7 @@ export function APIContextProvider({ children }) {
           content: 'Categoria atualizada com sucesso!',
           show: true,
         });
-        handleLoadCategory();
+        // handleLoadCategory();
       } else {
         setMessage({
           severity: 'error',
@@ -117,7 +117,7 @@ export function APIContextProvider({ children }) {
     setShowTableView(
       savedTableView === null || savedTableView === 'true' ? true : false,
     );
-    handleLoadCategory();
+    // handleLoadCategory();
   }, []);
 
   return (
@@ -144,6 +144,7 @@ export function APIContextProvider({ children }) {
         loading,
         currentMonth,
         setCurrentMonth,
+        setArrCategories
       }}
     >
       {children}

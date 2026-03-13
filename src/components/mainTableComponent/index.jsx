@@ -25,7 +25,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
 
 import { visuallyHidden } from '@mui/utils';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 import { useAPI } from '../../context/mainContext';
@@ -151,6 +150,7 @@ export default function MainView() {
     triggerReload,
     setLoading,
     setCurrentMonth,
+    setArrCategories,
   } = useAPI();
 
   const [order, setOrder] = useState('asc');
@@ -192,6 +192,28 @@ export default function MainView() {
     }
   }
 
+  async function fetchCategories() {
+    await api.get('/api/data/getCategory/').then((response) => {
+      if (response.data.status === 200) {
+        const { data } = response.data;
+        const sortedData = data.sort((a, b) => a.label.localeCompare(b.label));
+        setArrCategories(sortedData);
+      } else {
+        setMessage({
+          severity: 'error',
+          content: 'Erro ao carregar categorias',
+          show: true,
+        });
+      }
+    });
+  }
+
+  useEffect(() => {
+    if (!arrCategories || arrCategories.length === 0) {
+      fetchCategories();
+    }
+  }, []);
+
   useEffect(() => {
     setSearchText('');
     const date = selectedDate ? new Date(selectedDate) : new Date();
@@ -201,10 +223,6 @@ export default function MainView() {
         selectedCategory === 'all_categories' ? '' : selectedCategory,
     });
   }, [selectedDate, selectedCategory, reloadKey]);
-
-  // useEffect(() => {
-  //   setSelectedCategory('all_categories');
-  // }, []);
 
   /* ================= FILTER ================= */
 
