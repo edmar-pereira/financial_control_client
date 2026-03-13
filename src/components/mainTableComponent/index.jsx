@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import api from '../../services/api';
 import {
   Box,
   Table,
@@ -168,14 +169,12 @@ export default function MainView() {
 
   async function fetchData(params) {
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/data/getData`,
-        params,
-      );
+      setLoading(true);
 
-      // console.log(response.data);
+      const response = await api.post('/api/data/getData', params);
 
       const { data } = response.data;
+
       setOriginalData(data);
       setRows(data.expenses);
       setCurrentMonth(data);
@@ -183,12 +182,13 @@ export default function MainView() {
       setTotalRev(data.totalRev);
       setDifference(data.difference);
     } catch (error) {
-      setLoading(false);
       setMessage({
         severity: 'error',
         content: 'Erro ao carregar dados',
         show: true,
       });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -323,9 +323,7 @@ export default function MainView() {
                 <IconButton
                   onClick={() => {
                     selected.forEach((id) =>
-                      axios.delete(
-                        `${import.meta.env.VITE_API_URL}/api/data/delete/${id}`,
-                      ),
+                      api.delete(`/api/data/delete/${id}`),
                     );
                     setSelected([]);
                     triggerReload();

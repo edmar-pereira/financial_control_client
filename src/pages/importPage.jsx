@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
+import api from '../services/api';
 import {
   Box,
   Paper,
@@ -125,10 +126,7 @@ export default function ImportPage() {
     try {
       setSaving(true);
 
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/data/insertmany`,
-        importedData,
-      );
+      const res = await api.post('/api/data/insertmany', importedData);
 
       // console.log(res.data.data);
       const { inserted, updated } = res.data.data;

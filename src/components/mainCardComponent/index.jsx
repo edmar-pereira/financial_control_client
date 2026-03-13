@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import api from '../../services/api';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
@@ -26,15 +27,7 @@ export default function MainCardComponent() {
 
   async function fetchData(params) {
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/data/getData`,
-        params, // 🔹 Send as POST body
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      );
+      const response = await api.post('/api/data/getData', params);
 
       const { data } = response.data;
       setTotalExp(data.totalExp);
@@ -56,11 +49,11 @@ export default function MainCardComponent() {
     }
   }
 
-function DateFormat(dateToFormat) {
-  return new Date(dateToFormat).toLocaleDateString('pt-BR', {
-    timeZone: 'UTC',
-  });
-}
+  function DateFormat(dateToFormat) {
+    return new Date(dateToFormat).toLocaleDateString('pt-BR', {
+      timeZone: 'UTC',
+    });
+  }
 
   function MoneyFormat(valueToFormat) {
     return valueToFormat.toLocaleString('pt-br', {

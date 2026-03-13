@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import api from '../services/api';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   TextField,
@@ -71,10 +72,9 @@ export default function AddExpense() {
 
     const debounce = setTimeout(async () => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/data/getUniqueCompanyName`,
-          { params: { name: companyInput.trim() } },
-        );
+        const res = await api.get('/api/data/getUniqueCompanyName', {
+          params: { name: companyInput.trim() },
+        });
 
         // console.log('Resposta da API de empresas:', res.data.data);
 
@@ -100,10 +100,35 @@ export default function AddExpense() {
 
     const debounce = setTimeout(async () => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/data/getUniqueDescriptions`,
-          { params: { description: inputValue.trim() } },
-        );
+        const res = await api.get('/api/data/getUniqueDescriptions', {
+          params: { description: inputValue.trim() },
+        });
+
+        if (Array.isArray(res.data.data)) {
+          setCompanyOptions(res.data.data);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar empresas', err);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounce);
+  }, [companyInput]);
+
+  /* =========================================
+     DESCRIPTION AUTOCOMPLETE
+  ========================================= */
+  useEffect(() => {
+    if (!inputValue || inputValue.trim().length < 2) {
+      setDescriptionOptions([]);
+      return;
+    }
+
+    const debounce = setTimeout(async () => {
+      try {
+        const res = await api.get('/api/data/getUniqueDescriptions', {
+          params: { description: inputValue.trim() },
+        });
 
         // console.log(res.data.data);
 
@@ -153,19 +178,24 @@ export default function AddExpense() {
   const handleUpdateExpense = async () => {
     const payload = buildPayload();
 
-    await axios.put(
-      `${import.meta.env.VITE_API_URL}/api/data/update/${param.id}`,
-      payload,
-    );
+    api.put(`/api/data/update/${param.id}`, payload).then((response) => {
+      if (response.data.status === 200) {
+        setMessage({
+          severity: 'success',
+          content: 'Atualizado com sucesso!',
+          show: true,
+        });
 
-    setMessage({
-      severity: 'success',
-      content: 'Atualizado com sucesso!',
-      show: true,
+        resetForm();
+        navigate('/');
+      } else {
+        setMessage({
+          severity: 'error',
+          content: 'Erro ao atualizar despesa',
+          show: true,
+        });
+      }
     });
-
-    resetForm();
-    navigate('/');
   };
 
   const handleAddNewExpense = async () => {
@@ -186,20 +216,24 @@ export default function AddExpense() {
     // console.log('Payload a ser enviado:', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/data/create`,
-        payload,
-      );
+      const response = await api.post('/api/data/create', payload);
 
-      // ✅ SUCCESS
-      setSelectedCategory('');
-      resetForm();
+      if (response.data.status === 200) {
+        setMessage({
+          severity: 'success',
+          content: 'Cadastrado com sucesso!',
+          show: true,
+        });
 
-      setMessage({
-        severity: 'success',
-        content: 'Cadastrado com sucesso!',
-        show: true,
-      });
+        resetForm();
+        navigate('/');
+      } else {
+        setMessage({
+          severity: 'error',
+          content: 'Erro ao cadastrar despesa',
+          show: true,
+        });
+      }
 
       // console.log('Success:', response.data);
     } catch (error) {
@@ -225,9 +259,7 @@ export default function AddExpense() {
   };
 
   const getExpenses = async (id) => {
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/data/getById/${id}`,
-    );
+    const response = await api.get(`/api/data/getById/${id}`);
 
     const { data } = response.data;
 

@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, createContext } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+import api from '../services/api';
 
 const MainContext = createContext();
 
@@ -46,10 +47,8 @@ export function APIContextProvider({ children }) {
   };
 
   const handleLoadCategory = async () => {
-    await axios({
-      method: 'get',
-      url: `${import.meta.env.VITE_API_URL}/api/data/getCategory/`,
-    }).then((response) => {
+
+    await api.get('/api/data/getCategory/').then((response) => {
       if (response.data.status === 200) {
         const { data } = response.data;
         const sortedData = data.sort((a, b) => a.label.localeCompare(b.label));
@@ -60,18 +59,15 @@ export function APIContextProvider({ children }) {
   };
 
   const handleSaveCategoryChanges = async (changes) => {
-    await axios({
-      method: 'put',
-      url: `${import.meta.env.VITE_API_URL}/api/data/updateCategory/`,
-      data: changes,
-    }).then((response) => {
+
+    await api.put('/api/data/updateCategory/', changes).then((response) => {
       if (response.data.status === 200) {
         setMessage({
           severity: 'info',
           content: 'Categoria atualizada com sucesso!',
           show: true,
         });
-        // handleLoadCategory();
+        handleLoadCategory();
       } else {
         setMessage({
           severity: 'error',
@@ -79,7 +75,7 @@ export function APIContextProvider({ children }) {
           show: true,
         });
       }
-    });
+    }); 
   };
 
   const handleThemeChange = () => {
