@@ -179,6 +179,8 @@ export default function AddExpense() {
     const payload = buildPayload();
 
     api.put(`/api/data/update/${param.id}`, payload).then((response) => {
+
+      console.log(response.data);
       if (response.data.status === 200) {
         setMessage({
           severity: 'success',
