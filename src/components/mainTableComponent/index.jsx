@@ -193,10 +193,16 @@ export default function MainView() {
   }
 
   async function fetchCategories() {
-    await api.get('/api/data/getCategory/').then((response) => {
+    try {
+      const response = await api.get('/api/category/getCategory');
+
       if (response.data.status === 200) {
         const { data } = response.data;
-        const sortedData = data.sort((a, b) => a.label.localeCompare(b.label));
+
+        const sortedData = data
+          .filter((item) => item.label) // remove itens sem label
+          .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+
         setArrCategories(sortedData);
       } else {
         setMessage({
@@ -205,7 +211,14 @@ export default function MainView() {
           show: true,
         });
       }
-    });
+    } catch (error) {
+      console.error(error);
+      setMessage({
+        severity: 'error',
+        content: 'Erro ao carregar categorias',
+        show: true,
+      });
+    }
   }
 
   useEffect(() => {

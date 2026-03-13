@@ -1,5 +1,4 @@
 import React, { useContext, useState, useEffect, createContext } from 'react';
-import axios from 'axios';
 import PropTypes from 'prop-types';
 import api from '../services/api';
 

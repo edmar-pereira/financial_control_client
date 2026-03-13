@@ -6,24 +6,62 @@ import {
   Button,
   Stack,
 } from '@mui/material';
-
-import axios from 'axios';
 import { useState, useEffect } from 'react';
+import api from '../services/api';
+import { useAPI } from '../context/mainContext';
+
+import SelectCategory from '../components/SelectCategory';
 
 export default function EditCompanyModal({ row, onClose, reload }) {
   const [form, setForm] = useState({});
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  const { setMessage } = useAPI();
 
   useEffect(() => {
-    if (row) setForm(row);
+    if (row) {
+      setForm(row);
+      setSelectedCategory(row.categoryId);
+    }
   }, [row]);
 
   if (!row) return null;
 
   const handleSave = async () => {
-    await axios.put(`/api/company-info/${row._id}`, form);
+    try {
+      const payload = [
+        {
+          id: row._id,
+          fantasyName: form.fantasyName,
+          companyName: form.companyName,
+          categoryId: selectedCategory,
+        },
+      ];
 
-    reload();
-    onClose();
+      console.log('Sending payload:', payload);
+
+      const response = await api.put('/api/category/updateCategory', payload);
+
+      if (response.data.status === 200) {
+        setMessage({
+          severity: 'success',
+          content: 'Categoria atualizada com sucesso!',
+          show: true,
+        });
+      } else {
+        setMessage({
+          severity: 'error',
+          content: 'Erro ao atualizar categoria',
+          show: true,
+        });
+        return;
+      }
+
+      reload();
+      onClose();
+    } catch (error) {
+      console.error('Error updating category:', error);
+    }
   };
 
   return (
@@ -44,10 +82,10 @@ export default function EditCompanyModal({ row, onClose, reload }) {
             onChange={(e) => setForm({ ...form, companyName: e.target.value })}
           />
 
-          <TextField
-            label='Tipo Pagamento'
-            value={form.categoryId || ''}
-            onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+          {/* Dropdown de categoria */}
+          <SelectCategory
+            selectedType={selectedCategory}
+            onChange={setSelectedCategory}
           />
 
           <Button variant='contained' onClick={handleSave}>

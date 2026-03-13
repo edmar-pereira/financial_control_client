@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import axios from 'axios';
 import api from '../services/api';
 import {
   Box,
@@ -75,12 +74,11 @@ export default function ImportPage() {
     try {
       setImportLoading(true);
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/upload`,
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } },
-      );
-
+      const response = await api.post('/api/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       const sorted = [...response.data.data].sort(
         (a, b) => new Date(a.date) - new Date(b.date),
       );
