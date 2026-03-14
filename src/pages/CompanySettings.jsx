@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from 'react';
-
 import { useAPI } from '../context/mainContext';
 
 import {
@@ -14,10 +13,13 @@ import {
   IconButton,
   TextField,
   Box,
+  TableSortLabel,
+  InputAdornment,
 } from '@mui/material';
 
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ClearIcon from '@mui/icons-material/Clear';
 
 import api from '../services/api';
 import EditCompanyModal from './EditCompanyModal';
@@ -33,6 +35,9 @@ export default function CompanySettings() {
 
   const [search, setSearch] = useState('');
 
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('fantasyName');
+
   function GetSelectedCategory(id) {
     const found = arrCategories?.find((c) => c.id === id);
     return found ? found.label : '';
@@ -40,17 +45,21 @@ export default function CompanySettings() {
 
   async function fetchData() {
     try {
+      setLoading(true);
+
       const response = await api.get('/api/category/getAllCategoryInfo');
       const { data } = response.data;
+
       setRows(data);
     } catch (error) {
       console.log(error);
-      setLoading(false);
       setMessage({
         severity: 'error',
         content: 'Erro ao carregar dados',
         show: true,
       });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -58,7 +67,8 @@ export default function CompanySettings() {
     fetchData();
   }, []);
 
-  // DELETE
+  /* ================= DELETE ================= */
+
   async function handleDelete(row) {
     const confirm = window.confirm(
       `Deseja realmente excluir ${row.fantasyName}?`,
@@ -87,80 +97,175 @@ export default function CompanySettings() {
     }
   }
 
-  // 🔎 filtro de pesquisa
+  /* ================= FILTER ================= */
+
   const filteredRows = useMemo(() => {
     if (!search) return rows;
 
     const term = search.toLowerCase();
 
-    return rows.filter(
-      (row) =>
+    return rows.filter((row) => {
+      const category = GetSelectedCategory(row.categoryId).toLowerCase();
+
+      return (
         row.fantasyName?.toLowerCase().includes(term) ||
         row.companyName?.toLowerCase().includes(term) ||
-        row.categoryId?.toLowerCase().includes(term),
-    );
-  }, [rows, search]);
+        category.includes(term)
+      );
+    });
+  }, [rows, search, arrCategories]);
 
-  const visibleRows = filteredRows.slice(
+  /* ================= SORT ================= */
+
+  function descendingComparator(a, b, orderBy) {
+    if (b[orderBy] < a[orderBy]) return -1;
+    if (b[orderBy] > a[orderBy]) return 1;
+    return 0;
+  }
+
+  function getComparator(order, orderBy) {
+    return order === 'desc'
+      ? (a, b) => descendingComparator(a, b, orderBy)
+      : (a, b) => -descendingComparator(a, b, orderBy);
+  }
+
+  function stableSort(array, comparator) {
+    const stabilized = array.map((el, index) => [el, index]);
+
+    stabilized.sort((a, b) => {
+      const order = comparator(a[0], b[0]);
+      if (order !== 0) return order;
+      return a[1] - b[1];
+    });
+
+    return stabilized.map((el) => el[0]);
+  }
+
+  const sortedRows = useMemo(() => {
+    return stableSort(filteredRows, getComparator(order, orderBy));
+  }, [filteredRows, order, orderBy]);
+
+  const visibleRows = sortedRows.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage,
   );
 
+  const handleSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  /* ================= RENDER ================= */
+
   return (
     <Paper>
-      {/* 🔎 campo de pesquisa */}
+
+      {/* SEARCH */}
       <Box p={2}>
         <TextField
           fullWidth
-          size='small'
-          label='Pesquisar empresa'
+          size="small"
+          label="Pesquisar empresa"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
             setPage(0);
           }}
+          InputProps={{
+            endAdornment: search && (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setSearch('');
+                    setPage(0);
+                  }}
+                >
+                  <ClearIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
         />
       </Box>
 
+      {/* TABLE */}
       <TableContainer>
-        <Table size='small'>
+        <Table size="small">
+
           <TableHead>
             <TableRow>
-              <TableCell>Nome Fantasia</TableCell>
-              <TableCell>Nome Empresa</TableCell>
-              <TableCell>Tipo Pagamento</TableCell>
-              <TableCell align="right">Ações</TableCell>
+
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === 'fantasyName'}
+                  direction={orderBy === 'fantasyName' ? order : 'asc'}
+                  onClick={() => handleSort('fantasyName')}
+                >
+                  Nome Fantasia
+                </TableSortLabel>
+              </TableCell>
+
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === 'companyName'}
+                  direction={orderBy === 'companyName' ? order : 'asc'}
+                  onClick={() => handleSort('companyName')}
+                >
+                  Nome Empresa
+                </TableSortLabel>
+              </TableCell>
+
+              <TableCell>
+                Tipo Pagamento
+              </TableCell>
+
+              <TableCell align="right">
+                Ações
+              </TableCell>
+
             </TableRow>
           </TableHead>
 
           <TableBody>
+
             {visibleRows.map((row) => (
-              <TableRow key={row._id}>
+              <TableRow key={row._id} hover>
+
                 <TableCell>{row.fantasyName}</TableCell>
+
                 <TableCell>{row.companyName}</TableCell>
-                <TableCell>{GetSelectedCategory(row.categoryId)}</TableCell>
+
+                <TableCell>
+                  {GetSelectedCategory(row.categoryId)}
+                </TableCell>
 
                 <TableCell align="right">
+
                   <IconButton onClick={() => setSelectedRow(row)}>
                     <EditIcon />
                   </IconButton>
 
-                  <IconButton
-                    // color="error"
-                    onClick={() => handleDelete(row)}
-                  >
+                  <IconButton onClick={() => handleDelete(row)}>
                     <DeleteIcon />
                   </IconButton>
+
                 </TableCell>
+
               </TableRow>
             ))}
+
           </TableBody>
+
         </Table>
       </TableContainer>
 
+      {/* PAGINATION */}
       <TablePagination
-        component='div'
-        count={filteredRows.length}
+        component="div"
+        count={sortedRows.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={(e, newPage) => setPage(newPage)}
@@ -175,6 +280,7 @@ export default function CompanySettings() {
         onClose={() => setSelectedRow(null)}
         reload={fetchData}
       />
+
     </Paper>
   );
 }
