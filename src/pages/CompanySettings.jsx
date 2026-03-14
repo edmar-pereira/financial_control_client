@@ -107,7 +107,7 @@ export default function CompanySettings() {
         show: true,
       });
 
-      fetchData();
+      fetchAllCategoryInfo();
     } catch (error) {
       console.error(error);
 
@@ -283,7 +283,7 @@ export default function CompanySettings() {
       <EditCompanyModal
         row={selectedRow}
         onClose={() => setSelectedRow(null)}
-        reload={fetchData}
+        reload={fetchAllCategoryInfo}
       />
     </Paper>
   );
