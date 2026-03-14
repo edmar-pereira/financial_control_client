@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+
 import {
   Container,
   Switch,
@@ -28,6 +29,7 @@ import { useAPI } from '../context/mainContext';
 import CompanySettings from './CompanySettings';
 
 export default function Config() {
+  const [expenseValues, setExpenseValues] = useState({});
   const {
     isDarkMode,
     handleThemeChange,
@@ -42,12 +44,16 @@ export default function Config() {
   const [hasChanges, setHasChanges] = useState(false);
   const [isLocked, setIsLocked] = useState(true);
 
-  const [expenseValues, setExpenseValues] = useState(() =>
-    arrCategories.reduce((acc, expense) => {
-      acc[expense.id] = expense.maxValue;
-      return acc;
-    }, {}),
-  );
+  useEffect(() => {
+    if (arrCategories.length > 0) {
+      const values = arrCategories.reduce((acc, expense) => {
+        acc[expense.id] = expense.maxValue;
+        return acc;
+      }, {});
+
+      setExpenseValues(values);
+    }
+  }, [arrCategories]);
 
   const handleInputChange = (id, event) => {
     setHasChanges(true);
@@ -82,12 +88,14 @@ export default function Config() {
     setHasChanges(false);
   };
 
-  const filteredCategories = arrCategories.filter(
-    (expense) =>
-      !['all_categories', 'revenue', 'credit_card', 'uncategorized'].includes(
-        expense.id,
-      ),
-  );
+  const filteredCategories = useMemo(() => {
+    return arrCategories.filter(
+      (expense) =>
+        !['all_categories', 'revenue', 'credit_card', 'uncategorized'].includes(
+          expense.id,
+        ),
+    );
+  }, [arrCategories]);
 
   const totalMaxValue = filteredCategories.reduce(
     (sum, item) => sum + item.maxValue,
