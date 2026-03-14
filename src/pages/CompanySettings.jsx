@@ -25,7 +25,7 @@ import api from '../services/api';
 import EditCompanyModal from './EditCompanyModal';
 
 export default function CompanySettings() {
-  const { setMessage, setLoading, arrCategories } = useAPI();
+  const { setMessage, setLoading, arrCategories, setArrCategories } = useAPI();
 
   const [rows, setRows] = useState([]);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -43,7 +43,7 @@ export default function CompanySettings() {
     return found ? found.label : '';
   }
 
-  async function fetchData() {
+  async function fetchAllCategoryInfo() {
     try {
       setLoading(true);
 
@@ -63,8 +63,30 @@ export default function CompanySettings() {
     }
   }
 
+  async function fetchCategories() {
+    try {
+      const response = await api.get('/api/category/getCategory');
+
+      if (response.data.status === 200) {
+        const sorted = response.data.data
+          .filter((item) => item.label)
+          .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+
+        setArrCategories(sorted);
+      }
+    } catch (error) {
+      console.log(error);
+      setMessage({
+        severity: 'error',
+        content: 'Erro ao carregar categorias',
+        show: true,
+      });
+    }
+  }
+
   useEffect(() => {
-    fetchData();
+    fetchCategories();
+    fetchAllCategoryInfo();
   }, []);
 
   /* ================= DELETE ================= */
@@ -161,13 +183,12 @@ export default function CompanySettings() {
 
   return (
     <Paper>
-
       {/* SEARCH */}
       <Box p={2}>
         <TextField
           fullWidth
-          size="small"
-          label="Pesquisar empresa"
+          size='small'
+          label='Pesquisar empresa'
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -175,9 +196,9 @@ export default function CompanySettings() {
           }}
           InputProps={{
             endAdornment: search && (
-              <InputAdornment position="end">
+              <InputAdornment position='end'>
                 <IconButton
-                  size="small"
+                  size='small'
                   onClick={() => {
                     setSearch('');
                     setPage(0);
@@ -193,11 +214,9 @@ export default function CompanySettings() {
 
       {/* TABLE */}
       <TableContainer>
-        <Table size="small">
-
+        <Table size='small'>
           <TableHead>
             <TableRow>
-
               <TableCell>
                 <TableSortLabel
                   active={orderBy === 'fantasyName'}
@@ -218,32 +237,22 @@ export default function CompanySettings() {
                 </TableSortLabel>
               </TableCell>
 
-              <TableCell>
-                Tipo Pagamento
-              </TableCell>
+              <TableCell>Tipo Pagamento</TableCell>
 
-              <TableCell align="right">
-                Ações
-              </TableCell>
-
+              <TableCell align='right'>Ações</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-
             {visibleRows.map((row) => (
               <TableRow key={row._id} hover>
-
                 <TableCell>{row.fantasyName}</TableCell>
 
                 <TableCell>{row.companyName}</TableCell>
 
-                <TableCell>
-                  {GetSelectedCategory(row.categoryId)}
-                </TableCell>
+                <TableCell>{GetSelectedCategory(row.categoryId)}</TableCell>
 
-                <TableCell align="right">
-
+                <TableCell align='right'>
                   <IconButton onClick={() => setSelectedRow(row)}>
                     <EditIcon />
                   </IconButton>
@@ -251,20 +260,16 @@ export default function CompanySettings() {
                   <IconButton onClick={() => handleDelete(row)}>
                     <DeleteIcon />
                   </IconButton>
-
                 </TableCell>
-
               </TableRow>
             ))}
-
           </TableBody>
-
         </Table>
       </TableContainer>
 
       {/* PAGINATION */}
       <TablePagination
-        component="div"
+        component='div'
         count={sortedRows.length}
         rowsPerPage={rowsPerPage}
         page={page}
@@ -280,7 +285,6 @@ export default function CompanySettings() {
         onClose={() => setSelectedRow(null)}
         reload={fetchData}
       />
-
     </Paper>
   );
 }
