@@ -27,9 +27,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import ShiftedCurrencyInput from '../components/ShiftedCurrencyInput';
-import SelectCategory from '../components/selectCategory';
+import SelectCategory from '../components/SelectCategory';
 import DuplicatedRowsDialog from '../components/DuplicatedRowsDialog';
-import Loader from '../components/loading';
+import Loader from '../components/Loading';
 import { useAPI } from '../context/mainContext';
 
 export default function ImportPage() {

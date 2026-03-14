@@ -1,11 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import { Box, Container, Grid, Typography } from '@mui/material';
 
 import { useAPI } from '../context/mainContext';
-
-export default function Footer({ totalRev, totalExp, difference }) {
-  const { isDarkMode } = useAPI();
 
   function MoneyFormat(valueToFormat) {
     if (valueToFormat !== undefined) {
@@ -15,6 +12,9 @@ export default function Footer({ totalRev, totalExp, difference }) {
       });
     }
   }
+
+export default function Footer({ totalRev, totalExp, difference }) {
+  const { isDarkMode } = useAPI();
 
   return (
     <Box

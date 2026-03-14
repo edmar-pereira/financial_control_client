@@ -22,7 +22,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useAPI } from '../context/mainContext';
 import ShiftedCurrencyInput from '../components/ShiftedCurrencyInput';
-import SelectCategory from '../components/selectCategory';
+import SelectCategory from '../components/SelectCategory';
 import PaymentTypeSelect from '../components/PaymentTypeSelect';
 
 export default function AddExpense() {
@@ -31,7 +31,6 @@ export default function AddExpense() {
     arrCategories,
     selectedCategory,
     handleChangeCategory,
-    setSelectedCategory,
   } = useAPI();
 
   const param = useParams();

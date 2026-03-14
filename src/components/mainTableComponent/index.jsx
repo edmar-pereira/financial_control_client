@@ -28,10 +28,10 @@ import { visuallyHidden } from '@mui/utils';
 import { useNavigate } from 'react-router-dom';
 
 import { useAPI } from '../../context/mainContext';
-import SelectMonth from '../selectMonth';
-import SelectCategory from '../selectCategory';
-import Footer from '../footer';
-import BarChart from '../charts/barChart';
+import SelectMonth from '../SelectMonth';
+import SelectCategory from '../SelectCategory';
+import Footer from '../Footer';
+import BarChart from '../charts/BarChart';
 
 /* ================= HELPERS ================= */
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import Router from './router';
+import Router from './Router';
 import Header from './components/header';
 import SnackComponent from './components/snackComponent';
 import { ThemeProvider } from '@mui/material/styles';

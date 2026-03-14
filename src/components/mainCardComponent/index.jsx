@@ -11,7 +11,7 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import AvatarComponent from '../avatarComponent';
-import Footer from '../footer';
+import Footer from '../Footer';
 
 import { useAPI } from '../../context/mainContext';
 
