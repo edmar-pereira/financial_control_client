@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAPI } from '../context/mainContext';
-import PieChart from '../components/charts/pieChart';
-import BarChartComparativo from '../components/charts/barChartComparativo';
+import PieChart from '../components/charts/PieChart';
+import BarChartComparativo from '../components/charts/BarChartComparativo';
 import { Typography, Box } from '@mui/material';
 
 function Graphic() {
