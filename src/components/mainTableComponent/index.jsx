@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import api from '../../services/api';
+import AdvancedSearch from '../AdvancedSearch';
+
 import {
   Box,
   Table,
@@ -23,6 +25,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
 
 import { visuallyHidden } from '@mui/utils';
 import { useNavigate } from 'react-router-dom';
@@ -38,7 +41,6 @@ import BarChart from '../charts/BarChart';
 function DateFormat(date) {
   if (!date) return '';
 
-  // If it's ISO string
   const dateStr =
     typeof date === 'string'
       ? date.slice(0, 10)
@@ -137,7 +139,9 @@ function EnhancedTableHead({
 
 export default function MainView() {
   const navigate = useNavigate();
+
   const [searchText, setSearchText] = useState('');
+  const [openSearch, setOpenSearch] = useState(false);
 
   const {
     selectedCategory,
@@ -156,8 +160,10 @@ export default function MainView() {
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('');
   const [selected, setSelected] = useState([]);
+
   const [rows, setRows] = useState([]);
   const [originalData, setOriginalData] = useState({});
+
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
@@ -172,12 +178,12 @@ export default function MainView() {
       setLoading(true);
 
       const response = await api.post('/api/data/getData', params);
-
       const { data } = response.data;
 
       setOriginalData(data);
       setRows(data.expenses);
       setCurrentMonth(data);
+
       setTotalExp(data.totalExp);
       setTotalRev(data.totalRev);
       setDifference(data.difference);
@@ -197,22 +203,13 @@ export default function MainView() {
       const response = await api.get('/api/category/getCategory');
 
       if (response.data.status === 200) {
-        const { data } = response.data;
-
-        const sortedData = data
-          .filter((item) => item.label) // remove itens sem label
+        const sorted = response.data.data
+          .filter((item) => item.label)
           .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
 
-        setArrCategories(sortedData);
-      } else {
-        setMessage({
-          severity: 'error',
-          content: 'Erro ao carregar categorias',
-          show: true,
-        });
+        setArrCategories(sorted);
       }
     } catch (error) {
-      console.error(error);
       setMessage({
         severity: 'error',
         content: 'Erro ao carregar categorias',
@@ -229,7 +226,9 @@ export default function MainView() {
 
   useEffect(() => {
     setSearchText('');
+
     const date = selectedDate ? new Date(selectedDate) : new Date();
+
     fetchData({
       startDate: date.toISOString().substring(0, 10),
       categoryIds:
@@ -248,12 +247,11 @@ export default function MainView() {
     const search = value.replace(/[.,]/g, '').toLowerCase();
 
     if (!search) {
-      setRows(originalData.expenses);
+      setRows(originalData?.expenses || []);
       return;
     }
 
-    const filtered = originalData.expenses.filter((item) => {
-      console.log(item);
+    const filtered = (originalData?.expenses || []).filter((item) => {
       const category = GetSelectedCategory(item.categoryId).toLowerCase();
       const desc = item.description?.toLowerCase() || '';
       const val = String(item.value).replace(/[.,]/g, '');
@@ -288,7 +286,7 @@ export default function MainView() {
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Paper sx={{ mb: 2 }}>
-        {/* 🔥 FILTER BAR — TUDO NA MESMA LINHA */}
+        {/* FILTER BAR */}
         <Box
           sx={{
             display: 'flex',
@@ -304,12 +302,7 @@ export default function MainView() {
             handleChangeDate={setSelectedDate}
           />
 
-          <Box
-            sx={{
-              width: { xs: '100%', sm: 220 },
-              flexShrink: 0,
-            }}
-          >
+          <Box sx={{ width: { xs: '100%', sm: 220 } }}>
             <SelectCategory
               selectedType={selectedCategory}
               onChange={setSelectedCategory}
@@ -318,12 +311,7 @@ export default function MainView() {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <FormControl
-            size='small'
-            sx={{
-              width: { xs: '100%', sm: 260 },
-            }}
-          >
+          <FormControl size='small' sx={{ width: { xs: '100%', sm: 260 } }}>
             <OutlinedInput
               placeholder='Pesquisar'
               value={searchText}
@@ -338,6 +326,12 @@ export default function MainView() {
               }
             />
           </FormControl>
+
+          <Tooltip title='Pesquisa avançada'>
+            <IconButton onClick={() => setOpenSearch(true)}>
+              <FilterAltIcon />
+            </IconButton>
+          </Tooltip>
 
           {selected.length > 0 && (
             <Stack direction='row'>
@@ -388,6 +382,7 @@ export default function MainView() {
             <TableBody>
               {visibleRows.map((row) => {
                 const isItemSelected = selected.includes(row._id);
+
                 return (
                   <TableRow
                     hover
@@ -404,17 +399,22 @@ export default function MainView() {
                     <TableCell padding='checkbox'>
                       <Checkbox checked={isItemSelected} />
                     </TableCell>
+
                     <TableCell>{row.fantasyName}</TableCell>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.description}</TableCell>
                     <TableCell>{MoneyFormat(row.value)}</TableCell>
+
                     <TableCell>
                       {row.totalInstallment > 1
                         ? `${row.currentInstallment} de ${row.totalInstallment}`
                         : ''}
                     </TableCell>
+
                     <TableCell>{DateFormat(row.date)}</TableCell>
+
                     <TableCell>{GetSelectedCategory(row.categoryId)}</TableCell>
+
                     <TableCell>{row.paymentType}</TableCell>
                   </TableRow>
                 );
@@ -441,6 +441,20 @@ export default function MainView() {
       </Paper>
 
       <Footer totalRev={totalRev} totalExp={totalExp} difference={difference} />
+
+      {/* ADVANCED SEARCH */}
+      <AdvancedSearch
+        open={openSearch}
+        onClose={() => setOpenSearch(false)}
+        arrCategories={arrCategories}
+        setTransactions={(data) => {
+          setRows(data.expenses);
+          setOriginalData(data);
+          setTotalExp(data.totalExp);
+          setTotalRev(data.totalRev);
+          setDifference(data.difference);
+        }}
+      />
     </Box>
   );
 }
