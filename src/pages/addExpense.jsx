@@ -31,6 +31,7 @@ export default function AddExpense() {
     arrCategories,
     selectedCategory,
     handleChangeCategory,
+    handleLoadCategory,
   } = useAPI();
 
   const param = useParams();
@@ -59,6 +60,18 @@ export default function AddExpense() {
   const [descriptionOptions, setDescriptionOptions] = useState([]);
   const [inputValue, setInputValue] = useState('');
 
+  const [fantasyOptions, setFantasyOptions] = useState([]);
+  const [fantasyInput, setFantasyInput] = useState('');
+
+  /* =========================================
+     LOAD CATEGORIES
+  ========================================= */
+  useEffect(() => {
+    if (!arrCategories || arrCategories.length === 0) {
+      handleLoadCategory();
+    }
+  }, []);
+
   /* =========================================
      COMPANY AUTOCOMPLETE
   ========================================= */
@@ -71,36 +84,13 @@ export default function AddExpense() {
     const debounce = setTimeout(async () => {
       try {
         const res = await api.get('/api/data/getUniqueCompanyName', {
-          params: { name: companyInput.trim() },
+          params: {
+            value: companyInput.trim(),
+            field: 'companyName',
+          },
         });
 
         // console.log('Resposta da API de empresas:', res.data.data);
-
-        if (Array.isArray(res.data.data)) {
-          setCompanyOptions(res.data.data);
-        }
-      } catch (err) {
-        console.error('Erro ao buscar empresas', err);
-      }
-    }, 500);
-
-    return () => clearTimeout(debounce);
-  }, [companyInput]);
-
-  /* =========================================
-     DESCRIPTION AUTOCOMPLETE
-  ========================================= */
-  useEffect(() => {
-    if (!inputValue || inputValue.trim().length < 2) {
-      setDescriptionOptions([]);
-      return;
-    }
-
-    const debounce = setTimeout(async () => {
-      try {
-        const res = await api.get('/api/data/getUniqueDescriptions', {
-          params: { description: inputValue.trim() },
-        });
 
         if (Array.isArray(res.data.data)) {
           setCompanyOptions(res.data.data);
@@ -142,6 +132,35 @@ export default function AddExpense() {
   }, [inputValue]);
 
   /* =========================================
+     FANTASY NAME AUTOCOMPLETE
+  ========================================= */
+  useEffect(() => {
+    if (!fantasyInput || fantasyInput.trim().length < 2) {
+      setFantasyOptions([]);
+      return;
+    }
+
+    const debounce = setTimeout(async () => {
+      try {
+        const res = await api.get('/api/data/getUniqueCompanyName', {
+          params: {
+            value: fantasyInput.trim(),
+            field: 'fantasyName',
+          },
+        });
+
+        if (Array.isArray(res.data.data)) {
+          setFantasyOptions(res.data.data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounce);
+  }, [fantasyInput]);
+
+  /* =========================================
      FORM FUNCTIONS
   ========================================= */
 
@@ -149,13 +168,19 @@ export default function AddExpense() {
     setExpenseValue(0);
     setDescription('');
     setInputValue('');
+
     setCompanyInput('');
+    setCompanyOptions([]);
     setName('');
+
+    setFantasyInput('');
+    setFantasyOptions([]);
+    setFantasyName('');
+
     setIgnore(false);
     setValidate(false);
     setExtraFields(false);
     setTotalMonths(1);
-    setFantasyName('');
     setPaymentType('');
   };
 
@@ -177,7 +202,6 @@ export default function AddExpense() {
     const payload = buildPayload();
 
     api.put(`/api/data/update/${param.id}`, payload).then((response) => {
-
       console.log(response.data);
       if (response.data.status === 200) {
         setMessage({
@@ -269,9 +293,13 @@ export default function AddExpense() {
     setInputValue(data.description);
     setDate(data.date);
     setIgnore(data.ignore);
+
     setFantasyName(data.fantasyName || '');
+    setFantasyInput(data.fantasyName || '');
+
     setName(data.name || '');
     setCompanyInput(data.name || '');
+
     setPaymentType(data.paymentType || '');
 
     if (data.totalInstallment > 1) {
@@ -279,10 +307,6 @@ export default function AddExpense() {
       setTotalMonths(data.totalInstallment);
     }
   };
-
-  // useEffect(() => {
-  //   console.log('Categoria mudou:', selectedCategory);
-  // }, [selectedCategory]);
 
   useEffect(() => {
     if (param.id && param.id.length === 24) {
@@ -305,30 +329,43 @@ export default function AddExpense() {
   return (
     <Box display='flex' justifyContent='center' sx={{ py: 4 }}>
       <Grid container spacing={2} sx={{ maxWidth: 650 }}>
+        {/* NOME FANTASIA */}
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label='Nome Fantasia'
-            value={fantasyName}
-            onChange={(e) => setFantasyName(e.target.value)}
+          <Autocomplete
+            freeSolo
+            options={fantasyOptions}
+            inputValue={fantasyInput}
+            onInputChange={(e, value) => {
+              setFantasyInput(value || '');
+              setFantasyName(value || '');
+            }}
+            onChange={(e, value) => {
+              const selected = value || '';
+
+              setFantasyInput(selected);
+              setFantasyName(selected);
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label='Nome Fantasia' fullWidth />
+            )}
           />
         </Grid>
 
-        {/* COMPANY AUTOCOMPLETE */}
+        {/* NOME DA EMPRESA */}
         <Grid item xs={12} sm={6}>
           <Autocomplete
             freeSolo
             options={companyOptions}
             inputValue={companyInput}
             onInputChange={(e, value) => {
-              setCompanyInput(value);
-              setName(value);
+              setCompanyInput(value || '');
+              setName(value || '');
             }}
             onChange={(e, value) => {
-              if (value) {
-                setCompanyInput(value);
-                setName(value);
-              }
+              const selected = value || '';
+
+              setCompanyInput(selected);
+              setName(selected);
             }}
             renderInput={(params) => (
               <TextField {...params} label='Nome da Empresa' fullWidth />

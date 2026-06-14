@@ -25,7 +25,8 @@ import api from '../services/api';
 import EditCompanyModal from './EditCompanyModal';
 
 export default function CompanySettings() {
-  const { setMessage, setLoading, arrCategories, setArrCategories } = useAPI();
+  const { setMessage, setLoading, arrCategories, handleLoadCategory } =
+    useAPI();
 
   const [rows, setRows] = useState([]);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -43,50 +44,10 @@ export default function CompanySettings() {
     return found ? found.label : '';
   }
 
-  async function fetchAllCategoryInfo() {
-    try {
-      setLoading(true);
-
-      const response = await api.get('/api/category/getAllCategoryInfo');
-      const { data } = response.data;
-
-      setRows(data);
-    } catch (error) {
-      console.log(error);
-      setMessage({
-        severity: 'error',
-        content: 'Erro ao carregar dados',
-        show: true,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function fetchCategories() {
-    try {
-      const response = await api.get('/api/category/getCategory');
-
-      if (response.data.status === 200) {
-        const sorted = response.data.data
-          .filter((item) => item.label)
-          .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
-
-        setArrCategories(sorted);
-      }
-    } catch (error) {
-      console.log(error);
-      setMessage({
-        severity: 'error',
-        content: 'Erro ao carregar categorias',
-        show: true,
-      });
-    }
-  }
-
   useEffect(() => {
-    fetchCategories();
-    fetchAllCategoryInfo();
+    if (!arrCategories || arrCategories.length === 0) {
+      handleLoadCategory();
+    }
   }, []);
 
   /* ================= DELETE ================= */
@@ -283,7 +244,7 @@ export default function CompanySettings() {
       <EditCompanyModal
         row={selectedRow}
         onClose={() => setSelectedRow(null)}
-        reload={fetchAllCategoryInfo}
+        // reload={fetchAllCategoryInfo}
       />
     </Paper>
   );

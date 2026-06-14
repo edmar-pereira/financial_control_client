@@ -11,9 +11,9 @@ export function APIContextProvider({ children }) {
   });
 
   const [selectedCategory, setSelectedCategory] = useState(() => {
-  const storedCategory = localStorage.getItem('selectedCategory');
-  return storedCategory ?? 'all_categories';
-});
+    const storedCategory = localStorage.getItem('selectedCategory');
+    return storedCategory ?? 'all_categories';
+  });
 
   const [loading, setLoading] = useState(false);
   const [arrCategories, setArrCategories] = useState([]);
@@ -35,7 +35,7 @@ export function APIContextProvider({ children }) {
     }
   }, [selectedDate]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (selectedCategory) {
       localStorage.setItem('selectedCategory', selectedCategory);
     }
@@ -45,20 +45,28 @@ export function APIContextProvider({ children }) {
     setReloadKey((prev) => prev + 1);
   };
 
-  // const handleLoadCategory = async () => {
+  const handleLoadCategory = async () => {
+    try {
+      const response = await api.get('/api/category/getCategory');
 
-  //   await api.get('/api/data/getCategory/').then((response) => {
-  //     if (response.data.status === 200) {
-  //       const { data } = response.data;
-  //       const sortedData = data.sort((a, b) => a.label.localeCompare(b.label));
+      if (response.data.status === 200) {
+        const sorted = response.data.data
+          .filter((item) => item.label)
+          .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
 
-  //       setArrCategories(sortedData);
-  //     }
-  //   });
-  // };
+        setArrCategories(sorted);
+      }
+    } catch (error) {
+      console.log(error);
+      setMessage({
+        severity: 'error',
+        content: 'Erro ao carregar categorias',
+        show: true,
+      });
+    }
+  };
 
   const handleSaveCategoryChanges = async (changes) => {
-
     await api.put('/api/data/updateCategory/', changes).then((response) => {
       if (response.data.status === 200) {
         setMessage({
@@ -74,7 +82,7 @@ export function APIContextProvider({ children }) {
           show: true,
         });
       }
-    }); 
+    });
   };
 
   const handleThemeChange = () => {
@@ -143,7 +151,8 @@ export function APIContextProvider({ children }) {
         loading,
         currentMonth,
         setCurrentMonth,
-        setArrCategories
+        setArrCategories,
+        handleLoadCategory,
       }}
     >
       {children}

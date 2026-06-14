@@ -154,7 +154,7 @@ export default function MainView() {
     triggerReload,
     setLoading,
     setCurrentMonth,
-    setArrCategories,
+    handleLoadCategory,
   } = useAPI();
 
   const [order, setOrder] = useState('asc');
@@ -198,29 +198,9 @@ export default function MainView() {
     }
   }
 
-  async function fetchCategories() {
-    try {
-      const response = await api.get('/api/category/getCategory');
-
-      if (response.data.status === 200) {
-        const sorted = response.data.data
-          .filter((item) => item.label)
-          .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
-
-        setArrCategories(sorted);
-      }
-    } catch (error) {
-      setMessage({
-        severity: 'error',
-        content: 'Erro ao carregar categorias',
-        show: true,
-      });
-    }
-  }
-
   useEffect(() => {
     if (!arrCategories || arrCategories.length === 0) {
-      fetchCategories();
+      handleLoadCategory();
     }
   }, []);
 
