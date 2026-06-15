@@ -1,7 +1,7 @@
 import api from './api';
 
-export const login = async (email, password) => {
-  const res = await api.post('/auth/login', { email, password });
+export const login = async (user, password) => {
+  const res = await api.post('/auth/login', { user, password });
 
   localStorage.setItem('accessToken', res.data.accessToken);
 

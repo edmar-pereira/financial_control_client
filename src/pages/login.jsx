@@ -15,7 +15,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { setMessage, setLoading } = useAPI();
 
-  const [email, setEmail] = useState('');
+  const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async (e) => {
@@ -25,7 +25,7 @@ export default function Login() {
       setLoading(true);
 
       const response = await api.post('/auth/login', {
-        email,
+        user,
         password,
       });
 
@@ -68,10 +68,10 @@ export default function Login() {
         <form onSubmit={handleLogin}>
           <Stack spacing={3}>
             <TextField
-              label='Email'
+              label='Usuário'
               fullWidth
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={user}
+              onChange={(e) => setUser(e.target.value)}
             />
 
             <TextField
