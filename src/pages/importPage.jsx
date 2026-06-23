@@ -109,20 +109,14 @@ export default function ImportPage() {
 
   /* ================= HELPERS ================= */
 
-const buildGroupKey = (item) => {
-  // compra parcelada
-  if (item.totalInstallment > 1 && item.paymentType === 'CREDITO') {
+  const buildGroupKey = (item) => {
     return [
       item.fantasyName,
-      item.originalPurchaseDate,
+      item.originalPurchaseDate || item.date,
       item.totalInstallment,
       item.value,
     ].join('|');
-  }
-
-  // compra à vista nunca agrupa
-  return crypto.randomUUID();
-};
+  };
 
   /* ================= FORMAT ================= */
 
@@ -166,14 +160,10 @@ const buildGroupKey = (item) => {
 
   /* ================= GROUP ================= */
 
-
-
-
   const groupedData = useMemo(() => {
     const map = new Map();
 
     filteredData.forEach((item) => {
-
       const groupKey = buildGroupKey(item);
 
       if (!map.has(groupKey)) {
@@ -208,8 +198,6 @@ const buildGroupKey = (item) => {
 
     return Array.from(map.values());
   }, [filteredData]);
-
-    // console.log(JSON.stringify(groupedData))
 
   /* ================= VALIDATION ================= */
 
@@ -582,7 +570,6 @@ ${updated} atualizados
 
                 <TableBody>
                   {paginatedData.map((row) => {
-                    // console.log(row)
                     const expanded = expandedGroups[row.groupKey];
 
                     return (
@@ -687,30 +674,25 @@ ${updated} atualizados
                             />
                           </TableCell>
 
-                            <TableCell>
-                              {row.totalInstallment > 1 ? (
-                                <Box>
-                                  <Typography variant='body2'>
-                                    {row.currentInstallment}/{row.totalInstallment}
-                                  </Typography>
+                          <TableCell>
+                            {row.totalInstallment > 1 ? (
+                              <Box>
+                                <Typography variant='body2'>
+                                  {row.currentInstallment}/
+                                  {row.totalInstallment}
+                                </Typography>
 
-                                  <Typography
-                                    variant='caption'
-                                    color='text.secondary'
-                                  >
-                                    {row.installments.length} parcelas
-                                  </Typography>
-                                </Box>
-                              ) : row.paymentType ? (
-                                <Typography variant='body2'>
-                                  {row.paymentType}
+                                <Typography
+                                  variant='caption'
+                                  color='text.secondary'
+                                >
+                                  {row.installments.length} parcelas
                                 </Typography>
-                              ) : (
-                                <Typography variant='body2'>
-                                  À vista
-                                </Typography>
-                              )}
-                            </TableCell>
+                              </Box>
+                            ) : (
+                              <Typography variant='body2'>À vista</Typography>
+                            )}
+                          </TableCell>
 
                           <TableCell>
                             <SelectCategory
