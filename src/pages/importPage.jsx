@@ -79,6 +79,7 @@ export default function ImportPage() {
     handleLoadCategory,
   } = useAPI();
 
+
   const today = new Date();
 
   const [statementMonth, setStatementMonth] = useState(today.getMonth() + 1);
@@ -109,15 +110,18 @@ export default function ImportPage() {
 
   /* ================= HELPERS ================= */
 
-  const buildGroupKey = (item) => {
-    return [
-      item.fantasyName,
-      item.originalPurchaseDate || item.date,
-      item.totalInstallment,
-      item.value,
-    ].join('|');
-  };
+const buildGroupKey = (item) => {
+  if (item.totalInstallment === 1) {
+    return `${item.fantasyName}|${item.date}|${item.value}|${item._rowIndex}`;
+  }
 
+  return [
+    item.fantasyName,
+    item.originalPurchaseDate || item.date,
+    item.totalInstallment,
+    item.value,
+  ].join('|');
+};
   /* ================= FORMAT ================= */
 
   const formatDate = (dateValue) => {
@@ -570,6 +574,8 @@ ${updated} atualizados
 
                 <TableBody>
                   {paginatedData.map((row) => {
+
+            
                     const expanded = expandedGroups[row.groupKey];
 
                     return (
