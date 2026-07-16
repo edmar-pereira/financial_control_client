@@ -124,25 +124,24 @@ const buildGroupKey = (item) => {
 };
   /* ================= FORMAT ================= */
 
-  const formatDate = (dateValue) => {
-    if (!dateValue) {
-      return '';
-    }
+const formatDate = (dateValue) => {
+  if (!dateValue) return '';
 
-    const date = new Date(dateValue);
-
-    if (Number.isNaN(date.getTime())) {
-      return '';
-    }
-
-    const day = String(date.getDate()).padStart(2, '0');
-
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-
-    const year = date.getFullYear();
-
+  if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+    const [year, month, day] = dateValue.split('-');
     return `${day}/${month}/${year}`;
-  };
+  }
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) return '';
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+};
 
   /* ================= FILTERS ================= */
 
@@ -574,6 +573,8 @@ ${updated} atualizados
 
                 <TableBody>
                   {paginatedData.map((row) => {
+
+                    console.log(row)
 
             
                     const expanded = expandedGroups[row.groupKey];
