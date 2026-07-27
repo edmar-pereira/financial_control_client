@@ -564,7 +564,7 @@ ${updated} atualizados
                     <TableCell sx={{ width: '20%' }}>Empresa</TableCell>
                     <TableCell sx={{ width: '20%' }}>Descrição</TableCell>
                     <TableCell sx={{ width: '15%' }}>Valor</TableCell>
-                    <TableCell sx={{ width: '8%' }}>Parcelas</TableCell>
+                    <TableCell sx={{ width: '8%' }}>Entrada</TableCell>
                     <TableCell sx={{ width: '20%' }}>Categoria</TableCell>
                     <TableCell sx={{ width: '8%' }}>Status</TableCell>
                     <TableCell sx={{ width: '10%' }}>Ações</TableCell>
@@ -574,7 +574,7 @@ ${updated} atualizados
                 <TableBody>
                   {paginatedData.map((row) => {
 
-                    console.log(row)
+                    // console.log(row)
 
             
                     const expanded = expandedGroups[row.groupKey];
@@ -682,22 +682,17 @@ ${updated} atualizados
                           </TableCell>
 
                           <TableCell>
-                            {row.totalInstallment > 1 ? (
+                            {row.paymentType == 'CREDITO' ? (
                               <Box>
                                 <Typography variant='body2'>
-                                  {row.currentInstallment}/
+                                  Parcela {row.currentInstallment}/
                                   {row.totalInstallment}
                                 </Typography>
 
-                                <Typography
-                                  variant='caption'
-                                  color='text.secondary'
-                                >
-                                  {row.installments.length} parcelas
-                                </Typography>
+      
                               </Box>
                             ) : (
-                              <Typography variant='body2'>À vista</Typography>
+                              <Typography variant='body2'>{row.paymentType}</Typography>
                             )}
                           </TableCell>
 

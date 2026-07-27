@@ -83,7 +83,7 @@ export default function AddExpense() {
 
     const debounce = setTimeout(async () => {
       try {
-        const res = await api.get('/api/data/getUniqueCompanyName', {
+        const res = await api.get('/api/data/getUniqueCompanies', {
           params: {
             value: companyInput.trim(),
             field: 'companyName',
@@ -142,15 +142,17 @@ export default function AddExpense() {
 
     const debounce = setTimeout(async () => {
       try {
-        const res = await api.get('/api/data/getUniqueCompanyName', {
+        const res = await api.get('/api/data/getUniqueCompanies', {
           params: {
             value: fantasyInput.trim(),
             field: 'fantasyName',
           },
         });
 
+        // console.log(JSON.stringify(res.data.data))
+
         if (Array.isArray(res.data.data)) {
-          setFantasyOptions(res.data.data);
+          setCompanyOptions(res.data.data);
         }
       } catch (err) {
         console.error(err);
@@ -332,45 +334,83 @@ export default function AddExpense() {
         {/* NOME FANTASIA */}
         <Grid item xs={12} sm={6}>
           <Autocomplete
-            freeSolo
-            options={fantasyOptions}
-            inputValue={fantasyInput}
-            onInputChange={(e, value) => {
-              setFantasyInput(value || '');
-              setFantasyName(value || '');
-            }}
-            onChange={(e, value) => {
-              const selected = value || '';
+  freeSolo
+  options={companyOptions}
+  getOptionLabel={(option) =>
+    typeof option === 'string' ? option : option.fantasyName || ''
+  }
+  isOptionEqualToValue={(option, value) =>
+    option.fantasyName === value.fantasyName
+  }
+  inputValue={fantasyInput}
+  onInputChange={(event, value) => {
+    setFantasyInput(value || '');
+  }}
+  onChange={(event, value) => {
+    if (!value) {
+      setFantasyName('');
+      setName('');
+      return;
+    }
 
-              setFantasyInput(selected);
-              setFantasyName(selected);
-            }}
-            renderInput={(params) => (
-              <TextField {...params} label='Nome Fantasia' fullWidth />
-            )}
-          />
+    if (typeof value === 'string') {
+      setFantasyName(value);
+      setFantasyInput(value);
+      return;
+    }
+
+    setFantasyName(value.fantasyName);
+    setFantasyInput(value.fantasyName);
+
+    // automatically fill company
+    setName(value.companyName);
+    setCompanyInput(value.companyName);
+  }}
+  renderInput={(params) => (
+    <TextField {...params} label="Nome Fantasia" fullWidth />
+  )}
+/>
         </Grid>
 
         {/* NOME DA EMPRESA */}
         <Grid item xs={12} sm={6}>
-          <Autocomplete
-            freeSolo
-            options={companyOptions}
-            inputValue={companyInput}
-            onInputChange={(e, value) => {
-              setCompanyInput(value || '');
-              setName(value || '');
-            }}
-            onChange={(e, value) => {
-              const selected = value || '';
+         <Autocomplete
+  freeSolo
+  options={companyOptions}
+  getOptionLabel={(option) =>
+    typeof option === 'string' ? option : option.companyName || ''
+  }
+  isOptionEqualToValue={(option, value) =>
+    option.companyName === value.companyName
+  }
+  inputValue={companyInput}
+  onInputChange={(event, value) => {
+    setCompanyInput(value || '');
+  }}
+  onChange={(event, value) => {
+    if (!value) {
+      setName('');
+      setFantasyName('');
+      return;
+    }
 
-              setCompanyInput(selected);
-              setName(selected);
-            }}
-            renderInput={(params) => (
-              <TextField {...params} label='Nome da Empresa' fullWidth />
-            )}
-          />
+    if (typeof value === 'string') {
+      setName(value);
+      setCompanyInput(value);
+      return;
+    }
+
+    setName(value.companyName);
+    setCompanyInput(value.companyName);
+
+    // automatically fill fantasy
+    setFantasyName(value.fantasyName);
+    setFantasyInput(value.fantasyName);
+  }}
+  renderInput={(params) => (
+    <TextField {...params} label="Nome da Empresa" fullWidth />
+  )}
+/>
         </Grid>
 
         {/* DESCRIPTION AUTOCOMPLETE */}
