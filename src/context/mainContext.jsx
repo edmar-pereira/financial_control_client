@@ -28,6 +28,7 @@ export function APIContextProvider({ children }) {
   const [importedData, setImportedData] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
   const [currentMonth, setCurrentMonth] = useState([]);
+  const [isBackendReady, setIsBackendReady] = useState(false);
 
   useEffect(() => {
     if (selectedDate) {
@@ -124,6 +125,38 @@ export function APIContextProvider({ children }) {
     setShowTableView(
       savedTableView === null || savedTableView === 'true' ? true : false,
     );
+
+    let interval;
+
+  const checkBackend = async () => {
+    try {
+      const response = await api.get('/api/health', {
+        timeout: 3000,
+      });
+
+      console.log(response)
+
+      if (response.status === 200) {
+        setIsBackendReady(true);
+
+        if (interval) {
+          clearInterval(interval);
+        }
+      }
+    } catch (error) {
+      setIsBackendReady(false);
+    }
+  };
+
+  checkBackend();
+
+  interval = setInterval(checkBackend, 5000);
+
+  return () => {
+    if (interval) {
+      clearInterval(interval);
+    }
+  };
     // handleLoadCategory();
   }, []);
 
@@ -153,6 +186,8 @@ export function APIContextProvider({ children }) {
         setCurrentMonth,
         setArrCategories,
         handleLoadCategory,
+        isBackendReady,
+        // setIsBackendReady
       }}
     >
       {children}
