@@ -252,7 +252,7 @@ export default function AddExpense() {
         });
 
         resetForm();
-        navigate('/');
+        // navigate('/');
       } else {
         setMessage({
           severity: 'error',
