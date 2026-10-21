@@ -38,6 +38,7 @@ import {
   Cancel as CancelIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
+  CalendarMonth as CalendarMonthIcon,
 } from '@mui/icons-material';
 
 import { useNavigate } from 'react-router-dom';
@@ -89,6 +90,9 @@ export default function ImportPage() {
   const [importType, setImportType] = useState('credit');
 
   const [isImported, setIsImported] = useState(false);
+
+  // Período informado no extrato bancário retornado pelo backend.
+  const [importPeriod, setImportPeriod] = useState(null);
 
   const [importLoading, setImportLoading] = useState(false);
 
@@ -213,6 +217,8 @@ const formatDate = (dateValue) => {
   const handleClearImport = () => {
     setImportedData([]);
 
+    setImportPeriod(null);
+
     setIsImported(false);
 
     setExpandedGroups({});
@@ -256,7 +262,31 @@ const formatDate = (dateValue) => {
         },
       });
 
-      const sorted = [...response.data.data].sort(
+      console.log(response.data);
+
+      // O backend retorna os metadados do extrato e as transações
+      // dentro de response.data.data.
+      const result = response.data?.data;
+      const transactions = result?.transactions;
+
+      if (!Array.isArray(transactions)) {
+        throw new Error(
+          'Resposta inválida da API: lista de transações não encontrada.',
+        );
+      }
+
+      const statement = result?.statement;
+
+      // Aceita periodLabel ou, caso não exista, as datas ISO do período.
+      const periodLabel =
+        statement?.periodLabel ||
+        (statement?.periodStart && statement?.periodEnd
+          ? `${formatDate(statement.periodStart)} a ${formatDate(statement.periodEnd)}`
+          : null);
+
+      setImportPeriod(importType === 'bank' ? periodLabel : null);
+
+      const sorted = [...transactions].sort(
         (a, b) => new Date(a.date) - new Date(b.date),
       );
 
@@ -530,6 +560,38 @@ ${updated} atualizados
             <Chip color='info' label={`Grupos: ${groupedData.length}`} />
           </Stack>
         )}
+
+        {/* Período coberto pelo extrato bancário importado */}
+        {isImported &&
+          importType === 'bank' &&
+          importPeriod &&
+          !importLoading &&
+          !saving && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 1,
+                mb: 2,
+                p: 1.5,
+                borderRadius: 1,
+                bgcolor: 'action.hover',
+              }}
+            >
+              <CalendarMonthIcon fontSize='small' color='action' />
+              <Typography variant='body2' color='text.secondary'>
+                Período do extrato:
+              </Typography>
+              <Chip
+                size='small'
+                icon={<UploadFileIcon />}
+                label={importPeriod}
+                color='primary'
+                variant='outlined'
+              />
+            </Box>
+          )}
 
         {isImported && (
           <Tabs
