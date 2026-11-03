@@ -3,6 +3,7 @@ import React, { useState, useRef, useMemo, useEffect } from 'react';
 import api from '../services/api';
 
 import {
+  Alert,
   Autocomplete,
   Box,
   Paper,
@@ -51,21 +52,6 @@ import Loader from '../components/Loading';
 
 import { useAPI } from '../context/mainContext';
 
-const MONTHS = [
-  { value: 1, label: 'Janeiro' },
-  { value: 2, label: 'Fevereiro' },
-  { value: 3, label: 'Março' },
-  { value: 4, label: 'Abril' },
-  { value: 5, label: 'Maio' },
-  { value: 6, label: 'Junho' },
-  { value: 7, label: 'Julho' },
-  { value: 8, label: 'Agosto' },
-  { value: 9, label: 'Setembro' },
-  { value: 10, label: 'Outubro' },
-  { value: 11, label: 'Novembro' },
-  { value: 12, label: 'Dezembro' },
-];
-
 export default function ImportPage() {
   const navigate = useNavigate();
 
@@ -80,19 +66,15 @@ export default function ImportPage() {
     handleLoadCategory,
   } = useAPI();
 
-
-  const today = new Date();
-
-  const [statementMonth, setStatementMonth] = useState(today.getMonth() + 1);
-
-  const [statementYear, setStatementYear] = useState(today.getFullYear());
-
-  const [importType, setImportType] = useState('credit');
+  const [importType, setImportType] = useState('bank');
 
   const [isImported, setIsImported] = useState(false);
 
   // Período informado no extrato bancário retornado pelo backend.
   const [importPeriod, setImportPeriod] = useState(null);
+
+  // Aviso retornado pelo servidor (ex.: compras parceladas não importadas).
+  const [importWarning, setImportWarning] = useState(null);
 
   const [importLoading, setImportLoading] = useState(false);
 
@@ -114,38 +96,48 @@ export default function ImportPage() {
 
   /* ================= HELPERS ================= */
 
-const buildGroupKey = (item) => {
-  if (item.totalInstallment === 1) {
-    return `${item.fantasyName}|${item.date}|${item.value}|${item._rowIndex}`;
-  }
+  // Calculada UMA vez, no carregamento, com os valores originais.
+  // Não pode mudar enquanto o usuário edita (senão a linha é remontada
+  // e o campo perde o foco).
+  const computeGroupKey = (item) => {
+    if (item.totalInstallment === 1) {
+      return `${item.fantasyName}|${item.date}|${item.value}|${item._rowIndex}`;
+    }
 
-  return [
-    item.fantasyName,
-    item.originalPurchaseDate || item.date,
-    item.totalInstallment,
-    item.value,
-  ].join('|');
-};
+    return [
+      item.fantasyName,
+      item.originalPurchaseDate || item.date,
+      item.totalInstallment,
+      item.value,
+    ].join('|');
+  };
+
+  // Chave estável usada em toda a tela.
+  const buildGroupKey = (item) => item._groupId;
+
   /* ================= FORMAT ================= */
 
-const formatDate = (dateValue) => {
-  if (!dateValue) return '';
+  const formatDate = (dateValue) => {
+    if (!dateValue) return '';
 
-  if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-    const [year, month, day] = dateValue.split('-');
+    if (
+      typeof dateValue === 'string' &&
+      /^\d{4}-\d{2}-\d{2}$/.test(dateValue)
+    ) {
+      const [year, month, day] = dateValue.split('-');
+      return `${day}/${month}/${year}`;
+    }
+
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) return '';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
     return `${day}/${month}/${year}`;
-  }
-
-  const date = new Date(dateValue);
-
-  if (Number.isNaN(date.getTime())) return '';
-
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`;
-};
+  };
 
   /* ================= FILTERS ================= */
 
@@ -219,6 +211,8 @@ const formatDate = (dateValue) => {
 
     setImportPeriod(null);
 
+    setImportWarning(null);
+
     setIsImported(false);
 
     setExpandedGroups({});
@@ -247,10 +241,6 @@ const formatDate = (dateValue) => {
 
     formData.append('file', selectedFile);
 
-    formData.append('statementMonth', statementMonth);
-
-    formData.append('statementYear', statementYear);
-
     formData.append('importType', importType);
 
     try {
@@ -262,12 +252,12 @@ const formatDate = (dateValue) => {
         },
       });
 
-      console.log(response.data);
+      const payload = response.data?.data;
 
-      // O backend retorna os metadados do extrato e as transações
-      // dentro de response.data.data.
-      const result = response.data?.data;
-      const transactions = result?.transactions;
+      // cartão: data é o array | extrato: data = { statement, transactions }
+      const transactions = Array.isArray(payload)
+        ? payload
+        : payload?.transactions;
 
       if (!Array.isArray(transactions)) {
         throw new Error(
@@ -275,7 +265,7 @@ const formatDate = (dateValue) => {
         );
       }
 
-      const statement = result?.statement;
+      const statement = Array.isArray(payload) ? null : payload?.statement;
 
       // Aceita periodLabel ou, caso não exista, as datas ISO do período.
       const periodLabel =
@@ -286,9 +276,14 @@ const formatDate = (dateValue) => {
 
       setImportPeriod(importType === 'bank' ? periodLabel : null);
 
-      const sorted = [...transactions].sort(
-        (a, b) => new Date(a.date) - new Date(b.date),
+      setImportWarning(
+        importType === 'credit' ? response.data?.warning || null : null,
       );
+
+      const sorted = [...transactions]
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .map((item, index) => ({ ...item, _rowIndex: index }))
+        .map((item) => ({ ...item, _groupId: computeGroupKey(item) }));
 
       setImportedData(sorted);
 
@@ -380,7 +375,10 @@ const formatDate = (dateValue) => {
     try {
       setSaving(true);
 
-      const payload = importedData.filter((item) => !item.duplicated);
+      // remove os campos auxiliares (_rowIndex, _groupId) antes de enviar
+      const payload = importedData
+        .filter((item) => !item.duplicated)
+        .map(({ _rowIndex, _groupId, ...rest }) => rest);
 
       const res = await api.post('/api/data/insertmany', payload);
 
@@ -487,43 +485,11 @@ ${updated} atualizados
               minWidth: 240,
             }}
           >
-            <MenuItem value='credit'>Cartão de crédito</MenuItem>
-
             <MenuItem value='bank'>Conta bancária</MenuItem>
+
+            <MenuItem value='credit'>Cartão de crédito</MenuItem>
           </TextField>
         </Stack>
-
-        {/* ================= FATURA ================= */}
-
-        {importType === 'credit' && (
-          <Stack direction='row' spacing={2} sx={{ mb: 3 }}>
-            <TextField
-              select
-              size='small'
-              label='Mês da fatura'
-              value={statementMonth}
-              onChange={(e) => setStatementMonth(Number(e.target.value))}
-              sx={{
-                minWidth: 200,
-              }}
-            >
-              {MONTHS.map((month) => (
-                <MenuItem key={month.value} value={month.value}>
-                  {month.label}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <TextField
-              label='Ano da fatura'
-              type='number'
-              value={statementYear}
-              onChange={(e) => setStatementYear(Number(e.target.value))}
-              sx={{ width: 140 }}
-              size='small'
-            />
-          </Stack>
-        )}
 
         <input
           ref={fileInputRef}
@@ -593,6 +559,13 @@ ${updated} atualizados
             </Box>
           )}
 
+        {/* Aviso do servidor (ex.: compras parceladas não importadas) */}
+        {isImported && importWarning && !importLoading && !saving && (
+          <Alert severity='warning' sx={{ mb: 2 }}>
+            {importWarning}
+          </Alert>
+        )}
+
         {isImported && (
           <Tabs
             value={tab}
@@ -635,10 +608,6 @@ ${updated} atualizados
 
                 <TableBody>
                   {paginatedData.map((row) => {
-
-                    // console.log(row)
-
-            
                     const expanded = expandedGroups[row.groupKey];
 
                     return (
@@ -750,11 +719,11 @@ ${updated} atualizados
                                   Parcela {row.currentInstallment}/
                                   {row.totalInstallment}
                                 </Typography>
-
-      
                               </Box>
                             ) : (
-                              <Typography variant='body2'>{row.paymentType}</Typography>
+                              <Typography variant='body2'>
+                                {row.paymentType}
+                              </Typography>
                             )}
                           </TableCell>
 
