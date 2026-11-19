@@ -48,6 +48,8 @@ import ShiftedCurrencyInput from '../components/ShiftedCurrencyInput';
 
 import SelectCategory from '../components/SelectCategory';
 
+import CompanyAutocomplete from '../components/CompanyAutocomplete';
+
 import Loader from '../components/Loading';
 
 import { useAPI } from '../context/mainContext';
@@ -309,21 +311,17 @@ export default function ImportPage() {
 
   /* ================= UPDATE ================= */
 
-  const updateGroup = (groupKey, field, value) => {
+  // Atualiza vários campos do grupo de uma vez (usado pelo autocomplete).
+  const updateGroupFields = (groupKey, patch) => {
     setImportedData((prev) =>
-      prev.map((item) => {
-        const currentGroupKey = buildGroupKey(item);
-
-        if (currentGroupKey === groupKey) {
-          return {
-            ...item,
-            [field]: value,
-          };
-        }
-
-        return item;
-      }),
+      prev.map((item) =>
+        buildGroupKey(item) === groupKey ? { ...item, ...patch } : item,
+      ),
     );
+  };
+
+  const updateGroup = (groupKey, field, value) => {
+    updateGroupFields(groupKey, { [field]: value });
   };
 
   /* ================= REMOVE ================= */
@@ -639,19 +637,44 @@ ${updated} atualizados
                             {formatDate(row.statementDate || row.date)}
                           </TableCell>
 
-                          <TableCell>{row.fantasyName}</TableCell>
-
+                          {/* NOME FANTASIA */}
                           <TableCell>
-                            <TextField
-                              fullWidth
-                              size='small'
+                            <CompanyAutocomplete
+                              field='fantasyName'
+                              label='Nome Fantasia'
+                              value={row.fantasyName || ''}
+                              onTextChange={(text) =>
+                                updateGroup(row.groupKey, 'fantasyName', text)
+                              }
+                              onSelectOption={(option) =>
+                                updateGroupFields(row.groupKey, {
+                                  fantasyName: option.fantasyName,
+                                  // preenche a empresa automaticamente
+                                  ...(option.companyName
+                                    ? { name: option.companyName }
+                                    : {}),
+                                })
+                              }
+                            />
+                          </TableCell>
+
+                          {/* EMPRESA */}
+                          <TableCell>
+                            <CompanyAutocomplete
+                              field='companyName'
+                              label='Empresa'
                               value={row.name || ''}
-                              onChange={(e) =>
-                                updateGroup(
-                                  row.groupKey,
-                                  'name',
-                                  e.target.value,
-                                )
+                              onTextChange={(text) =>
+                                updateGroup(row.groupKey, 'name', text)
+                              }
+                              onSelectOption={(option) =>
+                                updateGroupFields(row.groupKey, {
+                                  name: option.companyName,
+                                  // só preenche o fantasia se estiver vazio
+                                  ...(!row.fantasyName && option.fantasyName
+                                    ? { fantasyName: option.fantasyName }
+                                    : {}),
+                                })
                               }
                             />
                           </TableCell>
@@ -766,7 +789,7 @@ ${updated} atualizados
 
                         <TableRow>
                           <TableCell
-                            colSpan={9}
+                            colSpan={10}
                             sx={{
                               p: 0,
                               border: 0,

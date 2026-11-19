@@ -456,6 +456,9 @@ export default function MainView() {
           setTotalExp(data.totalExp);
           setTotalRev(data.totalRev);
           setDifference(data.difference);
+          setPage(0);
+          setSelected([]);
+          setSearchText('');
         }}
       />
     </Box>
