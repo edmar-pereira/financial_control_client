@@ -52,6 +52,7 @@ export default function AddExpense() {
   const [name, setName] = useState('');
   const [paymentType, setPaymentType] = useState('');
 
+
   // ✅ Company autocomplete
   const [companyOptions, setCompanyOptions] = useState([]);
   const [companyInput, setCompanyInput] = useState('');
@@ -71,6 +72,10 @@ export default function AddExpense() {
       handleLoadCategory();
     }
   }, []);
+
+  useEffect(() => {
+    console.log(paymentType)
+  },[paymentType])
 
   /* =========================================
      COMPANY AUTOCOMPLETE
@@ -476,7 +481,7 @@ export default function AddExpense() {
           </LocalizationProvider>
         </Grid>
 
-        {param.id?.length !== 24 && (
+        {param.id?.length !== 24 && paymentType === 'CREDITO' && (
           <>
             <Grid item xs={12} sm={6}>
               <FormControlLabel

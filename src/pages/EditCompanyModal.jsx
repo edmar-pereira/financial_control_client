@@ -38,29 +38,40 @@ export default function EditCompanyModal({ row, onClose, reload }) {
         },
       ];
 
-      console.log('Sending payload:', payload);
+      const response = await api.put(
+        '/api/category/updateCategoryInfo',
+        payload,
+      );
 
-      const response = await api.put('/api/category/updateCategory', payload);
-
-      if (response.data.status === 200) {
-        setMessage({
-          severity: 'success',
-          content: 'Categoria atualizada com sucesso!',
-          show: true,
-        });
-      } else {
+      if (response.data.status !== 200) {
         setMessage({
           severity: 'error',
-          content: 'Erro ao atualizar categoria',
+          content: 'Erro ao atualizar cadastro',
           show: true,
         });
         return;
       }
 
-      reload();
+      setMessage({
+        severity: 'success',
+        content: 'Cadastro atualizado com sucesso!',
+        show: true,
+      });
+
+      reload?.();
       onClose();
     } catch (error) {
-      console.error('Error updating category:', error);
+      console.error('Error updating category info:', error);
+
+      const duplicated = error.response?.data?.error?.includes('E11000');
+
+      setMessage({
+        severity: 'error',
+        content: duplicated
+          ? 'Já existe um cadastro com esse Nome Fantasia.'
+          : 'Erro ao atualizar cadastro',
+        show: true,
+      });
     }
   };
 
@@ -82,7 +93,6 @@ export default function EditCompanyModal({ row, onClose, reload }) {
             onChange={(e) => setForm({ ...form, companyName: e.target.value })}
           />
 
-          {/* Dropdown de categoria */}
           <SelectCategory
             selectedType={selectedCategory}
             onChange={setSelectedCategory}

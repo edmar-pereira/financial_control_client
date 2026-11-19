@@ -252,6 +252,37 @@ export default function MainView() {
     setRows(filtered);
   };
 
+  const handleDelete = async () => {
+  try {
+    setLoading(true);
+
+    await Promise.all(
+      selected.map((id) => api.delete(`/api/data/delete/${id}`)),
+    );
+
+    setSelected([]);
+    setPage(0);
+    triggerReload();
+
+    setMessage({
+      severity: 'success',
+      content: 'Excluído com sucesso!',
+      show: true,
+    });
+  } catch (error) {
+    setMessage({
+      severity: 'error',
+      content: 'Erro ao excluir despesa',
+      show: true,
+    });
+
+    // recarrega mesmo assim, caso alguma exclusão tenha funcionado
+    triggerReload();
+  } finally {
+    setLoading(false);
+  }
+};
+
   /* ================= TABLE ================= */
 
   const visibleRows = useMemo(() => {
@@ -325,15 +356,7 @@ export default function MainView() {
               </Tooltip>
 
               <Tooltip title='Excluir'>
-                <IconButton
-                  onClick={() => {
-                    selected.forEach((id) =>
-                      api.delete(`/api/data/delete/${id}`),
-                    );
-                    setSelected([]);
-                    triggerReload();
-                  }}
-                >
+                <IconButton onClick={handleDelete}>
                   <DeleteIcon />
                 </IconButton>
               </Tooltip>

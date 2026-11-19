@@ -26,7 +26,7 @@ export default function SelectMonth({ currentDate, handleChangeDate }) {
   const selectedMonth = parsedDate.getMonth() + 1;
 
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 4 }, (_, i) => currentYear - i);
+  const years = Array.from({ length: 5 }, (_, i) => currentYear + 1 - i);
 
   const updateDate = (year, month) => {
     const newDate = new Date(year, month - 1, 1);

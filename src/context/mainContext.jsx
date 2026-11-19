@@ -67,24 +67,41 @@ export function APIContextProvider({ children }) {
     }
   };
 
-  const handleSaveCategoryChanges = async (changes) => {
-    await api.put('/api/data/updateCategory/', changes).then((response) => {
-      if (response.data.status === 200) {
-        setMessage({
-          severity: 'info',
-          content: 'Categoria atualizada com sucesso!',
-          show: true,
-        });
-        // handleLoadCategory();
-      } else {
-        setMessage({
-          severity: 'error',
-          content: 'Erro ao atualizar categoria',
-          show: true,
-        });
-      }
+const handleSaveCategoryChanges = async (changes) => {
+  try {
+    const response = await api.put('/api/category/updateCategory', changes);
+
+    if (response.data.status !== 200) {
+      setMessage({
+        severity: 'error',
+        content: 'Erro ao atualizar categoria',
+        show: true,
+      });
+      return false;
+    }
+
+    // atualiza o estado global (tabela, gráfico, totais)
+    await handleLoadCategory();
+
+    setMessage({
+      severity: 'success',
+      content: 'Categoria atualizada com sucesso!',
+      show: true,
     });
-  };
+
+    return true;
+  } catch (error) {
+    console.error(error);
+
+    setMessage({
+      severity: 'error',
+      content: 'Erro ao atualizar categoria',
+      show: true,
+    });
+
+    return false;
+  }
+};
 
   const handleThemeChange = () => {
     setIsDarkMode(!isDarkMode);
@@ -134,7 +151,7 @@ export function APIContextProvider({ children }) {
         timeout: 3000,
       });
 
-      console.log(response)
+      // console.log(response)
 
       if (response.status === 200) {
         setIsBackendReady(true);

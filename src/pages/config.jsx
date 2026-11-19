@@ -65,27 +65,39 @@ export default function Config() {
     }));
   };
 
-  const handleSaveChanges = () => {
-    const updatedData = arrCategories.map((item) => ({
-      ...item,
-      maxValue:
-        expenseValues[item.id] !== undefined
-          ? expenseValues[item.id]
-          : item.maxValue,
-    }));
+  const handleSaveChanges = async () => {
+    // envia só o que mudou
+    const changed = arrCategories
+      .filter(
+        (item) =>
+          expenseValues[item.id] !== undefined &&
+          expenseValues[item.id] !== item.maxValue,
+      )
+      .map((item) => ({ id: item.id, maxValue: expenseValues[item.id] }));
 
-    handleSaveCategoryChanges(updatedData);
-    setHasChanges(false);
+    if (!changed.length) {
+      setHasChanges(false);
+      setIsLocked(true);
+      return;
+    }
+
+    const ok = await handleSaveCategoryChanges(changed);
+
+    if (ok) {
+      setHasChanges(false);
+      setIsLocked(true); // tranca o cadeado de novo
+    }
   };
 
   const handleCancelChanges = () => {
     setExpenseValues(
-      expensesType.reduce((acc, expense) => {
+      arrCategories.reduce((acc, expense) => {
         acc[expense.id] = expense.maxValue;
         return acc;
       }, {}),
     );
     setHasChanges(false);
+    setIsLocked(true);
   };
 
   const filteredCategories = useMemo(() => {

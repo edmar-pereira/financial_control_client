@@ -24,6 +24,34 @@ import ClearIcon from '@mui/icons-material/Clear';
 import api from '../services/api';
 import EditCompanyModal from './EditCompanyModal';
 
+/* ================= SORT HELPERS ================= */
+
+function descendingComparator(a, b, orderBy) {
+  if (b[orderBy] < a[orderBy]) return -1;
+  if (b[orderBy] > a[orderBy]) return 1;
+  return 0;
+}
+
+function getComparator(order, orderBy) {
+  return order === 'desc'
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
+
+function stableSort(array, comparator) {
+  const stabilized = array.map((el, index) => [el, index]);
+
+  stabilized.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+
+  return stabilized.map((el) => el[0]);
+}
+
+/* ================= COMPONENT ================= */
+
 export default function CompanySettings() {
   const { setMessage, setLoading, arrCategories, handleLoadCategory } =
     useAPI();
@@ -44,10 +72,33 @@ export default function CompanySettings() {
     return found ? found.label : '';
   }
 
+  /* ================= LOAD ================= */
+
+  const fetchAllCategoryInfo = async () => {
+    try {
+      setLoading(true);
+
+      const res = await api.get('/api/category/getAllCategoryInfo'); // ajuste à sua rota
+      setRows(res.data.data || []);
+    } catch (error) {
+      console.error(error);
+
+      setMessage({
+        severity: 'error',
+        content: 'Erro ao carregar cadastros',
+        show: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!arrCategories || arrCategories.length === 0) {
       handleLoadCategory();
     }
+
+    fetchAllCategoryInfo();
   }, []);
 
   /* ================= DELETE ================= */
@@ -64,7 +115,7 @@ export default function CompanySettings() {
 
       setMessage({
         severity: 'success',
-        content: 'Empresa removida com sucesso',
+        content: 'Cadastro removido com sucesso',
         show: true,
       });
 
@@ -74,7 +125,7 @@ export default function CompanySettings() {
 
       setMessage({
         severity: 'error',
-        content: 'Erro ao excluir empresa',
+        content: 'Erro ao excluir cadastro',
         show: true,
       });
     }
@@ -100,33 +151,16 @@ export default function CompanySettings() {
 
   /* ================= SORT ================= */
 
-  function descendingComparator(a, b, orderBy) {
-    if (b[orderBy] < a[orderBy]) return -1;
-    if (b[orderBy] > a[orderBy]) return 1;
-    return 0;
-  }
-
-  function getComparator(order, orderBy) {
-    return order === 'desc'
-      ? (a, b) => descendingComparator(a, b, orderBy)
-      : (a, b) => -descendingComparator(a, b, orderBy);
-  }
-
-  function stableSort(array, comparator) {
-    const stabilized = array.map((el, index) => [el, index]);
-
-    stabilized.sort((a, b) => {
-      const order = comparator(a[0], b[0]);
-      if (order !== 0) return order;
-      return a[1] - b[1];
-    });
-
-    return stabilized.map((el) => el[0]);
-  }
-
   const sortedRows = useMemo(() => {
     return stableSort(filteredRows, getComparator(order, orderBy));
   }, [filteredRows, order, orderBy]);
+
+  // evita ficar numa página vazia depois de excluir ou filtrar
+  useEffect(() => {
+    if (page > 0 && page * rowsPerPage >= sortedRows.length) {
+      setPage(0);
+    }
+  }, [sortedRows.length, page, rowsPerPage]);
 
   const visibleRows = sortedRows.slice(
     page * rowsPerPage,
@@ -244,7 +278,7 @@ export default function CompanySettings() {
       <EditCompanyModal
         row={selectedRow}
         onClose={() => setSelectedRow(null)}
-        // reload={fetchAllCategoryInfo}
+        reload={fetchAllCategoryInfo}
       />
     </Paper>
   );
