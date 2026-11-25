@@ -48,19 +48,17 @@ export default function AddExpense() {
   const [totalMonths, setTotalMonths] = useState(1);
   const arrTotalMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
-  const [fantasyName, setFantasyName] = useState('');
-  const [name, setName] = useState('');
   const [paymentType, setPaymentType] = useState('');
 
-
-  // ✅ Company autocomplete
+  // Company (Nome da Empresa) autocomplete
   const [companyOptions, setCompanyOptions] = useState([]);
   const [companyInput, setCompanyInput] = useState('');
 
-  // ✅ Description autocomplete
+  // Description autocomplete
   const [descriptionOptions, setDescriptionOptions] = useState([]);
   const [inputValue, setInputValue] = useState('');
 
+  // Fantasy name (Nome Fantasia) autocomplete
   const [fantasyOptions, setFantasyOptions] = useState([]);
   const [fantasyInput, setFantasyInput] = useState('');
 
@@ -72,10 +70,6 @@ export default function AddExpense() {
       handleLoadCategory();
     }
   }, []);
-
-  useEffect(() => {
-    console.log(paymentType)
-  },[paymentType])
 
   /* =========================================
      COMPANY AUTOCOMPLETE
@@ -94,8 +88,6 @@ export default function AddExpense() {
             field: 'companyName',
           },
         });
-
-        // console.log('Resposta da API de empresas:', res.data.data);
 
         if (Array.isArray(res.data.data)) {
           setCompanyOptions(res.data.data);
@@ -122,8 +114,6 @@ export default function AddExpense() {
         const res = await api.get('/api/data/getUniqueDescriptions', {
           params: { description: inputValue.trim() },
         });
-
-        // console.log(res.data.data);
 
         if (Array.isArray(res.data.data)) {
           setDescriptionOptions(res.data.data);
@@ -154,13 +144,12 @@ export default function AddExpense() {
           },
         });
 
-        // console.log(JSON.stringify(res.data.data))
-
         if (Array.isArray(res.data.data)) {
-          setCompanyOptions(res.data.data);
+          // FIX: antes estava setCompanyOptions, sobrescrevendo a lista do outro campo
+          setFantasyOptions(res.data.data);
         }
       } catch (err) {
-        console.error(err);
+        console.error('Erro ao buscar nome fantasia', err);
       }
     }, 500);
 
@@ -178,11 +167,9 @@ export default function AddExpense() {
 
     setCompanyInput('');
     setCompanyOptions([]);
-    setName('');
 
     setFantasyInput('');
     setFantasyOptions([]);
-    setFantasyName('');
 
     setIgnore(false);
     setValidate(false);
@@ -191,6 +178,7 @@ export default function AddExpense() {
     setPaymentType('');
   };
 
+  // FIX: usa o texto dos inputs (digitado ou selecionado) como fonte de verdade
   const buildPayload = () => ({
     date: date ? date.slice(0, 10) : null,
     description,
@@ -199,8 +187,8 @@ export default function AddExpense() {
     value: expenseValue,
     currentInstallment: 1,
     totalInstallment: extraFields ? totalMonths : 1,
-    fantasyName,
-    name,
+    fantasyName: fantasyInput.trim(),
+    name: companyInput.trim(),
     paymentType,
     updatedAt: new Date().toISOString(),
   });
@@ -208,8 +196,9 @@ export default function AddExpense() {
   const handleUpdateExpense = async () => {
     const payload = buildPayload();
 
-    api.put(`/api/data/update/${param.id}`, payload).then((response) => {
-      console.log(response.data);
+    try {
+      const response = await api.put(`/api/data/update/${param.id}`, payload);
+
       if (response.data.status === 200) {
         setMessage({
           severity: 'success',
@@ -226,7 +215,15 @@ export default function AddExpense() {
           show: true,
         });
       }
-    });
+    } catch (error) {
+      console.error('Axios error:', error);
+
+      setMessage({
+        severity: 'error',
+        content: error.response?.data?.error || 'Erro ao atualizar despesa',
+        show: true,
+      });
+    }
   };
 
   const handleAddNewExpense = async () => {
@@ -244,8 +241,6 @@ export default function AddExpense() {
 
     const payload = buildPayload();
 
-    // console.log('Payload a ser enviado:', JSON.stringify(payload, null, 2));
-
     try {
       const response = await api.post('/api/data/create', payload);
 
@@ -257,7 +252,6 @@ export default function AddExpense() {
         });
 
         resetForm();
-        // navigate('/');
       } else {
         setMessage({
           severity: 'error',
@@ -265,8 +259,6 @@ export default function AddExpense() {
           show: true,
         });
       }
-
-      // console.log('Success:', response.data);
     } catch (error) {
       console.error('Axios error:', error);
 
@@ -280,7 +272,6 @@ export default function AddExpense() {
         errorMessage = error.message;
       }
 
-      // ❌ ERROR MESSAGE
       setMessage({
         severity: 'error',
         content: errorMessage,
@@ -301,10 +292,7 @@ export default function AddExpense() {
     setDate(data.date);
     setIgnore(data.ignore);
 
-    setFantasyName(data.fantasyName || '');
     setFantasyInput(data.fantasyName || '');
-
-    setName(data.name || '');
     setCompanyInput(data.name || '');
 
     setPaymentType(data.paymentType || '');
@@ -339,83 +327,77 @@ export default function AddExpense() {
         {/* NOME FANTASIA */}
         <Grid item xs={12} sm={6}>
           <Autocomplete
-  freeSolo
-  options={companyOptions}
-  getOptionLabel={(option) =>
-    typeof option === 'string' ? option : option.fantasyName || ''
-  }
-  isOptionEqualToValue={(option, value) =>
-    option.fantasyName === value.fantasyName
-  }
-  inputValue={fantasyInput}
-  onInputChange={(event, value) => {
-    setFantasyInput(value || '');
-  }}
-  onChange={(event, value) => {
-    if (!value) {
-      setFantasyName('');
-      setName('');
-      return;
-    }
+            freeSolo
+            options={fantasyOptions}
+            getOptionLabel={(option) =>
+              typeof option === 'string' ? option : option.fantasyName || ''
+            }
+            isOptionEqualToValue={(option, value) =>
+              (option.fantasyName ?? option) === (value.fantasyName ?? value)
+            }
+            inputValue={fantasyInput}
+            onInputChange={(event, value) => {
+              setFantasyInput(value || '');
+            }}
+            onChange={(event, value) => {
+              if (!value) {
+                setFantasyInput('');
+                setCompanyInput('');
+                return;
+              }
 
-    if (typeof value === 'string') {
-      setFantasyName(value);
-      setFantasyInput(value);
-      return;
-    }
+              if (typeof value === 'string') {
+                setFantasyInput(value);
+                return;
+              }
 
-    setFantasyName(value.fantasyName);
-    setFantasyInput(value.fantasyName);
+              setFantasyInput(value.fantasyName || '');
 
-    // automatically fill company
-    setName(value.companyName);
-    setCompanyInput(value.companyName);
-  }}
-  renderInput={(params) => (
-    <TextField {...params} label="Nome Fantasia" fullWidth />
-  )}
-/>
+              // preenche automaticamente a empresa
+              setCompanyInput(value.companyName || '');
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label='Nome Fantasia' fullWidth />
+            )}
+          />
         </Grid>
 
         {/* NOME DA EMPRESA */}
         <Grid item xs={12} sm={6}>
-         <Autocomplete
-  freeSolo
-  options={companyOptions}
-  getOptionLabel={(option) =>
-    typeof option === 'string' ? option : option.companyName || ''
-  }
-  isOptionEqualToValue={(option, value) =>
-    option.companyName === value.companyName
-  }
-  inputValue={companyInput}
-  onInputChange={(event, value) => {
-    setCompanyInput(value || '');
-  }}
-  onChange={(event, value) => {
-    if (!value) {
-      setName('');
-      setFantasyName('');
-      return;
-    }
+          <Autocomplete
+            freeSolo
+            options={companyOptions}
+            getOptionLabel={(option) =>
+              typeof option === 'string' ? option : option.companyName || ''
+            }
+            isOptionEqualToValue={(option, value) =>
+              (option.companyName ?? option) === (value.companyName ?? value)
+            }
+            inputValue={companyInput}
+            onInputChange={(event, value) => {
+              setCompanyInput(value || '');
+            }}
+            onChange={(event, value) => {
+              if (!value) {
+                setCompanyInput('');
+                setFantasyInput('');
+                return;
+              }
 
-    if (typeof value === 'string') {
-      setName(value);
-      setCompanyInput(value);
-      return;
-    }
+              if (typeof value === 'string') {
+                setCompanyInput(value);
+                return;
+              }
 
-    setName(value.companyName);
-    setCompanyInput(value.companyName);
+              setCompanyInput(value.companyName || '');
 
-    // automatically fill fantasy
-    setFantasyName(value.fantasyName);
-    setFantasyInput(value.fantasyName);
-  }}
-  renderInput={(params) => (
-    <TextField {...params} label="Nome da Empresa" fullWidth />
-  )}
-/>
+              // preenche automaticamente o nome fantasia
+              setFantasyInput(value.fantasyName || '');
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label='Nome da Empresa' fullWidth />
+            )}
+          />
         </Grid>
 
         {/* DESCRIPTION AUTOCOMPLETE */}
